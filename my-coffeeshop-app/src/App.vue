@@ -95,7 +95,7 @@ export default {
 <style>
 .navbar {
   background-color: var(--primary);
-  padding: 1rem 2rem;
+  padding: 0rem 2rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -138,6 +138,11 @@ export default {
 .nav-links a:hover {
   color: var(--accent);
 }
+
+/* #app{
+  padding-top: 8rem;
+  padding-bottom: 8rem;
+} */
 
 .footer {
   background-color: var(--dark);
