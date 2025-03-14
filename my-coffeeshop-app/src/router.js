@@ -6,6 +6,8 @@ import Home from './views/Homepage.vue'
 // import About from './views/About.vue'
 import Menu from './views/Menu.vue'
 import Login from './views/Login.vue'
+import DrinkCustomization from './views/DrinkCustomization.vue'
+import Cart from './views/Cart.vue'
 // import Profile from './views/Profile.vue'
 // import Cart from './views/Cart.vue'
 
@@ -28,16 +30,21 @@ const router = createRouter({
       name: 'menu',
       component: Menu 
     },
+    {
+      path: '/drink/:id',
+      name: 'drink',
+      component: DrinkCustomization
+    },
     // { 
     //   path: '/profile', 
     //   name: 'profile',
     //   component: Profile 
     // },
-    // { 
-    //   path: '/cart', 
-    //   name: 'cart',
-    //   component: Cart 
-    // },
+    { 
+      path: '/cart', 
+      name: 'cart',
+      component: Cart 
+    },
     // Catch-all route for 404 errors
     // { 
     //   path: '/:pathMatch(.*)*', 
@@ -46,5 +53,7 @@ const router = createRouter({
     // }
   ]
 })
+
+
 
 export default router

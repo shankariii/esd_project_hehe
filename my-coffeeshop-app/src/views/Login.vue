@@ -1,355 +1,391 @@
-<script setup>
-import { ref } from 'vue';
-import { initializeApp } from 'firebase/app';
-import { getAuth, GoogleAuthProvider, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, signInWithPopup, sendPasswordResetEmail } from 'firebase/auth';
-
-const firebaseConfig = {
-    apiKey: "AIzaSyCvIDqbUMswOpiUuhK4T5F1xDtV6TF3DhY",
-    authDomain: "esd-coffeehouse.firebaseapp.com",
-    projectId: "esd-coffeehouse",
-    storageBucket: "esd-coffeehouse.firebasestorage.app",
-    messagingSenderId: "775228208734",
-    appId: "1:775228208734:web:e789da4fb8fd39b6d6e6cf",
-    measurementId: "G-6Q5J1S1KLP"
-};
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const googleProvider = new GoogleAuthProvider();
-
-// State variables
-const activeTab = ref('login');
-const errorMessage = ref('');
-const successMessage = ref('');
-
-const loginForm = ref({
-    email: '',
-    password: ''
-});
-
-const registerForm = ref({
-    name: '',
-    email: '',
-    password: '',
-    confirmPassword: ''
-});
-
-// Methods
-const login = async () => {
-    try {
-        errorMessage.value = '';
-        successMessage.value = '';
-
-        await signInWithEmailAndPassword(
-            auth,
-            loginForm.value.email,
-            loginForm.value.password
-        );
-
-        successMessage.value = 'Login successful! Redirecting...';
-        setTimeout(() => {
-            window.location.href = "../BrewHaven/profile.html";
-        }, 1500);
-    } catch (error) {
-        errorMessage.value = error.message;
-    }
-};
-
-const register = async () => {
-    try {
-        errorMessage.value = '';
-        successMessage.value = '';
-
-        if (registerForm.value.password !== registerForm.value.confirmPassword) {
-            errorMessage.value = 'Passwords do not match';
-            return;
-        }
-
-        // Create user
-        const userCredential = await createUserWithEmailAndPassword(
-            auth,
-            registerForm.value.email,
-            registerForm.value.password
-        );
-
-        // Update profile with name
-        await updateProfile(userCredential.user, {
-            displayName: registerForm.value.name
-        });
-
-        successMessage.value = 'Account created successfully! You can now log in.';
-        activeTab.value = 'login';
-    } catch (error) {
-        errorMessage.value = error.message;
-    }
-};
-
-const loginWithGoogle = async () => {
-    try {
-        errorMessage.value = '';
-        successMessage.value = '';
-
-        await signInWithPopup(auth, googleProvider);
-
-        successMessage.value = 'Login successful! Redirecting...';
-        setTimeout(() => {
-            window.location.href = '/dashboard.html';
-        }, 1500);
-    } catch (error) {
-        errorMessage.value = error.message;
-    }
-};
-
-const forgotPassword = async () => {
-    try {
-        errorMessage.value = '';
-        successMessage.value = '';
-
-        if (!loginForm.value.email) {
-            errorMessage.value = 'Please enter your email address';
-            return;
-        }
-
-        await sendPasswordResetEmail(auth, loginForm.value.email);
-        successMessage.value = 'Password reset email sent! Check your inbox.';
-    } catch (error) {
-        errorMessage.value = error.message;
-    }
-};
-</script>
-
 <template>
-    <div class="logo">
-        <h1>☕</h1>
-        <h1>Brew Heaven</h1>
-        <br>
-        <p>Creating Perfect Memories</p>
-    </div>
-
-    <div class="card">
+    <div class="login-container">
+      <div class="login-card">
+        <div class="brand">
+          <h1>Brew Heaven</h1>
+          <p class="tagline">Crafting Perfect Moments</p>
+        </div>
+        
         <div class="tabs">
-            <div class="tab" :class="{ active: activeTab === 'login' }" @click="activeTab = 'login'">
-                Login
-            </div>
-            <div class="tab" :class="{ active: activeTab === 'register' }" @click="activeTab = 'register'">
-                Create Account
-            </div>
+          <button 
+            :class="['tab-btn', { active: activeTab === 'login' }]" 
+            @click="activeTab = 'login'"
+          >
+            Login
+          </button>
+          <button 
+            :class="['tab-btn', { active: activeTab === 'register' }]" 
+            @click="activeTab = 'register'"
+          >
+            Create Account
+          </button>
         </div>
-
-        <div v-if="activeTab === 'login'">
-            <form @submit.prevent="login">
-                <div class="form-group">
-                    <label for="login-email">Email</label>
-                    <input type="email" id="login-email" v-model="loginForm.email" required
-                        placeholder="your@email.com">
-                </div>
-
-                <div class="form-group">
-                    <label for="login-password">Password</label>
-                    <input type="password" id="login-password" v-model="loginForm.password" required
-                        placeholder="Enter your password">
-                </div>
-
-                <button type="submit" class="btn btn-primary">
-                    Log In
-                </button>
-            </form>
-
-            <div class="forgot-password">
-                <a href="#" @click.prevent="forgotPassword">Forgot Password?</a>
-            </div>
-
-            <button @click="loginWithGoogle" class="btn btn-google">
-                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google Logo">
-                Continue with Google
-            </button>
+        
+        <form v-if="activeTab === 'login'" @submit.prevent="handleLogin" class="login-form">
+          <div class="form-group">
+            <label for="email">Email</label>
+            <input 
+              type="email" 
+              id="email" 
+              v-model="loginForm.email" 
+              placeholder="your@email.com" 
+              required
+            >
+          </div>
+          
+          <div class="form-group">
+            <label for="password">Password</label>
+            <input 
+              type="password" 
+              id="password" 
+              v-model="loginForm.password" 
+              placeholder="Enter your password" 
+              required
+            >
+          </div>
+          
+          <button type="submit" class="submit-btn">Log In</button>
+          <a href="#" class="forgot-password" @click.prevent="handleForgotPassword">Forgot Password?</a>
+        </form>
+        
+        <form v-else @submit.prevent="handleRegister" class="login-form">
+          <div class="form-group">
+            <label for="reg-name">Full Name</label>
+            <input 
+              type="text" 
+              id="reg-name" 
+              v-model="registerForm.name" 
+              placeholder="Your name" 
+              required
+            >
+          </div>
+          
+          <div class="form-group">
+            <label for="reg-email">Email</label>
+            <input 
+              type="email" 
+              id="reg-email" 
+              v-model="registerForm.email" 
+              placeholder="your@email.com" 
+              required
+            >
+          </div>
+          
+          <div class="form-group">
+            <label for="reg-password">Password</label>
+            <input 
+              type="password" 
+              id="reg-password" 
+              v-model="registerForm.password" 
+              placeholder="Create a password" 
+              required
+            >
+          </div>
+          
+          <button type="submit" class="submit-btn">Create Account</button>
+        </form>
+        
+        <div class="divider">
+          <span>or</span>
         </div>
-
-        <div v-if="activeTab === 'register'">
-            <form @submit.prevent="register">
-                <div class="form-group">
-                    <label for="register-name">Full Name</label>
-                    <input type="text" id="register-name" v-model="registerForm.name" required placeholder="Your name">
-                </div>
-
-                <div class="form-group">
-                    <label for="register-email">Email</label>
-                    <input type="email" id="register-email" v-model="registerForm.email" required
-                        placeholder="your@email.com">
-                </div>
-
-                <div class="form-group">
-                    <label for="register-password">Password</label>
-                    <input type="password" id="register-password" v-model="registerForm.password" required
-                        placeholder="Create a password">
-                </div>
-
-                <div class="form-group">
-                    <label for="register-confirm-password">Confirm Password</label>
-                    <input type="password" id="register-confirm-password" v-model="registerForm.confirmPassword"
-                        required placeholder="Confirm your password">
-                </div>
-
-                <button type="submit" class="btn btn-primary">
-                    Create Account
-                </button>
-            </form>
-
-            <button @click="loginWithGoogle" class="btn btn-google">
-                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google Logo">
-                Sign Up with Google
-            </button>
-        </div>
-
-        <div v-if="errorMessage" class="error-message">
-            {{ errorMessage }}
-        </div>
-
-        <div v-if="successMessage" class="success-message">
-            {{ successMessage }}
-        </div>
+        
+        <button @click="signInWithGoogle" class="google-btn">
+          <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google logo">
+          Continue with Google
+        </button>
+        
+        <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
+      </div>
     </div>
-</template>
-
-<style>
-.container {
+  </template>
+  
+  <script>
+  import { ref, reactive } from 'vue'
+  import { 
+    getAuth, 
+    signInWithEmailAndPassword, 
+    createUserWithEmailAndPassword, 
+    GoogleAuthProvider, 
+    signInWithPopup,
+    sendPasswordResetEmail
+  } from 'firebase/auth'
+  
+  export default {
+    name: 'LoginComponent',
+    setup() {
+      const activeTab = ref('login')
+      const errorMessage = ref('')
+      
+      const loginForm = reactive({
+        email: '',
+        password: ''
+      })
+      
+      const registerForm = reactive({
+        name: '',
+        email: '',
+        password: ''
+      })
+      
+      const auth = getAuth()
+      
+      const handleLogin = async () => {
+        try {
+          errorMessage.value = ''
+          await signInWithEmailAndPassword(auth, loginForm.email, loginForm.password)
+          // Redirect or handle successful login
+          console.log('Logged in successfully')
+        } catch (error) {
+          errorMessage.value = getErrorMessage(error.code)
+        }
+      }
+      
+      const handleRegister = async () => {
+        try {
+          errorMessage.value = ''
+          const userCredential = await createUserWithEmailAndPassword(
+            auth, 
+            registerForm.email, 
+            registerForm.password
+          )
+          
+          // You can save additional user info to firestore here
+          console.log('Account created successfully', userCredential.user)
+        } catch (error) {
+          errorMessage.value = getErrorMessage(error.code)
+        }
+      }
+      
+      const signInWithGoogle = async () => {
+        try {
+          errorMessage.value = ''
+          const provider = new GoogleAuthProvider()
+          await signInWithPopup(auth, provider)
+          // Redirect or handle successful login
+          console.log('Logged in with Google successfully')
+        } catch (error) {
+          errorMessage.value = 'Google sign-in failed. Please try again.'
+        }
+      }
+      
+      const handleForgotPassword = async () => {
+        if (!loginForm.email) {
+          errorMessage.value = 'Please enter your email address'
+          return
+        }
+        
+        try {
+          await sendPasswordResetEmail(auth, loginForm.email)
+          errorMessage.value = 'Password reset email sent! Check your inbox.'
+        } catch (error) {
+          errorMessage.value = 'Failed to send reset email. Please try again.'
+        }
+      }
+      
+      const getErrorMessage = (errorCode) => {
+        switch (errorCode) {
+          case 'auth/invalid-email':
+            return 'Invalid email address.'
+          case 'auth/user-disabled':
+            return 'This account has been disabled.'
+          case 'auth/user-not-found':
+            return 'No account found with this email.'
+          case 'auth/wrong-password':
+            return 'Incorrect password.'
+          case 'auth/email-already-in-use':
+            return 'This email is already registered.'
+          case 'auth/weak-password':
+            return 'Password should be at least 6 characters.'
+          default:
+            return 'An error occurred. Please try again.'
+        }
+      }
+      
+      return {
+        activeTab,
+        loginForm,
+        registerForm,
+        errorMessage,
+        handleLogin,
+        handleRegister,
+        signInWithGoogle,
+        handleForgotPassword
+      }
+    }
+  }
+  </script>
+  
+  <style scoped>
+  .login-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background-color: var(--light);
+    background-image: linear-gradient(rgba(239, 235, 233, 0.8), rgba(239, 235, 233, 0.8)), 
+                      url('path-to-your-coffee-background.jpg');
+    background-size: cover;
+    background-position: center;
+  }
+  
+  .login-card {
     width: 100%;
-    max-width: 600px; /* Adjust as needed */
-    padding: 2rem;
-    margin: 0 auto; /* Center the container */
-}
-.logo {
+    max-width: 450px;
+    background-color: white;
+    border-radius: 10px;
+    padding: 2.5rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  }
+  
+  .brand {
     text-align: center;
     margin-bottom: 2rem;
-}
-
-.logo h1 {
-    font-size: 2.5rem;
-    color: #6f4e37;
-    margin-bottom: 0.5rem;
-}
-
-.logo p {
-    color: #8c7b67;
-}
-
-.card {
-    background-color: white;
-    border-radius: 12px;
-    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
-    padding: 2rem;
-    margin-bottom: 1.5rem;
-}
-
-.tabs {
+  }
+  
+  .brand h1 {
+    color: var(--primary);
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+  }
+  
+  .tagline {
+    color: var(--text-light);
+    font-size: 1rem;
+  }
+  
+  .tabs {
     display: flex;
+    border-bottom: 1px solid #eee;
     margin-bottom: 1.5rem;
-    border-bottom: 1px solid #e0d8cf;
-}
-
-.tab {
+  }
+  
+  .tab-btn {
     flex: 1;
-    text-align: center;
-    padding: 0.75rem;
-    cursor: pointer;
-    font-weight: 600;
-    color: #8c7b67;
-    transition: all 0.3s ease;
-}
-
-.tab.active {
-    color: #6f4e37;
-    border-bottom: 3px solid #6f4e37;
-}
-
-.form-group {
-    margin-bottom: 1.5rem;
-}
-
-.form-group label {
-    display: block;
-    margin-bottom: 0.5rem;
-    font-weight: 500;
-}
-
-.form-group input {
-    width: 100%;
-    padding: 0.75rem;
-    border: 1px solid #e0d8cf;
-    border-radius: 6px;
-    font-size: 1rem;
-    transition: border 0.3s ease;
-}
-
-.form-group input:focus {
-    outline: none;
-    border-color: #6f4e37;
-}
-
-.btn {
-    width: 100%;
-    padding: 0.85rem;
+    background: none;
     border: none;
-    border-radius: 6px;
+    padding: 1rem;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-light);
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  
+  .tab-btn.active {
+    color: var(--primary);
+    border-bottom: 2px solid var(--primary);
+  }
+  
+  .login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+  
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  label {
+    font-weight: 600;
+    color: var(--text);
+    font-size: 0.9rem;
+  }
+  
+  input {
+    padding: 0.75rem 1rem;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 1rem;
+    transition: border-color 0.3s;
+  }
+  
+  input:focus {
+    outline: none;
+    border-color: var(--primary);
+  }
+  
+  .submit-btn {
+    background-color: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 0.75rem;
     font-size: 1rem;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.btn-primary {
-    background-color: #6f4e37;
-    color: white;
-}
-
-.btn-primary:hover {
-    background-color: #5d412e;
-}
-
-.btn-google {
+    transition: background-color 0.3s;
+    margin-top: 0.5rem;
+  }
+  
+  .submit-btn:hover {
+    background-color: var(--dark);
+  }
+  
+  .forgot-password {
+    text-align: center;
+    color: var(--primary);
+    text-decoration: none;
+    font-size: 0.9rem;
+    margin-top: 1rem;
+    display: block;
+  }
+  
+  .divider {
+    position: relative;
+    text-align: center;
+    margin: 1.5rem 0;
+  }
+  
+  .divider::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background-color: #eee;
+  }
+  
+  .divider span {
+    position: relative;
     background-color: white;
-    border: 1px solid #e0d8cf;
-    color: #4a3520;
+    padding: 0 1rem;
+    color: var(--text-light);
+    font-size: 0.9rem;
+  }
+  
+  .google-btn {
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-top: 1rem;
-}
-
-.btn-google:hover {
-    background-color: #f8f8f8;
-}
-
-.btn-google img {
-    width: 20px;
-    margin-right: 10px;
-}
-
-.forgot-password {
-    text-align: center;
-    margin-top: 1rem;
-}
-
-.forgot-password a {
-    color: #8c7b67;
-    text-decoration: none;
-}
-
-.forgot-password a:hover {
-    color: #6f4e37;
-    text-decoration: underline;
-}
-
-.error-message {
-    color: #e74c3c;
+    gap: 0.75rem;
+    width: 100%;
+    background-color: white;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 0.75rem;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  
+  .google-btn:hover {
+    background-color: #f5f5f5;
+  }
+  
+  .google-btn img {
+    width: 18px;
+    height: 18px;
+  }
+  
+  .error-message {
+    color: #d32f2f;
+    font-size: 0.9rem;
     margin-top: 1rem;
     text-align: center;
-}
-
-.success-message {
-    color: #27ae60;
-    margin-top: 1rem;
-    text-align: center;
-}
-</style>
+  }
+  </style>
