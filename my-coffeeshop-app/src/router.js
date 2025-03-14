@@ -8,7 +8,8 @@ import Menu from './views/Menu.vue'
 import Login from './views/Login.vue'
 import DrinkCustomization from './views/DrinkCustomization.vue'
 import Cart from './views/Cart.vue'
-// import Profile from './views/Profile.vue'
+import Profile from './views/Profile.vue'
+import TrackOrders from './views/TrackOrders.vue'
 // import Cart from './views/Cart.vue'
 
 // Create and export the router
@@ -35,15 +36,20 @@ const router = createRouter({
       name: 'drink',
       component: DrinkCustomization
     },
-    // { 
-    //   path: '/profile', 
-    //   name: 'profile',
-    //   component: Profile 
-    // },
+    { 
+      path: '/profile', 
+      name: 'profile',
+      component: Profile 
+    },
     { 
       path: '/cart', 
       name: 'cart',
       component: Cart 
+    },
+    { 
+      path: '/trackOrders', 
+      name: 'trackOrders',
+      component: TrackOrders 
     },
     // Catch-all route for 404 errors
     // { 
