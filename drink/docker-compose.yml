@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  mysql_db:
+    image: mysql:8.0
+    container_name: drink
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ""  # No password
+      MYSQL_DATABASE: drinkdb
+    ports:
+      - "3306:3306"
+    networks:
+      - mynetwork  # This ensures MySQL is on the same network
+
+  flask_app:
+    build: .
+    container_name: flask_app
+    restart: always
+    ports:
+      - "5002:5002"
+    depends_on:
+      - mysql_db
+    environment:
+      - FLASK_ENV=development
+    networks:
+      - mynetwork  # Make sure Flask is on the same network
+    command: python drink.py  # Ensure drink.py runs
+
+networks:
+  mynetwork:
+    driver: bridge  # This properly defines the network
