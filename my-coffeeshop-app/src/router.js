@@ -51,6 +51,10 @@ const router = createRouter({
       name: 'trackOrders',
       component: TrackOrders 
     },
+    { 
+      path: '/homepage/#about', 
+      name: 'about',
+    },
     // Catch-all route for 404 errors
     // { 
     //   path: '/:pathMatch(.*)*', 

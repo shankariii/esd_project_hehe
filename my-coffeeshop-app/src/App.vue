@@ -12,7 +12,7 @@
             <i class="fas fa-cart-shopping"></i>
           </a></li> -->
         <li><router-link to="/">Home</router-link></li>
-        <li><router-link to="/about">About</router-link></li>
+        <li><router-link to="/#about">About</router-link></li>
         <li><router-link to="/menu">Menu</router-link></li>
         <li><router-link to="/profile">Profile</router-link></li>
         <li><router-link to="/cart"><i class="fas fa-cart-shopping"></i></router-link></li>
