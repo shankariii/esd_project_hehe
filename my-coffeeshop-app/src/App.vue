@@ -4,13 +4,6 @@
       <a href="#" class="logo">☕ <span>Brew Haven</span></a>
       <button class="mobile-menu-btn" @click="toggleMenu">☰</button>
       <ul class="nav-links" :class="{ active: mobileMenuOpen }">
-        <!-- <li><a href="#">Home</a></li>
-        <li><a href="#about">About</a></li>
-        <li><a href="#">Menu</a></li>
-        <li><a href="#">Profile</a></li>
-        <li><a href="#">
-            <i class="fas fa-cart-shopping"></i>
-          </a></li> -->
         <li><router-link to="/">Home</router-link></li>
         <li><router-link to="/#about">About</router-link></li>
         <li><router-link to="/menu">Menu</router-link></li>

@@ -96,7 +96,7 @@
                 </div>
                 
                 <!-- Proceed to Payment button -->
-                <button class="normal-checkout-bar" @click="proceedToPayment" style="background-color: var(--accent); color: var(--dark); border: none; width: 100%; padding: 1rem; border-radius: 5px; font-weight: bold; margin-top: 1rem; cursor: pointer; transition: background-color 0.3s;">
+                <button class="normal-checkout-bar" id="submit" @click="proceedToPayment" style="background-color: var(--accent); color: var(--dark); border: none; width: 100%; padding: 1rem; border-radius: 5px; font-weight: bold; margin-top: 1rem; cursor: pointer; transition: background-color 0.3s;">
                   Proceed to Payment
                 </button>
               </div>
@@ -121,6 +121,7 @@
   </template>
   
   <script>
+  import { useRouter } from 'vue-router';
   export default {
     data() {
       return {
@@ -174,9 +175,12 @@
       removeItem(index) {
         this.cartItems.splice(index, 1);
       },
+      
       proceedToPayment() {
+        const router = useRouter();
         // In a real application, this would redirect to a payment page
-        alert("Proceeding to payment!");
+        console.log("Proceeding to payment!");
+        router.push(`/checkout`)
       }
     },
     created() {
@@ -184,6 +188,8 @@
       this.tax = this.subtotal * 0.08;
     }
   };
+
+  
   </script>
   <!-- Mobile-specific CSS -->
   <style>
