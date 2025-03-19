@@ -6,7 +6,7 @@ import location from '../components/locations.vue'
 </script>
 
 <template>
-  <section class="hero">
+  <section class="hero" style="padding: 0rem 0rem;">
     <div class="hero-content">
       <h1>Crafting Perfect Moments</h1>
       <p>
