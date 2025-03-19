@@ -28,13 +28,13 @@ class Drink(db.Model):
 
     def json(self):
         # Ensure that the image is a valid string and handle cases where it's None
-        image_url = self.image if isinstance(self.image, str) else "default_image_path.jpg"
+        # image_url = self.image if isinstance(self.image, str) else "default_image_path.jpg"
         return {
             "drink_id": self.drink_id,
             "drink_name": self.drink_name,
             "description": self.description,
             "price": self.price,
-            "image": image_url,  # Ensure image is a valid string
+            "image": self.image,  # Ensure image is a valid string
             "prep_time_min": self.prep_time_min
         }
 
