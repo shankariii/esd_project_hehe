@@ -22,7 +22,7 @@ print("Database:", os.environ.get('DB_NAME', 'coffee_inventory'))
 # Database configuration
 DB_CONFIG = {
     'host': 'localhost',
-    'user': 'test',
+    'user': 'root',
     #change from test to root later 
     'password': '', 
     'database': 'coffee_inventory'
