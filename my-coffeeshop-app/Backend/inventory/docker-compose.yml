@@ -1,0 +1,43 @@
+#version: '3.8'
+
+services:
+  mysql_db:
+    image: mysql:8.0
+    container_name: coffee_inventory_db
+    restart: always
+    environment:
+      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"  #Allows root login with an empty password
+      MYSQL_DATABASE: coffee_inventory
+      MYSQL_USER: user
+      MYSQL_PASSWORD:
+    ports:
+      - "3307:3306"
+    #networks:
+     # - mynetwork
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  flask_app:
+    build: .
+    container_name: coffee_inventory_app
+    restart: always
+    ports:
+      - "5000:5000"  
+    depends_on:
+      - mysql_db
+    environment:
+      - FLASK_ENV=development #might need to change to 'production?? later'
+      - DB_HOST=db  # Important: use the service name as the host
+      - DB_USER=root
+      - DB_PASSWORD=  # Empty password
+      - DB_NAME=coffee_inventory
+    networks:
+      - mynetwork
+    command: python inventory.py  #this will run the ms inventory.py
+
+networks:
+  mynetwork:
+    driver: bridge
+
+volumes:
+  mysql_data:  # Added for data persistence
