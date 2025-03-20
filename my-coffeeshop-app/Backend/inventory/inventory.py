@@ -13,19 +13,12 @@ Swagger(app)
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-print("🔍 DEBUG: MySQL Credentials")
-print("Host:", os.environ.get('DB_HOST', 'localhost'))
-print("User:", os.environ.get('DB_USER', 'root'))
-print("Password:", os.environ.get('DB_PASSWORD'))  # Do NOT log in production, but okay for debugging
-print("Database:", os.environ.get('DB_NAME', 'coffee_inventory'))
-
 # Database configuration
 DB_CONFIG = {
-    'host': 'localhost',
-    'user': 'root',
-    #change from test to root later 
-    'password': '', 
-    'database': 'coffee_inventory'
+    'host': os.environ.get('DB_HOST', 'coffee_inventory_db'),  # Should match MySQL container name
+    'user': os.environ.get('DB_USER', 'root'),
+    'password': os.environ.get('DB_PASSWORD', ''),
+    'database': os.environ.get('DB_NAME', 'coffee_inventory')
 }
 
 # Database connection pooling
