@@ -68,11 +68,11 @@ const router = createRouter({
       component: FindOutlet 
     },
     // Catch-all route for 404 errors
-    // { 
-    //   path: '/:pathMatch(.*)*', 
-    //   name: 'not-found',
-    //   component: () => import('./views/NotFound.vue') // Lazy loaded
-    // }
+    { 
+      path: '/:pathMatch(.*)*', 
+      name: 'not-found',
+      component: () => import('./views/404Error.vue') // Lazy loaded
+    }
   ]
 })
 
