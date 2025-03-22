@@ -10,7 +10,7 @@ services:
   ###################################
   cart:
     build:
-      context: ./
+      context: ./Cart
       dockerfile: cart.Dockerfile
     image: shashass/cart:esd
     restart: always
@@ -27,12 +27,12 @@ services:
   ###################################
   profile:
     build:
-      context: ./
+      context: ./Profile
       dockerfile: profile.Dockerfile
     image: shashass/profile:esd
     restart: always
     environment:
-      dbURL: mysql+mysqlconnector://is213@host.docker.internal:3306/cart
+      dbURL: mysql+mysqlconnector://is213@host.docker.internal:3306/profile
       PYTHONUNBUFFERED: 1
     ports:
       - "5016:5016"
@@ -40,5 +40,18 @@ services:
       - esd-net      
 
   ###################################
-  # Other: The Other microservice
+  # StripePayment: The StripePayment microservice
   ###################################
+  payment:
+    build:
+      context: ./StripePayment
+      dockerfile: payment.Dockerfile
+    image: shashass/payment:esd
+    restart: always
+    environment:
+      PYTHONUNBUFFERED: 1
+    ports:
+      - "5100:5100"
+    networks:
+      - esd-net      
+      
