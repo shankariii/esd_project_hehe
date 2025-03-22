@@ -19,7 +19,8 @@ SET time_zone = "+00:00";
 
 --
 -- Database: `cart`
---
+CREATE DATABASE IF NOT EXISTS `cart` DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;
+USE `cart`;
 
 -- --------------------------------------------------------
 

@@ -1,3 +1,6 @@
+CREATE DATABASE IF NOT EXISTS `threshold` DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;
+USE `threshold`;
+
 DROP TABLE IF EXISTS threshold;
 CREATE TABLE IF NOT EXISTS threshold (
   threshold_id int NOT NULL AUTO_INCREMENT,
