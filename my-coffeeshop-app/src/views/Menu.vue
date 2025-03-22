@@ -1,559 +1,600 @@
-<script setup>
-import { ref } from 'vue'
-import { computed } from 'vue'
-import { watch } from 'vue'
-
-
-const selectedCategory = ref('Hot Coffee');
-const selectedItem = ref(null);
-const customization = ref({
-    size: 'Medium',
-    milk: 'Whole Milk',
-    extras: []
-});
-const cart = ref([]);
-const showCart = ref(false);
-const mobileMenuOpen = ref(false);
-
-// DOM refs for Bootstrap modals
-const customizeModal = ref(null);
-const cartModal = ref(null);
-let bsCustomizeModal = null;
-let bsCartModal = null;
-
-// Menu data
-// const categories = ['Hot Coffee', 'Iced Coffee', 'Tea', 'Pastries'];
-
-const menuItems = [
-    {
-        id: 1,
-        name: 'Espresso',
-        category: 'Hot Coffee',
-        description: 'Strong and concentrated coffee served in a small cup',
-        basePrice: 2.50
-    },
-    {
-        id: 2,
-        name: 'Cappuccino',
-        category: 'Hot Coffee',
-        description: 'Equal parts espresso, steamed milk, and milk foam',
-        basePrice: 3.75
-    },
-    {
-        id: 3,
-        name: 'Latte',
-        category: 'Hot Coffee',
-        description: 'Espresso with steamed milk and a light layer of foam',
-        basePrice: 4.25
-    },
-    {
-        id: 4,
-        name: 'Iced Latte',
-        category: 'Iced Coffee',
-        description: 'Espresso and milk served over ice',
-        basePrice: 4.50
-    },
-    {
-        id: 5,
-        name: 'Cold Brew',
-        category: 'Iced Coffee',
-        description: 'Coffee brewed with cold water over 12+ hours',
-        basePrice: 4.75
-    },
-    {
-        id: 6,
-        name: 'Green Tea',
-        category: 'Tea',
-        description: 'Refreshing tea with antioxidant properties',
-        basePrice: 3.25
-    },
-    {
-        id: 7,
-        name: 'Earl Grey',
-        category: 'Tea',
-        description: 'Black tea flavored with oil of bergamot',
-        basePrice: 3.25
-    },
-    {
-        id: 8,
-        name: 'Croissant',
-        category: 'Pastries',
-        description: 'Buttery, flaky pastry of French origin',
-        basePrice: 3.50
-    },
-    {
-        id: 9,
-        name: 'Blueberry Muffin',
-        category: 'Pastries',
-        description: 'Moist muffin filled with fresh blueberries',
-        basePrice: 3.75
-    }
-];
-
-// Customization options
-const sizes = [
-    { name: 'Small', priceDiff: 0 },
-    { name: 'Medium', priceDiff: 0.50 },
-    { name: 'Large', priceDiff: 0.75 }
-];
-
-const milkOptions = [
-    { name: 'Whole Milk', priceDiff: 0 },
-    { name: 'Skim Milk', priceDiff: 0 },
-    { name: 'Almond Milk', priceDiff: 0.75 },
-    { name: 'Oat Milk', priceDiff: 0.75 },
-    { name: 'Soy Milk', priceDiff: 0.75 }
-];
-
-const extras = [
-    { name: 'Extra Shot', price: 1.00 },
-    { name: 'Vanilla Syrup', price: 0.75 },
-    { name: 'Caramel Syrup', price: 0.75 },
-    { name: 'Whipped Cream', price: 0.50 },
-    { name: 'Chocolate Drizzle', price: 0.50 }
-];
-
-// Computed
-const filteredItems = computed(() => {
-    return menuItems.filter(item => item.category === selectedCategory.value);
-});
-
-// Initialize Bootstrap modals after component is mounted
-const initModals = () => {
-    bsCustomizeModal = new bootstrap.Modal(customizeModal.value);
-    bsCartModal = new bootstrap.Modal(cartModal.value);
-};
-
-// Watch for showCart changes to show/hide the cart modal
-watch(showCart, (newVal) => {
-    if (newVal) {
-        bsCartModal.show();
-    } else {
-        bsCartModal.hide();
-    }
-});
-
-// Methods
-const toggleMenu = () => {
-    mobileMenuOpen.value = !mobileMenuOpen.value;
-};
-
-const openCustomizeModal = (item) => {
-    selectedItem.value = item;
-    // Reset customization for new item
-    customization.value = {
-        size: 'Small',
-        milk: 'Whole Milk',
-        extras: [],
-        quantity: 1
-    };
-    bsCustomizeModal.show();
-};
-
-const closeCustomizeModal = () => {
-    bsCustomizeModal.hide();
-};
-
-const selectSize = (size) => {
-    customization.value.size = size;
-};
-
-const selectMilk = (milk) => {
-    customization.value.milk = milk;
-};
-
-const toggleExtra = (extra) => {
-    const extras = customization.value.extras;
-    const index = extras.indexOf(extra);
-
-    if (index === -1) {
-        extras.push(extra);
-    } else {
-        extras.splice(index, 1);
-    }
-};
-
-function incrementQuantity() {
-    customization.value.quantity++;
-}
-
-function decrementQuantity() {
-    if (customization.value.quantity > 1) {
-        customization.value.quantity--;
-    }
-}
-
-const calculateTotalPrice = () => {
-    if (!selectedItem.value) return 0;
-
-    let total = selectedItem.value.basePrice;
-
-    // Add size price difference
-    const selectedSizeObj = sizes.find(s => s.name === customization.value.size);
-    if (selectedSizeObj) {
-        total += selectedSizeObj.priceDiff;
-    }
-
-    // Add milk price difference
-    const selectedMilkObj = milkOptions.find(m => m.name === customization.value.milk);
-    if (selectedMilkObj) {
-        total += selectedMilkObj.priceDiff;
-    }
-
-    // Add extras
-    customization.value.extras.forEach(extra => {
-        const extraObj = extras.find(e => e.name === extra);
-        if (extraObj) {
-            total += extraObj.price;
-        }
-    });
-
-    total *= customization.value.quantity;
-
-    return total;
-};
-
-const addToCart = () => {
-    cart.value.push({
-        id: selectedItem.value.id,
-        name: selectedItem.value.name,
-        customization: JSON.parse(JSON.stringify(customization.value)),
-        price: calculateTotalPrice(),
-        quantity: 1
-    });
-
-    closeCustomizeModal();
-    showCart.value = true;
-};
-
-const removeFromCart = (index) => {
-    cart.value.splice(index, 1);
-};
-
-const updateQuantity = (index, change) => {
-    const newQuantity = cart.value[index].quantity + change;
-    if (newQuantity > 0) {
-        cart.value[index].quantity = newQuantity;
-    }
-};
-
-const calculateCartTotal = () => {
-    return cart.value.reduce((total, item) => {
-        return total + (item.price * item.quantity);
-    }, 0);
-};
-
-const checkout = () => {
-    alert('Thank you for your order! Your total is $' + calculateCartTotal().toFixed(2));
-    cart.value = [];
-    showCart.value = false;
-};
-</script>
-
 <template>
-    <!-- Menu Items -->
-    <div class="row g-4">
-        <div class="col-md-4 col-sm-6" v-for="item in filteredItems" :key="item.id">
-            <div class="card h-100 menu-card" @click="openCustomizeModal(item)">
-                <img :src="`/api/placeholder/400/200?text=${item.name}`" class="card-img-top" :alt="item.name">
-                <div class="card-body">
-                    <h5 class="card-title">{{ item.name }}</h5>
-                    <p class="card-text text-muted">{{ item.description }}</p>
-                    <div class="d-flex justify-content-between align-items-center">
-                        <span class="fs-5">${{ item.basePrice.toFixed(2) }}</span>
-                        <button class="btn btn-primary btn-sm">Order</button>
+    <div class="menu-container">
+        <header class="menu-header">
+            <div class="container">
+                <h1>Our Menu</h1>
+                <p>Discover our handcrafted beverages, made with love</p>
+            </div>
+        </header>
+
+        <div class="menu-controls container">
+            <div class="search-box">
+                <input type="text" v-model="searchQuery" placeholder="Search drinks..." @input="filterDrinks">
+                <button class="search-icon">
+                    <i class="fa fa-search"></i>
+                </button>
+            </div>
+
+            <!-- <div class="filter-controls">
+          <div class="filter-group">
+            <label>Category</label>
+            <select v-model="selectedCategory" @change="filterDrinks">
+              <option value="">All Categories</option>
+              <option v-for="category in categories" :key="category" :value="category">
+                {{ category }}
+              </option>
+            </select>
+          </div>
+  
+          <div class="filter-group">
+            <label>Price Range</label>
+            <div class="price-slider">
+              <input 
+                type="range" 
+                v-model="priceRange" 
+                :min="minPrice" 
+                :max="maxPrice" 
+                step="0.5" 
+                @input="filterDrinks"
+              >
+              <span>${{ priceRange }}</span>
+            </div>
+          </div>
+  
+          <button class="reset-btn" @click="resetFilters">Reset Filters</button>
+        </div> -->
+        </div>
+
+        <div class="menu-content container">
+            <div v-if="filteredDrinks.length === 0" class="no-results">
+                <p>No drinks match your search criteria. Try adjusting your filters.</p>
+            </div>
+
+            <div v-else class="drinks-grid">
+                <div v-for="drink in filteredDrinks" :key="drink.id" class="drink-card" @click="goToDrinkCustomization(drink.id)">
+                    <div class="drink-image">
+                        <img :src="drink.image" :alt="drink.name">
+                        <!-- <span v-if="drink.featured" class="featured-badge">Featured</span> -->
+                    </div>
+
+                    <div class="drink-info">
+                        <h3>{{ drink.name }}</h3>
+                        <p class="drink-description">{{ drink.description }}</p>
+                        <div class="drink-meta">
+                            <!-- <span class="drink-category">{{ drink.category }}</span> -->
+                            <span class="drink-price">${{ drink.price.toFixed(2) }}</span>
+                            <button class="add-to-cart-btn" @click="goToDrinkCustomization(drink.id)">Add to
+                                Cart</button>
+                        </div>
+
                     </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Customization Page -->
-    <div class="modal fade" id="customizeModal" tabindex="-1" ref="customizeModal">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content" v-if="selectedItem">
-                <div class="modal-header">
-                    <h5 class="modal-title">Customize Your {{ selectedItem.name }}</h5>
-                    <button type="button" class="btn-close" @click="closeCustomizeModal"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="row">
-                        <div id="prodDesc" class="d-flex align-items-center justify-content-between">
-                            <div>
-                                <h3>About this drink</h3>
-                                <p>{{ selectedItem.description }}</p>
-                            </div>
-                            <img style="width: 200px;" src="../images/espresso.avif" class="img-fluid rounded"
-                                alt="selectedItem.name">
-                        </div>
-                        <div>
-                            <!-- Size Selection -->
-                            <div class="mb-4">
-                                <h5>Size</h5>
-                                <div class="d-flex justify-content-between mt-3">
-                                    <div v-for="size in sizes" :key="size.name"
-                                        class="size-option d-flex flex-column align-items-center"
-                                        :class="{ selected: customization.size === size.name }"
-                                        @click="selectSize(size.name)">
-                                        <div class="fs-6">{{ size.name }}</div>
-                                        <small>(+${{ size.priceDiff.toFixed(2) }})</small>
-                                    </div>
-                                </div>
-                            </div>
+        <div class="pagination container">
+            <button :disabled="currentPage === 1" @click="changePage(currentPage - 1)" class="page-btn">
+                Previous
+            </button>
 
-                            <!-- Milk Options -->
-                            <div class="mb-4">
-                                <h5>Milk</h5>
-                                <div class="options">
-                                    <button v-for="milk in milkOptions" :key="milk.name" class="option-btn"
-                                        :class="{ selected: customization.milk === milk.name }"
-                                        @click="selectMilk(milk.name)">
-                                        <!-- {{milk.name}} <span v-if="milk.priceDiff > 0"> (+${{ milk.priceDiff.toFixed(2) }}) -->
-                                        {{ milk.name }} {{ milk.priceDiff > 0 ? `(+$${milk.priceDiff.toFixed(2)})` : ''
-                                        }}
-                                    </button>
-                                </div>
-                            </div>
+            <span class="page-info">{{ currentPage }} of {{ totalPages }}</span>
 
-                            <!-- Extras -->
-                            <div class="mb-4">
-                                <h5>Extras</h5>
-                                <div class="options">
-                                    <button v-for="extra in extras" :key="extra.name" class="option-btn"
-                                        :class="{ selected: customization.extras.includes(extra.name) }"
-                                        @click="toggleExtra(extra.name)">
-                                        {{ extra.name }} {{ extra.price > 0 ? `(+$${extra.price.toFixed(2)})` : '' }}
-                                    </button>
-                                </div>
-                            </div>
-
-                            <div class="option-group">
-                                <h5>Quantity</h5>
-                                <div class="quantity-control">
-                                    <button class="quantity-btn" @click="decrementQuantity">-</button>
-                                    <span class="quantity-display">{{ customization.quantity }}</span>
-                                    <button class="quantity-btn" @click="incrementQuantity">+</button>
-                                </div>
-                            </div>
-
-                            <!-- Total Price -->
-                            <div>
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <span class="fw-bold">Total Price:</span>
-                                    <span class="fs-4" style="color: var(--primary);">${{
-                                        calculateTotalPrice().toFixed(2) }}</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer d-flex align-items-center" style="gap: 1rem; margin-top: 1rem;">
-                    <button type="button" class="checkout-btn"
-                        style="background-color: #9e9e9e; width: auto; padding: 0.375rem 0.75rem;"
-                        @click="closeCustomizeModal">Cancel</button>
-                    <button type="button" class="checkout-btn" style="width: auto; padding: 0.375rem 0.75rem;"
-                        @click="addToCart">Add to Cart</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Cart Modal -->
-    <div class="modal fade" id="cartModal" tabindex="-1" ref="cartModal">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Your Cart</h5>
-                    <button type="button" class="btn-close" @click="showCart = false"></button>
-                </div>
-                <div class="modal-body">
-                    <div v-if="cart.length === 0" class="text-center py-5">
-                        <p class="text-muted">Your cart is empty</p>
-                        <button class="btn btn-outline-primary mt-3" @click="showCart = false">
-                            Browse Menu
-                        </button>
-                    </div>
-                    <div v-else>
-                        <div v-for="(item, index) in cart" :key="index" class="card mb-3">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between">
-                                    <h5 class="card-title">{{ item.name }}</h5>
-                                    <button class="btn btn-sm btn-outline-danger" @click="removeFromCart(index)">
-                                        <span>&times;</span>
-                                    </button>
-                                </div>
-                                <p class="card-text text-muted mb-2">
-                                    Size: {{ item.customization.size }}
-                                    <br>
-                                    Milk: {{ item.customization.milk }}
-                                    <span v-if="item.customization.extras.length > 0">
-                                        <br>
-                                        Extras: {{ item.customization.extras.join(', ') }}
-                                    </span>
-                                </p>
-                                <div class="d-flex justify-content-between">
-                                    <div>
-                                        <button class="btn btn-sm btn-outline-secondary"
-                                            @click="updateQuantity(index, -1)" :disabled="item.quantity <= 1">−</button>
-                                        <span class="mx-2">{{ item.quantity }}</span>
-                                        <button class="btn btn-sm btn-outline-secondary"
-                                            @click="updateQuantity(index, 1)">+</button>
-                                    </div>
-                                    <span class="fw-bold">${{ (item.price * item.quantity).toFixed(2) }}</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="alert alert-info mt-4">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <span class="fw-bold">Subtotal:</span>
-                                <span class="fs-5">${{ calculateCartTotal().toFixed(2) }}</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" @click="showCart = false">
-                        Continue Shopping
-                    </button>
-                    <button type="button" class="btn btn-success" :disabled="cart.length === 0" @click="checkout">
-                        Checkout
-                    </button>
-                </div>
-            </div>
+            <button :disabled="currentPage === totalPages" @click="changePage(currentPage + 1)" class="page-btn">
+                Next
+            </button>
         </div>
     </div>
 </template>
 
-<style>
-/* Menu Card Styles */
-.menu-card {
-    transition: transform 0.3s;
-    cursor: pointer;
+<script>
+import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router';
+
+export default {
+    name: 'MenuComponent',
+    setup() {
+        // State variables
+        const searchQuery = ref('')
+        const selectedCategory = ref('')
+        const priceRange = ref(15)
+        const currentPage = ref(1)
+        const itemsPerPage = ref(8)
+
+        // Sample drink data (this would come from Firebase in a real app)
+        const allDrinks = ref([
+            {
+                id: 1,
+                name: 'Classic Espresso',
+                description: 'Strong and bold single shot of pure coffee essence',
+                category: 'Espresso',
+                price: 3.50,
+                image: '/images/espresso.jpg',
+                featured: true
+            },
+            {
+                id: 2,
+                name: 'Cappuccino',
+                description: 'Perfect balance of espresso, steamed milk, and foam',
+                category: 'Milk-based',
+                price: 4.75,
+                image: '/images/cappuccino.jpg',
+                featured: false
+            },
+            {
+                id: 3,
+                name: 'Caramel Macchiato',
+                description: 'Espresso with vanilla syrup, milk and caramel drizzle',
+                category: 'Specialty',
+                price: 5.50,
+                image: '/images/caramel-macchiato.jpg',
+                featured: true
+            },
+            {
+                id: 4,
+                name: 'Cold Brew',
+                description: 'Smooth, low-acidity coffee brewed with cold water for 24 hours',
+                category: 'Iced',
+                price: 4.95,
+                image: '/images/cold-brew.jpg',
+                featured: false
+            },
+            {
+                id: 5,
+                name: 'Mocha Frappuccino',
+                description: 'Blended coffee with chocolate, milk and ice, topped with whipped cream',
+                category: 'Blended',
+                price: 6.25,
+                image: '/images/mocha-frappuccino.jpg',
+                featured: false
+            },
+            {
+                id: 6,
+                name: 'Americano',
+                description: 'Espresso diluted with hot water for a lighter flavor profile',
+                category: 'Espresso',
+                price: 3.75,
+                image: '/images/americano.jpg',
+                featured: false
+            },
+            {
+                id: 7,
+                name: 'Chai Tea Latte',
+                description: 'Spiced black tea with steamed milk and honey',
+                category: 'Tea',
+                price: 4.50,
+                image: '/images/chai-latte.jpg',
+                featured: false
+            },
+            {
+                id: 8,
+                name: 'Nitro Cold Brew',
+                description: 'Cold brew infused with nitrogen for a creamy, cascading texture',
+                category: 'Iced',
+                price: 5.75,
+                image: '/images/nitro-cold-brew.jpg',
+                featured: true
+            },
+            {
+                id: 9,
+                name: 'Flat White',
+                description: 'Ristretto shots with steamed milk and minimal foam',
+                category: 'Milk-based',
+                price: 4.95,
+                image: '/images/flat-white.jpg',
+                featured: false
+            },
+            {
+                id: 10,
+                name: 'Pumpkin Spice Latte',
+                description: 'Espresso with pumpkin spice syrup, steamed milk and whipped cream',
+                category: 'Seasonal',
+                price: 5.95,
+                image: '/images/pumpkin-spice.jpg',
+                featured: true
+            },
+            {
+                id: 11,
+                name: 'Matcha Green Tea Latte',
+                description: 'Stone-ground matcha powder with steamed milk',
+                category: 'Tea',
+                price: 5.25,
+                image: '/images/matcha-latte.jpg',
+                featured: false
+            },
+            {
+                id: 12,
+                name: 'Affogato',
+                description: 'Vanilla ice cream "drowned" with a shot of hot espresso',
+                category: 'Specialty',
+                price: 6.50,
+                image: '/images/affogato.jpg',
+                featured: false
+            }
+        ])
+
+        // Computed properties
+        const filteredDrinks = ref([])
+
+        const categories = computed(() => {
+            const uniqueCategories = new Set(allDrinks.value.map(drink => drink.category))
+            return [...uniqueCategories]
+        })
+
+        const minPrice = computed(() => {
+            return Math.floor(Math.min(...allDrinks.value.map(drink => drink.price)))
+        })
+
+        const maxPrice = computed(() => {
+            return Math.ceil(Math.max(...allDrinks.value.map(drink => drink.price)))
+        })
+
+        const totalPages = computed(() => {
+            return Math.ceil(filteredDrinks.value.length / itemsPerPage.value)
+        })
+
+        const paginatedDrinks = computed(() => {
+            const start = (currentPage.value - 1) * itemsPerPage.value
+            const end = start + itemsPerPage.value
+            return filteredDrinks.value.slice(start, end)
+        })
+
+        // Methods        
+        const filterDrinks = () => {
+            let results = allDrinks.value
+
+            // Filter by search query
+            if (searchQuery.value) {
+                const query = searchQuery.value.toLowerCase()
+                results = results.filter(drink =>
+                    drink.name.toLowerCase().includes(query) ||
+                    drink.description.toLowerCase().includes(query)
+                )
+            }
+
+            // Filter by category
+            if (selectedCategory.value) {
+                results = results.filter(drink => drink.category === selectedCategory.value)
+            }
+
+            // Filter by price
+            results = results.filter(drink => drink.price <= priceRange.value)
+
+            filteredDrinks.value = results
+            currentPage.value = 1 // Reset to first page with new filters
+        }
+
+        const resetFilters = () => {
+            searchQuery.value = ''
+            selectedCategory.value = ''
+            priceRange.value = maxPrice.value
+            filterDrinks()
+        }
+
+        const changePage = (page) => {
+            currentPage.value = page
+        }
+
+        // Initialize
+        onMounted(() => {
+            // Set initial price range to max price
+            priceRange.value = maxPrice.value
+            filterDrinks()
+        })
+
+        const router = useRouter();
+
+        const goToDrinkCustomization = (drinkId) => {
+            router.push(`/drink/${drinkId}`);
+        };
+
+        return {
+            searchQuery,
+            selectedCategory,
+            priceRange,
+            allDrinks,
+            filteredDrinks,
+            categories,
+            minPrice,
+            maxPrice,
+            currentPage,
+            totalPages,
+            paginatedDrinks,
+            filterDrinks,
+            resetFilters,
+            changePage,
+            goToDrinkCustomization
+        }
+    }
+}
+</script>
+
+<style scoped>
+.menu-container {
+    background-color: var(--light);
+    min-height: 100vh;
+    padding-bottom: 4rem;
 }
 
-.menu-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+.container {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
 }
 
-.card-img-top {
-    height: 200px;
-    object-fit: cover;
-}
-
-.cart-badge {
-    position: relative;
-    top: -8px;
-    right: 5px;
-}
-
-.custom-option {
-    cursor: pointer;
-    padding: 8px;
-    border-radius: 4px;
-    margin: 5px 0;
-}
-
-.custom-option:hover {
+.menu-header {
     background-color: var(--primary);
-}
-
-.custom-option.selected {
-    background-color: var(--secondary);
-    border: 1px solid var(--dark);
-}
-
-.size-option {
-    width: 80px;
-    height: 80px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 5px;
-    border-radius: 50%;
-    cursor: pointer;
-    background-color: var(--accent);
-    color: black;
-}
-
-.size-option.selected {
-    background-color: var(--primary);
-    border: 2px solid;
     color: white;
+    padding: 5rem 0 3rem;
+    text-align: center;
+    margin-bottom: 2rem;
 }
 
-.option {
+.menu-header h1 {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.menu-header p {
+    font-size: 1.2rem;
+    opacity: 0.8;
+}
+
+.menu-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.search-box {
+    position: relative;
+    width: 100%;
+}
+
+.search-box input {
+    width: 100%;
+    padding: 1rem;
+    padding-right: 3rem;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 1rem;
+}
+
+.search-icon {
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: var(--text-light);
+    cursor: pointer;
+}
+
+.filter-controls {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.5rem;
-    margin-top: 0.5rem;
+    gap: 1.5rem;
+    align-items: flex-end;
 }
 
-.option-group {
-    margin-bottom: 1.5rem;
+.filter-group {
+    flex: 1;
+    min-width: 200px;
 }
 
-.option-btn {
-    background-color: var(--accent);
-    border: none;
-    padding: 0.5rem 1rem;
-    margin: 5px;
-    border-radius: 20px;
-    cursor: pointer;
-    transition: all 0.2s;
+.filter-group label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--text);
 }
 
-.option-btn.selected {
-    background-color: var(--primary);
-    color: white;
+.filter-group select {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 1rem;
+    background-color: white;
 }
 
-.quantity-control {
+.price-slider {
     display: flex;
     align-items: center;
     gap: 1rem;
 }
 
-.quantity-btn {
-    background-color: var(--accent);
-    border: none;
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    font-weight: bold;
-    cursor: pointer;
+.price-slider input {
+    flex: 1;
 }
 
-.quantity-display {
-    font-size: 1.2rem;
-    font-weight: bold;
+.price-slider span {
+    font-weight: 600;
+    color: var(--primary);
+    min-width: 50px;
 }
 
-.cart-total {
-    display: flex;
-    justify-content: space-between;
-    font-weight: bold;
-    font-size: 1.2rem;
-    margin-top: 1rem;
-    padding-top: 1rem;
-    border-top: 2px solid var(--accent);
-}
-
-.checkout-btn {
-    background-color: var(--primary);
+.reset-btn {
+    background-color: var(--secondary);
     color: white;
     border: none;
-    padding: 1rem 2rem;
-    border-radius: 4px;
-    font-size: 1.1rem;
-    margin-top: 1rem;
-    width: 100%;
+    border-radius: 5px;
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
     cursor: pointer;
     transition: background-color 0.3s;
 }
 
-.checkout-btn:hover {
-    background-color: var(--secondary);
+.reset-btn:hover {
+    background-color: var(--primary);
+}
+
+.drinks-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+    gap: 2rem;
+}
+
+.drink-card {
+    background-color: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.drink-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+.drink-image {
+    height: 200px;
+    position: relative;
+    overflow: hidden;
+}
+
+.drink-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s;
+}
+
+.drink-card:hover .drink-image img {
+    transform: scale(1.05);
+}
+
+.featured-badge {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background-color: var(--accent);
+    color: var(--dark);
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+}
+
+.drink-info {
+    padding: 1.5rem;
+}
+
+.drink-info h3 {
+    margin-bottom: 0.5rem;
+    color: var(--dark);
+}
+
+.drink-description {
+    color: var(--text-light);
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+    height: 2.7rem;
+    /* Force uniform height for descriptions */
+    overflow: hidden;
+}
+
+.drink-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.drink-category {
+    background-color: var(--light);
+    color: var(--primary);
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+}
+
+.drink-price {
+    font-weight: bold;
+    font-size: 24px;
+    color: var(--primary);
+}
+
+.add-to-cart-btn {
+    background-color: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 0.75rem 1rem;
+    width: 50%;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.add-to-cart-btn:hover {
+    background-color: var(--dark);
+}
+
+.no-results {
+    text-align: center;
+    padding: 3rem;
+    color: var(--text-light);
+}
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 3rem;
+}
+
+.page-btn {
+    background-color: white;
+    border: 1px solid #ddd;
+    padding: 0.5rem 1rem;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.page-btn:hover:not([disabled]) {
+    background-color: var(--primary);
+    color: white;
+}
+
+.page-btn[disabled] {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.page-info {
+    font-weight: 600;
+    color: var(--text);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .menu-controls {
+        gap: 1rem;
+    }
+
+    .filter-controls {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .filter-group {
+        width: 100%;
+    }
+
+    .menu-header {
+        padding: 4rem 0 2rem;
+    }
+
+    .menu-header h1 {
+        font-size: 2rem;
+    }
 }
 </style>

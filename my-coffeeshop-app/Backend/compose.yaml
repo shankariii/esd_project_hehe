@@ -1,0 +1,57 @@
+networks:
+  esd-net:
+    driver: bridge
+    name: esd-net
+
+services:
+ 
+  ###################################
+  # Cart: The Cart microservice
+  ###################################
+  cart:
+    build:
+      context: ./Cart
+      dockerfile: cart.Dockerfile
+    image: <dockerid>/cart:esd
+    restart: always
+    environment:
+      dbURL: mysql+mysqlconnector://is213@host.docker.internal:3306/cart
+      PYTHONUNBUFFERED: 1
+    ports:
+      - "5015:5015"
+    networks:
+      - esd-net      
+
+  ###################################
+  # Profile: The Profile microservice
+  ###################################
+  profile:
+    build:
+      context: ./Profile
+      dockerfile: profile.Dockerfile
+    image: <dockerid>/profile:esd
+    restart: always
+    environment:
+      dbURL: mysql+mysqlconnector://is213@host.docker.internal:3306/profile
+      PYTHONUNBUFFERED: 1
+    ports:
+      - "5016:5016"
+    networks:
+      - esd-net      
+
+  ###################################
+  # StripePayment: The StripePayment microservice
+  ###################################
+  payment:
+    build:
+      context: ./StripePayment
+      dockerfile: payment.Dockerfile
+    image: <dockerid>/payment:esd
+    restart: always
+    environment:
+      PYTHONUNBUFFERED: 1
+    ports:
+      - "5100:5100"
+    networks:
+      - esd-net      
+      

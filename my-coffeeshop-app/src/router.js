@@ -6,7 +6,12 @@ import Home from './views/Homepage.vue'
 // import About from './views/About.vue'
 import Menu from './views/Menu.vue'
 import Login from './views/Login.vue'
-// import Profile from './views/Profile.vue'
+import DrinkCustomization from './views/DrinkCustomization.vue'
+import Cart from './views/Cart.vue'
+import Profile from './views/Profile.vue'
+import TrackOrders from './views/TrackOrders.vue'
+import Checkout from './views/Checkout.vue'
+import FindOutlet from './views/FindOutlet.vue'
 // import Cart from './views/Cart.vue'
 
 // Create and export the router
@@ -28,23 +33,49 @@ const router = createRouter({
       name: 'menu',
       component: Menu 
     },
-    // { 
-    //   path: '/profile', 
-    //   name: 'profile',
-    //   component: Profile 
-    // },
-    // { 
-    //   path: '/cart', 
-    //   name: 'cart',
-    //   component: Cart 
-    // },
+    {
+      path: '/drink/:id',
+      name: 'drink',
+      component: DrinkCustomization
+    },
+    { 
+      path: '/profile', 
+      name: 'profile',
+      component: Profile 
+    },
+    { 
+      path: '/cart', 
+      name: 'cart',
+      component: Cart 
+    },
+    { 
+      path: '/trackOrders', 
+      name: 'trackOrders',
+      component: TrackOrders 
+    },
+    { 
+      path: '/homepage/#about', 
+      name: 'about',
+    },
+    { 
+      path: '/checkout', 
+      name: 'checkout',
+      component: Checkout 
+    },
+    { 
+      path: '/findOutlet', 
+      name: 'findOutlet',
+      component: FindOutlet 
+    },
     // Catch-all route for 404 errors
-    // { 
-    //   path: '/:pathMatch(.*)*', 
-    //   name: 'not-found',
-    //   component: () => import('./views/NotFound.vue') // Lazy loaded
-    // }
+    { 
+      path: '/:pathMatch(.*)*', 
+      name: 'not-found',
+      component: () => import('./views/404Error.vue') // Lazy loaded
+    }
   ]
 })
+
+
 
 export default router

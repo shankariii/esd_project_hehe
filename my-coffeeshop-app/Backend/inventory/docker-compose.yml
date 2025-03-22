@@ -1,0 +1,50 @@
+# version: '3.8'
+
+services:
+  coffee_inventory_db:
+    image: mysql:8.0
+    container_name: coffee_inventory_db
+    restart: always
+    environment:
+      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"  # Allows root login with an empty password
+      MYSQL_DATABASE: coffee_inventory
+      MYSQL_USER: root  # Ensure consistency
+      MYSQL_PASSWORD:
+    ports:
+      - "3307:3306"
+    networks:
+      - mynetwork
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./inventory-schema.sql:/docker-entrypoint-initdb.d/inventory-schema.sql  # Initialize schema on first run
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      retries: 5
+      timeout: 5s
+
+  flask_app:
+    build: .
+    container_name: coffee_inventory_app
+    restart: always
+    ports:
+      - "5000:5000"
+    depends_on:
+      coffee_inventory_db:
+        condition: service_healthy  # Ensure MySQL is ready before Flask starts
+    environment:
+      - FLASK_ENV=development
+      - DB_HOST=coffee_inventory_db  # Matches MySQL service name
+      - DB_USER=root
+      - DB_PASSWORD=  # Empty password
+      - DB_NAME=coffee_inventory
+    networks:
+      - mynetwork
+    command: python inventory.py  # This runs the Flask microservice
+
+networks:
+  mynetwork:
+    driver: bridge
+
+volumes:
+  mysql_data:
