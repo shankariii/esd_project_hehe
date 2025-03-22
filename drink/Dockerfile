@@ -1,17 +1,32 @@
-# Use Python image
-FROM python:3.9
+# # Use Python base image
+# FROM python:3.9-slim
 
-# Set the working directory
-WORKDIR /app
+# # Set working directory
+# WORKDIR /app
 
-# Copy app files
-COPY . /app
+# # Copy only the requirements file first to leverage Docker layer caching
+# COPY requirements.txt .
 
-# Install dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+# # Install dependencies
+# RUN pip install --no-cache-dir -r requirements.txt
 
-# Expose port
-EXPOSE 5002
+# # Copy the rest of the application code
+# COPY . .
 
-# Run the Flask app
-CMD ["python", "drink.py"]
+# # Create a non-root user for security
+# RUN adduser --disabled-password --gecos "" appuser
+# USER appuser
+
+# # Expose the port the app runs on
+# EXPOSE 5002
+
+# # Run the app using Gunicorn for production
+# CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:5002", "drink:app"]
+
+
+FROM python:3-slim
+WORKDIR /usr/src/app
+COPY requirements.txt ./
+RUN python -m pip install --no-cache-dir -r requirements.txt
+COPY ./drink.py .
+CMD [ "python", "./drink.py" ]

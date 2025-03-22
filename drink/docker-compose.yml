@@ -3,30 +3,41 @@ version: '3.8'
 services:
   mysql_db:
     image: mysql:8.0
-    container_name: drink
+    container_name: drink_mysql
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: ""  # No password
-      MYSQL_DATABASE: drinkdb
-    ports:
-      - "3306:3306"
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+    volumes:
+      - mysql_data:/var/lib/mysql
     networks:
-      - mynetwork  # This ensures MySQL is on the same network
+      - drink_network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   flask_app:
-    build: .
-    container_name: flask_app
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: drink_microservice
     restart: always
     ports:
       - "5002:5002"
     depends_on:
-      - mysql_db
+      mysql_db:
+        condition: service_healthy
     environment:
-      - FLASK_ENV=development
+      FLASK_ENV: development
+      DATABASE_URL: mysql+pymysql://root:${MYSQL_ROOT_PASSWORD}@mysql_db/${MYSQL_DATABASE}
     networks:
-      - mynetwork  # Make sure Flask is on the same network
-    command: python drink.py  # Ensure drink.py runs
+      - drink_network
 
 networks:
-  mynetwork:
-    driver: bridge  # This properly defines the network
+  drink_network:
+    driver: bridge
+
+volumes:
+  mysql_data:
