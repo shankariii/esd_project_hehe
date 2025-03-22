@@ -3,14 +3,20 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_restful import Api, Resource
 import pymysql
 import os
+from os import environ
+
 
 # Initialize Flask App
 app = Flask(__name__)
 api = Api(app)
 
 # MySQL Configuration (Using Docker Environment Variables)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:@localhost/drink'
+# app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:@localhost/drink'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:@host.docker.internal:3306/drink'
+# app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+# app.config['SQLALCHEMY_DATABASE_URI'] = environ.get('dbURL')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+# app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {'pool_recycle': 299}
 
 # Initialize DB
 db = SQLAlchemy(app)
@@ -111,10 +117,24 @@ class CustomisationResource(Resource):
         customisations = Customisation.query.all()
         return jsonify([customisation.json() for customisation in customisations])
 
+class CustomisationResource(Resource):
+    def get(self, customisation_id=None):
+        """Retrieve all customisations or a specific customisation"""
+        if customisation_id:
+            customisation = Customisation.query.get(customisation_id)
+            if customisation:
+                return jsonify(customisation.json())
+            return jsonify({"message": "Customisation not found"}), 404
+
+        customisations = Customisation.query.all()
+        return jsonify([customisation.json() for customisation in customisations])
+
+
 # Register API Endpoints
 api.add_resource(DrinkResource, '/drinks', '/drinks/<int:drink_id>')
 api.add_resource(DrinkIngredientResource, '/ingredients', '/ingredients/<int:drink_id>')
-api.add_resource(CustomisationResource, '/customisations')
+api.add_resource(CustomisationResource, '/customisations', '/customisations/<int:customisation_id>')
+
 
 # Run App
 if __name__ == '__main__':
