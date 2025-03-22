@@ -1,0 +1,44 @@
+networks:
+  esd-net:
+    driver: bridge
+    name: esd-net
+
+services:
+ 
+  ###################################
+  # Cart: The Cart microservice
+  ###################################
+  cart:
+    build:
+      context: ./
+      dockerfile: cart.Dockerfile
+    image: shashass/cart:esd
+    restart: always
+    environment:
+      dbURL: mysql+mysqlconnector://is213@host.docker.internal:3306/cart
+      PYTHONUNBUFFERED: 1
+    ports:
+      - "5015:5015"
+    networks:
+      - esd-net      
+
+  ###################################
+  # Profile: The Profile microservice
+  ###################################
+  profile:
+    build:
+      context: ./
+      dockerfile: profile.Dockerfile
+    image: shashass/profile:esd
+    restart: always
+    environment:
+      dbURL: mysql+mysqlconnector://is213@host.docker.internal:3306/cart
+      PYTHONUNBUFFERED: 1
+    ports:
+      - "5016:5016"
+    networks:
+      - esd-net      
+
+  ###################################
+  # Other: The Other microservice
+  ###################################
