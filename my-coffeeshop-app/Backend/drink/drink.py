@@ -4,6 +4,7 @@ from flask_restful import Api, Resource
 import pymysql
 import os
 from os import environ
+from flask_cors import CORS
 
 
 # Initialize Flask App

@@ -1,6 +1,6 @@
 create schema payment_log;
 
--- drop schema drink;
+-- drop schema payment_log;
 
 use payment_log;
 
