@@ -22,7 +22,7 @@
               <h3 class="option-title">Size</h3>
               <div class="size-options">
                 <div 
-                  v-for="size in sizeOptions" 
+                  v-for="size in sizes" 
                   :key="size.id"
                   :class="['size-option', { active: selectedSize === size.id }]"
                   @click="selectSize(size.id)"
@@ -144,204 +144,140 @@
   </template>
   
   <script>
-  import { ref, computed, onMounted } from 'vue'
-  import { useRoute, useRouter } from 'vue-router'
+  import axios from 'axios';
   
   export default {
-    name: 'DrinkCustomization',
-    props: {
-      // This can be used if you're passing the drink directly as a prop
-      // Otherwise, we'll fetch based on the route parameter
-      drinkData: {
-        type: Object,
-        default: null
+    name: 'CustomizeDrink',
+    data() {
+      return {
+        drink: null,
+        loading: true,
+        error: null,
+        selectedSize: 2, // Default to medium
+        selectedMilk: 1, // Default to regular milk
+        extraShots: 0,
+        extraShotPrice: 0.75,
+        selectedExtras: [],
+        specialInstructions: '',
+        
+        // Options data
+        sizes: [
+          { id: 1, name: 'Small', price: -0.50 },
+          { id: 2, name: 'Medium', price: 0 },
+          { id: 3, name: 'Large', price: 0.75 }
+        ],
+        milkOptions: [
+          { id: 1, name: 'Regular', price: 0 },
+          { id: 2, name: 'Skim', price: 0 },
+          { id: 3, name: 'Almond', price: 0.75 },
+          { id: 4, name: 'Oat', price: 0.75 },
+          { id: 5, name: 'Soy', price: 0.75 }
+        ],
+        extras: [
+          { id: 1, name: 'Vanilla Syrup', price: 0.50 },
+          { id: 2, name: 'Caramel Syrup', price: 0.50 },
+          { id: 3, name: 'Hazelnut Syrup', price: 0.50 },
+          { id: 4, name: 'Whipped Cream', price: 0.50 },
+          { id: 5, name: 'Chocolate Sprinkles', price: 0.25 }
+        ]
+      };
+    },
+    methods: {
+      async fetchDrinkDetails() {
+        try {
+          this.loading = true;
+          const drinkId = this.$route.params.id;
+          // Replace with your actual API endpoint
+          const response = await axios.get(`http://127.0.0.1:5002/drinks/${drinkId}`);
+          this.drink = response.data;
+          this.loading = false;
+        } catch (err) {
+          this.error = 'Failed to load drink details. Please try again.';
+          this.loading = false;
+          console.error('Error fetching drink details:', err);
+        }
+      },
+      incrementShots() {
+        if (this.extraShots < 5) {
+          this.extraShots++;
+        }
+      },
+      decrementShots() {
+        if (this.extraShots > 0) {
+          this.extraShots--;
+        }
+      },
+      calculateTotalPrice() {
+        if (!this.drink) return 0;
+        
+        let total = this.drink.price;
+        
+        // Add size cost
+        const selectedSizeObj = this.sizes.find(size => size.id === this.selectedSize);
+        if (selectedSizeObj) {
+          total += selectedSizeObj.price;
+        }
+        
+        // Add milk cost
+        const selectedMilkObj = this.milkOptions.find(milk => milk.id === this.selectedMilk);
+        if (selectedMilkObj) {
+          total += selectedMilkObj.price;
+        }
+        
+        // Add extra shots
+        total += this.extraShots * this.extraShotPrice;
+        
+        // Add extras
+        this.selectedExtras.forEach(extraId => {
+          const extra = this.extras.find(e => e.id === extraId);
+          if (extra) {
+            total += extra.price;
+          }
+        });
+        
+        return total;
+      },
+      goBack() {
+        this.$router.push('/menu');
+      },
+      addToCart() {
+        // Create an order item object
+        const orderItem = {
+          drinkId: this.drink.drink_id,
+          name: this.drink.drink_name,
+          basePrice: this.drink.price,
+          size: this.selectedSize,
+          milk: this.selectedMilk,
+          extraShots: this.extraShots,
+          extras: this.selectedExtras,
+          specialInstructions: this.specialInstructions,
+          totalPrice: this.calculateTotalPrice()
+        };
+        
+        // In a real app, you would dispatch this to a store or make an API call
+        console.log('Adding to cart:', orderItem);
+        
+        // Could use Vuex store or localStorage to save the cart
+        let cart = JSON.parse(localStorage.getItem('cart') || '[]');
+        cart.push(orderItem);
+        localStorage.setItem('cart', JSON.stringify(cart));
+        
+        // Show confirmation and navigate back to menu
+        alert('Added to cart!');
+        this.$router.push('/menu');
       }
     },
-    setup(props) {
-      const route = useRoute()
-      const router = useRouter()
-      
-      // State
-      const drink = ref(props.drinkData || null)
-      const selectedSize = ref('medium')
-      const selectedMilk = ref('regular')
-      const selectedAddons = ref([])
-      const specialInstructions = ref('')
-      const quantity = ref(1)
-      
-      // Size options
-      const sizeOptions = [
-        { id: 'small', name: 'Small (12oz)', priceDiff: 0, visualHeight: 30 },
-        { id: 'medium', name: 'Medium (16oz)', priceDiff: 0.75, visualHeight: 50 },
-        { id: 'large', name: 'Large (20oz)', priceDiff: 1.50, visualHeight: 70 }
-      ]
-      
-      // Milk options
-      const milkOptions = [
-        { id: 'regular', name: 'Regular Milk', priceDiff: 0 },
-        { id: 'skim', name: 'Skim Milk', priceDiff: 0 },
-        { id: 'almond', name: 'Almond Milk', priceDiff: 0.75 },
-        { id: 'oat', name: 'Oat Milk', priceDiff: 0.75 },
-        { id: 'soy', name: 'Soy Milk', priceDiff: 0.75 }
-      ]
-      
-      // Add-on options
-      const addonOptions = [
-        { id: 'espresso', name: 'Extra Espresso Shot', price: 1.25 },
-        { id: 'whipped', name: 'Whipped Cream', price: 0.75 },
-        { id: 'caramel', name: 'Caramel Drizzle', price: 0.50 },
-        { id: 'chocolate', name: 'Chocolate Drizzle', price: 0.50 },
-        { id: 'vanilla', name: 'Vanilla Syrup', price: 0.50 },
-        { id: 'hazelnut', name: 'Hazelnut Syrup', price: 0.50 }
-      ]
-      
-      // Methods
-      const fetchDrink = () => {
-        // In a real app, you would fetch the drink from Firestore
-        // For this example, we'll simulate it with sample data
-        const drinkId = route.params.id
-        
-        // This is sample data - replace with actual Firebase fetch
-        const sampleDrinks = [
-          {
-            id: 1,
-            name: 'Classic Espresso',
-            description: 'Strong and bold single shot of pure coffee essence',
-            category: 'Espresso',
-            price: 3.50,
-            image: '/images/espresso.jpg',
-          },
-          {
-            id: 2,
-            name: 'Cappuccino',
-            description: 'Perfect balance of espresso, steamed milk, and foam',
-            category: 'Milk-based',
-            price: 4.75,
-            image: '/images/cappuccino.jpg',
-          }
-          // Add more sample drinks as needed
-        ]
-        
-        // Find the drink by ID
-        const foundDrink = sampleDrinks.find(d => d.id == drinkId)
-        
-        // Simulate network delay
-        setTimeout(() => {
-          drink.value = foundDrink
-        }, 500)
-      }
-      
-      const selectSize = (sizeId) => {
-        selectedSize.value = sizeId
-      }
-      
-      const selectMilk = (milkId) => {
-        selectedMilk.value = milkId
-      }
-      
-      const toggleAddon = (addonId) => {
-        if (selectedAddons.value.includes(addonId)) {
-          selectedAddons.value = selectedAddons.value.filter(id => id !== addonId)
-        } else {
-          selectedAddons.value.push(addonId)
+    created() {
+      this.fetchDrinkDetails();
+    },
+    mounted() {
+      // If the route changes but component is reused, refetch data
+      this.$watch(
+        () => this.$route.params,
+        () => {
+          this.fetchDrinkDetails();
         }
-      }
-      
-      const incrementQuantity = () => {
-        quantity.value++
-      }
-      
-      const decrementQuantity = () => {
-        if (quantity.value > 1) {
-          quantity.value--
-        }
-      }
-      
-      const goBack = () => {
-        router.push('/menu')
-      }
-      
-      const addToCart = () => {
-        // Create the order item
-        const orderItem = {
-          drinkId: drink.value.id,
-          name: drink.value.name,
-          size: selectedSize.value,
-          milk: selectedMilk.value,
-          addons: selectedAddons.value,
-          specialInstructions: specialInstructions.value,
-          quantity: quantity.value,
-          itemPrice: itemTotal.value,
-          totalPrice: orderTotal.value
-        }
-        
-        // In a real app, you would add this to Firestore
-        console.log('Adding to cart:', orderItem)
-        
-        // Here you could show a confirmation message
-        alert('Added to cart!')
-        
-        // Navigate back to menu
-        router.push('/cart')
-      }
-      
-      // Computed values
-      const sizePriceDiff = computed(() => {
-        const selectedSizeObj = sizeOptions.find(size => size.id === selectedSize.value)
-        return selectedSizeObj ? selectedSizeObj.priceDiff : 0
-      })
-      
-      const milkPriceDiff = computed(() => {
-        const selectedMilkObj = milkOptions.find(milk => milk.id === selectedMilk.value)
-        return selectedMilkObj ? selectedMilkObj.priceDiff : 0
-      })
-      
-      const addonsTotalPrice = computed(() => {
-        return selectedAddons.value.reduce((total, addonId) => {
-          const addon = addonOptions.find(a => a.id === addonId)
-          return total + (addon ? addon.price : 0)
-        }, 0)
-      })
-      
-      const itemTotal = computed(() => {
-        if (!drink.value) return 0
-        return drink.value.price + sizePriceDiff.value + milkPriceDiff.value + addonsTotalPrice.value
-      })
-      
-      const orderTotal = computed(() => {
-        return itemTotal.value * quantity.value
-      })
-      
-      // Lifecycle
-      onMounted(() => {
-        if (!drink.value && route.params.id) {
-          fetchDrink()
-        }
-      })
-      
-      return {
-        drink,
-        selectedSize,
-        selectedMilk,
-        selectedAddons,
-        specialInstructions,
-        quantity,
-        sizeOptions,
-        milkOptions,
-        addonOptions,
-        sizePriceDiff,
-        milkPriceDiff,
-        addonsTotalPrice,
-        itemTotal,
-        orderTotal,
-        selectSize,
-        selectMilk,
-        toggleAddon,
-        incrementQuantity,
-        decrementQuantity,
-        goBack,
-        addToCart
-      }
+      );
     }
   }
   </script>

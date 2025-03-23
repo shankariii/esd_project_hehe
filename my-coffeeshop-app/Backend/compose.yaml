@@ -4,6 +4,23 @@ networks:
     name: esd-net
 
 services:
+
+  ###################################
+  # Drink: The Drink microservice
+  ###################################
+  drink:
+    build:
+      context: ./drink
+      dockerfile: drink.Dockerfile
+    image: shashass/drink:esd
+    restart: always
+    environment:
+      # dbURL: mysql+mysqlconnector://is213@host.docker.internal:3306/cart
+      PYTHONUNBUFFERED: 1
+    ports:
+      - "5002:5002"
+    networks:
+      - esd-net      
  
   ###################################
   # Cart: The Cart microservice
@@ -12,7 +29,7 @@ services:
     build:
       context: ./Cart
       dockerfile: cart.Dockerfile
-    image: <dockerid>/cart:esd
+    image: shashass/cart:esd
     restart: always
     environment:
       dbURL: mysql+mysqlconnector://is213@host.docker.internal:3306/cart
@@ -29,7 +46,7 @@ services:
     build:
       context: ./Profile
       dockerfile: profile.Dockerfile
-    image: <dockerid>/profile:esd
+    image: shashass/profile:esd
     restart: always
     environment:
       dbURL: mysql+mysqlconnector://is213@host.docker.internal:3306/profile
@@ -46,7 +63,7 @@ services:
     build:
       context: ./StripePayment
       dockerfile: payment.Dockerfile
-    image: <dockerid>/payment:esd
+    image: shashass/payment:esd
     restart: always
     environment:
       PYTHONUNBUFFERED: 1

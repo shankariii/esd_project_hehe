@@ -42,11 +42,19 @@ CREATE TABLE IF NOT EXISTS `customisation` (
 --
 
 INSERT INTO `customisation` (`customisation_id`, `customisation_type`, `name`, `price_diff`) VALUES
-(1, 'S', 'Small', 0.00),
-(2, 'M', 'Oat Milk', 0.50),
-(3, 'S', 'Medium', 0.80),
-(4, 'A', 'Extra Shot', 1.00),
-(5, 'M', 'Normal Milk', 0.00);
+(1, "S", "Small", 0.00),
+(2, "S", "Medium", 0.50),
+(3, "S", "Large", 0.80),
+(4, "M", "Regular", 0.00),
+(5, "M", "Skim", 0.00),
+(6, "M", "Almond", 0.75),
+(7, "M", "Oat", 0.75),
+(8, "M", "Soy", 0.75),
+(9, "A", "Vanialla Syrup", 0.50),
+(10, "A", "Caramel Syrup", 0.50),
+(11, "A", "Hazelnut Syrup", 0.50),
+(12, "A", "Whipped Syrup", 0.50),
+(13, "A", "Choclate Sprinkles", 0.25);
 
 -- --------------------------------------------------------
 
@@ -95,10 +103,10 @@ CREATE TABLE IF NOT EXISTS `drink_menu` (
 --
 
 INSERT INTO `drink_menu` (`drink_id`, `drink_name`, `description`, `price`, `image`, `prep_time_min`) VALUES
-(1, 'Espresso', 'A bold and concentrated shot of rich, aromatic coffee, perfect for those who love a strong caffeine kick.', 3.00, 'images/espresso.jpg', 2.00),
-(2, 'Latte', 'Smooth and creamy, this espresso-based drink is blended with steamed milk and topped with a light layer of foam for a balanced, velvety taste.', 4.50, 'images/latte.webp', 4.00),
-(3, 'Cappuccino', 'A classic favorite with equal parts espresso, steamed milk, and frothy foam, delivering a rich, robust flavor with a light, airy texture.', 4.00, 'images/cappuccino.jpg', 6.00),
-(4, 'Americano', 'A simple yet satisfying mix of espresso and hot water, creating a smooth, mellow coffee with a slightly lighter body than a traditional espresso.', 5.50, 'images/americano.jpg', 1.00);
+(1, 'Espresso', 'A bold and concentrated shot of rich, aromatic coffee, perfect for those who love a strong caffeine kick.', 3.00, 'espresso.png', 2.00),
+(2, 'Latte', 'Smooth and creamy, this espresso-based drink is blended with steamed milk and topped with a light layer of foam for a balanced, velvety taste.', 4.50, 'latte.webp', 4.00),
+(3, 'Cappuccino', 'A classic favorite with equal parts espresso, steamed milk, and frothy foam, delivering a rich, robust flavor with a light, airy texture.', 4.00, 'cappuccino.png', 6.00),
+(4, 'Americano', 'A simple yet satisfying mix of espresso and hot water, creating a smooth, mellow coffee with a slightly lighter body than a traditional espresso.', 5.50, 'americano.png', 1.00);
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

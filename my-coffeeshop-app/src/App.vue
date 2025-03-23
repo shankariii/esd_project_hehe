@@ -1,7 +1,7 @@
 <template>
   <div class="app-container">
     <nav class="navbar">
-      <a href="#" class="logo">☕ <span>Brew Haven</span></a>
+      <a href="/" class="logo">☕ <span>Brew Haven</span></a>
       <button class="mobile-menu-btn" @click="toggleMenu">☰</button>
       <ul class="nav-links" :class="{ active: mobileMenuOpen }">
         <li><router-link to="/">Home</router-link></li>

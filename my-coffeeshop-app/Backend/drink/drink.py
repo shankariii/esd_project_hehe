@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_restful import Api, Resource
+from flask_cors import CORS
 import pymysql
 import os
 from os import environ
@@ -8,6 +9,7 @@ from os import environ
 
 # Initialize Flask App
 app = Flask(__name__)
+CORS(app)
 api = Api(app)
 
 # MySQL Configuration (Using Docker Environment Variables)
