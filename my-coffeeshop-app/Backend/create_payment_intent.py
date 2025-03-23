@@ -20,7 +20,7 @@ def create_payment_intent():
         intent = stripe.PaymentIntent.create(
             amount=amount,
             currency=currency,
-            payment_method_types=['card'],
+            payment_method_types=['card', "paynow"],
             # Add additional parameters if needed, such as metadata, description, etc.
         )
 

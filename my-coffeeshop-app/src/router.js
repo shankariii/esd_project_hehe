@@ -12,6 +12,7 @@ import Profile from './views/Profile.vue'
 import TrackOrders from './views/TrackOrders.vue'
 import Checkout from './views/Checkout.vue'
 import FindOutlet from './views/FindOutlet.vue'
+import Random from './views/random.vue'
 // import Cart from './views/Cart.vue'
 
 // Create and export the router
@@ -66,6 +67,11 @@ const router = createRouter({
       path: '/findOutlet', 
       name: 'findOutlet',
       component: FindOutlet 
+    },
+    { 
+      path: '/random/:id', 
+      name: 'random',
+      component: Random 
     },
     // Catch-all route for 404 errors
     { 

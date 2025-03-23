@@ -1,673 +1,592 @@
 <template>
-    <div class="customization-container">
-      <!-- Back button and header -->
-      <div class="back-nav">
-        <button class="back-btn" @click="goBack">
-          <i class="fas fa-arrow-left"></i> Back to Menu
-        </button>
-      </div>
-  
-      <div class="product-container" v-if="drink">
-        <div class="product-image-section">
-          <img :src="drink.image" :alt="drink.name" class="product-image">
+  <div class="drink-customization">
+    <div class="content-wrapper">
+      <!-- Main Content Column -->
+      <div class="main-content">
+        <!-- Drink Header Section -->
+        <a @click="goBack">
+          <i class="fas fa-arrow-left"></i> <!-- FontAwesome arrow icon -->
+        </a>
+        <div class="drink-header">
+
+          <div class="drink-image-container">
+            <img :src="drink.image" :alt="drink.drink_name" class="drink-image" />
+          </div>
+          <div class="drink-details">
+            <h2>{{ drink.drink_name }}</h2>
+            <p>{{ drink.description }}</p>
+            <p><strong>Price:</strong> ${{ drink.price.toFixed(2) }}</p>
+          </div>
         </div>
-  
-        <div class="product-details">
-          <h1 class="product-title">{{ drink.name }}</h1>
-          <p class="product-description">{{ drink.description }}</p>
-          
+
+        <!-- Customization Options -->
+        <div class="customization-options">
+          <!-- Size Options -->
           <div class="customization-section">
-            <!-- Size selection -->
-            <div class="option-group">
-              <h3 class="option-title">Size</h3>
-              <div class="size-options">
-                <div 
-                  v-for="size in sizes" 
-                  :key="size.id"
-                  :class="['size-option', { active: selectedSize === size.id }]"
-                  @click="selectSize(size.id)"
-                >
-                  <div class="size-visual">
-                    <img src="../assets/coffee_icon.png" :style="{ height: size.visualHeight + 'px'}">
-                  </div>
-                  
-                  <div class="size-info">
-                    <span class="size-name">{{ size.name }}</span>
-                    <span class="size-price">+${{ size.priceDiff.toFixed(2) }}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <!-- Milk selection -->
-            <div class="option-group">
-              <h3 class="option-title">Milk Options</h3>
-              <div class="radio-options">
-                <div 
-                  v-for="milk in milkOptions" 
-                  :key="milk.id"
-                  :class="['radio-option', { active: selectedMilk === milk.id }]"
-                  @click="selectMilk(milk.id)"
-                >
-                  <div class="radio-button">
-                    <div class="radio-inner" v-if="selectedMilk === milk.id"></div>
-                  </div>
-                  <div class="option-info">
-                    <span class="option-name">{{ milk.name }}</span>
-                    <span class="option-price" v-if="milk.priceDiff > 0">+${{ milk.priceDiff.toFixed(2) }}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <!-- Add-ons selection -->
-            <div class="option-group">
-              <h3 class="option-title">Add-ons</h3>
-              <div class="checkbox-options">
-                <div 
-                  v-for="addon in addonOptions" 
-                  :key="addon.id"
-                  :class="['checkbox-option', { active: selectedAddons.includes(addon.id) }]"
-                  @click="toggleAddon(addon.id)"
-                >
-                  <div class="checkbox">
-                    <i class="fas fa-check" v-if="selectedAddons.includes(addon.id)"></i>
-                  </div>
-                  <div class="option-info">
-                    <span class="option-name">{{ addon.name }}</span>
-                    <span class="option-price">+${{ addon.price.toFixed(2) }}</span>
-                  </div>
-                </div>
+            <h3>Size</h3>
+            <div class="options-container">
+              <div v-for="size in sizeOptions" :key="size.customisation_id" class="option-button"
+                :class="{ 'option-selected': selectedSize.customisation_id === size.customisation_id }"
+                @click="selectedSize = size">
+                {{ size.name }} (+${{ size.price_diff.toFixed(2) }})
               </div>
             </div>
           </div>
-          
-          <!-- Quantity selector -->
-          <div class="quantity-section">
-            <h3 class="option-title">Quantity</h3>
-            <div class="quantity-controls">
-              <button 
-                class="quantity-btn" 
-                @click="decrementQuantity" 
-                :disabled="quantity <= 1"
-              >
-                <i class="fas fa-minus"></i>
-              </button>
-              <span class="quantity-value">{{ quantity }}</span>
-              <button class="quantity-btn" @click="incrementQuantity">
-                <i class="fas fa-plus"></i>
-              </button>
-            </div>
-          </div>
-          
-          <!-- Price summary and add to cart -->
-          <div class="price-summary">
-            <div class="price-calculation">
-              <div class="base-price">
-                <span>Base price:</span>
-                <span>${{ drink.price.toFixed(2) }}</span>
-              </div>
-              <div class="size-price" v-if="sizePriceDiff > 0">
-                <span>Size upgrade:</span>
-                <span>+${{ sizePriceDiff.toFixed(2) }}</span>
-              </div>
-              <div class="milk-price" v-if="milkPriceDiff > 0">
-                <span>Milk option:</span>
-                <span>+${{ milkPriceDiff.toFixed(2) }}</span>
-              </div>
-              <div class="addons-price" v-if="addonsTotalPrice > 0">
-                <span>Add-ons:</span>
-                <span>+${{ addonsTotalPrice.toFixed(2) }}</span>
-              </div>
-              <div class="item-total">
-                <span>Item total:</span>
-                <span>${{ itemTotal.toFixed(2) }}</span>
-              </div>
-              <div class="order-total">
-                <span><strong>Order total:</strong></span>
-                <span><strong>${{ orderTotal.toFixed(2) }}</strong></span>
+
+          <!-- Milk Options -->
+          <div class="customization-section">
+            <h3>Milk Options</h3>
+            <div class="options-container">
+              <div v-for="milk in milkOptions" :key="milk.customisation_id" class="option-button"
+                :class="{ 'option-selected': selectedMilk.customisation_id === milk.customisation_id }"
+                @click="selectedMilk = milk">
+                {{ milk.name }}
+                <span v-if="milk.price_diff > 0">(+${{ milk.price_diff.toFixed(2) }})</span>
               </div>
             </div>
-            
-            <button class="add-to-cart-btn" @click="addToCart">
-              Add to Cart <i class="fas fa-shopping-cart"></i>
-            </button>
           </div>
+
+          <!-- Extra Shots -->
+          <div class="customization-section">
+            <h3>Quantity</h3>
+            <div class="counter-container">
+              <button class="counter-button" @click="decrementQuantity" :disabled="extraShots <= 0">-</button>
+              <span class="counter-value">{{ quantity }}</span>
+              <button class="counter-button" @click="incrementQuantity">+</button>
+            </div>
+          </div>
+
+          <!-- Add-ons / Extras -->
+          <div class="customization-section">
+            <h3>Extras</h3>
+            <div class="checkbox-options">
+              <div v-for="addon in addons" :key="addon.customisation_id" class="checkbox-option">
+                <input type="checkbox" :id="addon.name" :value="addon" v-model="selectedAddons" />
+                <label :for="addon.name">{{ addon.name }} (+${{ addon.price_diff.toFixed(2) }})</label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Special Instructions -->
+          <!-- <div class="customization-section">
+            <h3>Special Instructions</h3>
+            <textarea v-model="specialInstructions" placeholder="Any special requests?"></textarea>
+          </div> -->
         </div>
       </div>
-      
-      <div v-else class="loading-container">
-        <div class="loading-spinner"></div>
-        <p>Loading drink details...</p>
+
+      <!-- Sidebar with Order Summary -->
+      <div class="order-summary-sidebar">
+        <div class="order-summary">
+          <h3>Order Summary</h3>
+          <div class="summary-content">
+            <div class="summary-item">
+              <span class="item-label">Drink:</span>
+              <span class="item-value">{{ drink.drink_name }}</span>
+            </div>
+            <div class="summary-item">
+              <span class="item-label">Size:</span>
+              <span class="item-value">{{ selectedSize.name }}</span>
+            </div>
+            <div class="summary-item">
+              <span class="item-label">Milk:</span>
+              <span class="item-value">{{ selectedMilk.name }}</span>
+            </div>
+            <div class="summary-item" v-if="extraShots > 0">
+              <span class="item-label">Extra Shots:</span>
+              <span class="item-value">{{ extraShots }}</span>
+            </div>
+            <div class="summary-item">
+              <span class="item-label">Add-ons:</span>
+              <span class="item-value">{{selectedAddons.map(a => a.name).join(', ') || 'None'}}</span>
+            </div>
+            <!-- <div class="summary-item" v-if="specialInstructions">
+              <span class="item-label">Special Instructions:</span>
+              <span class="item-value instructions">{{ specialInstructions }}</span>
+            </div> -->
+            <div class="summary-divider"></div>
+            <div class="summary-item total">
+              <span class="item-label">Total Price:</span>
+              <span class="item-value">${{ totalPrice.toFixed(2) }}</span>
+            </div>
+          </div>
+
+          <!-- Navigation Buttons -->
+          <div class="navigation-buttons">
+            <button @click="goBack" class="back-btn">Back</button>
+            <button @click="addToCart" class="add-btn">Add to Cart</button>
+          </div>
+        </div>
       </div>
     </div>
-  </template>
-  
-  <script>
-  import axios from 'axios';
-  
-  export default {
-    name: 'CustomizeDrink',
-    data() {
-      return {
-        drink: null,
-        loading: true,
-        error: null,
-        selectedSize: 2, // Default to medium
-        selectedMilk: 1, // Default to regular milk
-        extraShots: 0,
-        extraShotPrice: 0.75,
-        selectedExtras: [],
-        specialInstructions: '',
-        
-        // Options data
-        sizes: [
-          { id: 1, name: 'Small', price: -0.50 },
-          { id: 2, name: 'Medium', price: 0 },
-          { id: 3, name: 'Large', price: 0.75 }
-        ],
-        milkOptions: [
-          { id: 1, name: 'Regular', price: 0 },
-          { id: 2, name: 'Skim', price: 0 },
-          { id: 3, name: 'Almond', price: 0.75 },
-          { id: 4, name: 'Oat', price: 0.75 },
-          { id: 5, name: 'Soy', price: 0.75 }
-        ],
-        extras: [
-          { id: 1, name: 'Vanilla Syrup', price: 0.50 },
-          { id: 2, name: 'Caramel Syrup', price: 0.50 },
-          { id: 3, name: 'Hazelnut Syrup', price: 0.50 },
-          { id: 4, name: 'Whipped Cream', price: 0.50 },
-          { id: 5, name: 'Chocolate Sprinkles', price: 0.25 }
-        ]
-      };
+  </div>
+</template>
+
+<style scoped>
+.drink-customization {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding-top: 6%;
+  background-color: var(--light);
+}
+
+/* New side-by-side layout */
+.content-wrapper {
+  display: flex;
+  gap: 6rem;
+}
+
+.main-content {
+  flex: 1;
+  min-width: 0;
+  /* Prevents flex items from overflowing */
+}
+
+.order-summary-sidebar {
+  width: 350px;
+  flex-shrink: 0;
+  align-self: flex-start;
+  position: sticky;
+  top: 6rem;
+}
+
+/* Drink Header */
+.drink-header {
+  display: flex;
+  gap: 2rem;
+  margin-bottom: 2rem;
+  align-items: flex-start;
+}
+
+.drink-image-container {
+  flex: 0 0 300px;
+}
+
+.drink-image {
+  width: 100%;
+  height: auto;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.drink-details {
+  flex: 1;
+  text-align: left;
+}
+
+.drink-details h2 {
+  color: var(--primary);
+  margin-bottom: 0.75rem;
+  font-size: 2rem;
+}
+
+.drink-details p {
+  margin-bottom: 0.75rem;
+  line-height: 1.6;
+  color: var(--text);
+}
+
+.customization-options {
+  display: grid;
+  gap: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+  margin-bottom: 2rem;
+  background-color: #f9f9f9;
+}
+
+.customization-section {
+  /* background-color: #f9f9f9; */
+  padding: 1.5rem;
+  /* border-radius: 10px; */
+  /* box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1); */
+
+}
+
+.customization-section h3 {
+  color: var(--primary);
+  margin-bottom: 1rem;
+  font-size: 1.5rem;
+}
+
+/* Style for option buttons (size, milk) */
+.options-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.option-button {
+  padding: 0.75rem 1.25rem;
+  background-color: var(--light);
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 500;
+}
+
+.option-button:hover {
+  background-color: #e9e3e0;
+}
+
+.option-selected {
+  background-color: var(--primary);
+  color: white;
+}
+
+/* Style for counter (extra shots) */
+.counter-container {
+  display: flex;
+  align-items: center;
+  width: fit-content;
+}
+
+.counter-button {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--light);
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  font-size: 1.5rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.counter-button:hover:not(:disabled) {
+  background-color: #e9e3e0;
+}
+
+.counter-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.counter-value {
+  min-width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  font-weight: 500;
+  margin: 0 0.5rem;
+}
+
+/* Style for checkboxes (add-ons) */
+.checkbox-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 0.75rem;
+}
+
+.checkbox-option {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.checkbox-option input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+.checkbox-option label {
+  cursor: pointer;
+}
+
+/* Special instructions textarea */
+textarea {
+  width: 100%;
+  min-height: 80px;
+  padding: 0.75rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  resize: vertical;
+  font-family: inherit;
+  font-size: 1rem;
+}
+
+textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+/* Order summary */
+.order-summary {
+  background-color: #f9f9f9;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  border: 1px solid #eaeaea;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.order-summary h3 {
+  color: var(--primary);
+  margin-bottom: 1.25rem;
+  font-size: 1.5rem;
+  border-bottom: 2px solid var(--primary);
+  padding-bottom: 0.75rem;
+  position: relative;
+}
+
+.summary-content {
+  padding: 0.5rem;
+  flex: 1;
+}
+
+.summary-item {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.85rem;
+  align-items: flex-start;
+}
+
+.item-label {
+  font-weight: 600;
+  color: #555;
+  flex: 0 0 40%;
+}
+
+.item-value {
+  text-align: right;
+  color: #333;
+  flex: 0 0 60%;
+  word-break: break-word;
+}
+
+.instructions {
+  font-style: italic;
+  font-size: 0.95rem;
+}
+
+.summary-divider {
+  height: 1px;
+  background-color: #eaeaea;
+  margin: 1rem 0;
+}
+
+.summary-item.total {
+  margin-top: 0.5rem;
+  font-size: 1.25rem;
+}
+
+.summary-item.total .item-label {
+  color: var(--primary);
+}
+
+.summary-item.total .item-value {
+  font-weight: 700;
+  color: var(--primary);
+}
+
+/* Navigation buttons */
+.navigation-buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: auto;
+  padding-top: 1.5rem;
+}
+
+.navigation-buttons button {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 5px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.back-btn {
+  background-color: #e0e0e0;
+  color: var(--text);
+}
+
+.back-btn:hover {
+  background-color: #d0d0d0;
+}
+
+.add-btn {
+  background-color: var(--primary);
+  color: white;
+}
+
+.add-btn:hover {
+  background-color: var(--secondary);
+}
+
+@media (max-width: 1024px) {
+  .content-wrapper {
+    flex-direction: column;
+  }
+
+  .order-summary-sidebar {
+    width: 100%;
+    position: static;
+  }
+}
+
+@media (max-width: 768px) {
+  .drink-header {
+    flex-direction: column;
+  }
+
+  .drink-image-container {
+    flex: 0 0 auto;
+    width: 100%;
+    margin-bottom: 1rem;
+  }
+
+  .options-container {
+    flex-direction: column;
+  }
+
+  .option-button {
+    width: 100%;
+  }
+
+  .checkbox-options {
+    grid-template-columns: 1fr;
+  }
+
+  .summary-item {
+    flex-direction: column;
+    margin-bottom: 1rem;
+  }
+
+  .item-label {
+    margin-bottom: 0.25rem;
+    flex: 0 0 100%;
+  }
+
+  .item-value {
+    flex: 0 0 100%;
+    text-align: left;
+  }
+}
+</style>
+
+
+<script>
+import axios from 'axios';
+
+export default {
+  data() {
+    return {
+      drink: {}, // Holds the drink details
+      sizeOptions: [], // Holds size customizations
+      milkOptions: [], // Holds milk customizations
+      addons: [], // Holds add-ons
+      selectedSize: {}, // Selected size
+      selectedMilk: {}, // Selected milk
+      selectedAddons: [], // Selected add-ons
+      quantity: 1, // Number of extra shots
+      specialInstructions: '', // Special instructions
+    };
+  },
+  computed: {
+    // Calculate the total price dynamically
+    totalPrice() {
+      let total = this.drink.price;
+      total += this.selectedSize.price_diff || 0;
+      total += this.selectedMilk.price_diff || 0;
+      total += this.selectedAddons.reduce((sum, addon) => sum + addon.price_diff, 0);
+
+      // Add price for extra shots (assuming $0.75 per shot)
+      total = total * this.quantity;
+
+      return total;
     },
-    methods: {
-      async fetchDrinkDetails() {
-        try {
-          this.loading = true;
-          const drinkId = this.$route.params.id;
-          // Replace with your actual API endpoint
-          const response = await axios.get(`http://127.0.0.1:5002/drinks/${drinkId}`);
-          this.drink = response.data;
-          this.loading = false;
-        } catch (err) {
-          this.error = 'Failed to load drink details. Please try again.';
-          this.loading = false;
-          console.error('Error fetching drink details:', err);
-        }
-      },
-      incrementShots() {
-        if (this.extraShots < 5) {
-          this.extraShots++;
-        }
-      },
-      decrementShots() {
-        if (this.extraShots > 0) {
-          this.extraShots--;
-        }
-      },
-      calculateTotalPrice() {
-        if (!this.drink) return 0;
-        
-        let total = this.drink.price;
-        
-        // Add size cost
-        const selectedSizeObj = this.sizes.find(size => size.id === this.selectedSize);
-        if (selectedSizeObj) {
-          total += selectedSizeObj.price;
-        }
-        
-        // Add milk cost
-        const selectedMilkObj = this.milkOptions.find(milk => milk.id === this.selectedMilk);
-        if (selectedMilkObj) {
-          total += selectedMilkObj.price;
-        }
-        
-        // Add extra shots
-        total += this.extraShots * this.extraShotPrice;
-        
-        // Add extras
-        this.selectedExtras.forEach(extraId => {
-          const extra = this.extras.find(e => e.id === extraId);
-          if (extra) {
-            total += extra.price;
-          }
-        });
-        
-        return total;
-      },
-      goBack() {
-        this.$router.push('/menu');
-      },
-      addToCart() {
-        // Create an order item object
-        const orderItem = {
-          drinkId: this.drink.drink_id,
-          name: this.drink.drink_name,
-          basePrice: this.drink.price,
-          size: this.selectedSize,
-          milk: this.selectedMilk,
-          extraShots: this.extraShots,
-          extras: this.selectedExtras,
-          specialInstructions: this.specialInstructions,
-          totalPrice: this.calculateTotalPrice()
+  },
+  async created() {
+    // Fetch drink details
+    const drinkId = this.$route.params.id; // Assuming the drink ID is passed via route
+    const drinkResponse = await axios.get(`http://127.0.0.1:5002/drinks/${drinkId}`);
+    this.drink = drinkResponse.data;
+
+    // Fetch customization options
+    const sizeResponse = await axios.get('http://127.0.0.1:5002/customisations/type/S');
+    this.sizeOptions = sizeResponse.data;
+
+    const milkResponse = await axios.get('http://127.0.0.1:5002/customisations/type/M');
+    this.milkOptions = milkResponse.data;
+
+    const addonsResponse = await axios.get('http://127.0.0.1:5002/customisations/type/A');
+    this.addons = addonsResponse.data;
+
+    // Set default selections
+    this.selectedSize = this.sizeOptions[0];
+    this.selectedMilk = this.milkOptions[0];
+  },
+  methods: {
+    goBack() {
+      this.$router.go(-1); // Navigate back
+    },
+    // async addToCart() {
+    //   // Add the customized drink to the cart
+    //   const order = {
+    //     drink: this.drink,
+    //     size: this.selectedSize,
+    //     milk: this.selectedMilk,
+    //     extraShots: this.extraShots,
+    //     addons: this.selectedAddons,
+    //     specialInstructions: this.specialInstructions,
+    //     totalPrice: this.totalPrice,
+    //   };
+
+    //   const addtoCart = await axios.post('http://127.0.0.1:5013/create_cart'){};
+    //   console.log('Added to cart:', order);
+    //   // You can implement cart logic here
+    // },
+
+    async addToCart() {
+      try {
+        const payload = {
+          outlet_id: 2, // Replace with dynamic value if needed
+          totalPrice: this.totalPrice.toFixed(2), // Use the computed total price
+          user_id: "iTeYSJ3xoBQuDdI0uXravnQgbqo2", // Replace with dynamic value if needed
         };
-        
-        // In a real app, you would dispatch this to a store or make an API call
-        console.log('Adding to cart:', orderItem);
-        
-        // Could use Vuex store or localStorage to save the cart
-        let cart = JSON.parse(localStorage.getItem('cart') || '[]');
-        cart.push(orderItem);
-        localStorage.setItem('cart', JSON.stringify(cart));
-        
-        // Show confirmation and navigate back to menu
-        alert('Added to cart!');
-        this.$router.push('/menu');
+
+        const response = await axios.post('http://127.0.0.1:5015/create_cart', payload);
+        console.log(response)
+
+        if (response.data && response.data.data && response.data.data.cart_id) {
+          const cartId = response.data.data.cart_id;
+          console.log('Cart created successfully. Cart ID:', cartId);
+
+          // Optionally, you can redirect the user or show a success message
+          alert(`Cart created successfully! Cart ID: ${cartId}`);
+        } else {
+          console.error('Unexpected response:', response.data);
+          alert('Failed to create cart. Please try again.');
+        }
+      } catch (error) {
+        console.error('Error creating cart:', error);
+
+        // Show an error message to the user
+        if (error.response) {
+          alert(`Error: ${error.response.data.message || 'Failed to create cart.'}`);
+        } else {
+          alert('Network error. Please check your connection.');
+        }
       }
     },
-    created() {
-      this.fetchDrinkDetails();
+
+    incrementQuantity() {
+      this.quantity += 1;
     },
-    mounted() {
-      // If the route changes but component is reused, refetch data
-      this.$watch(
-        () => this.$route.params,
-        () => {
-          this.fetchDrinkDetails();
-        }
-      );
+    decrementQuantity() {
+      if (this.quantity > 1) {
+        this.quantity -= 1;
+      }
     }
-  }
-  </script>
-  
-  <style scoped>
-  .customization-container {
-    background-color: var(--light);
-    min-height: 100vh;
-    padding: 2rem 1rem 4rem;
-  }
-  
-  .back-nav {
-    max-width: 1200px;
-    margin: 0 auto 2rem;
-  }
-  
-  .back-btn {
-    background: none;
-    border: none;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 1rem;
-    color: var(--primary);
-    cursor: pointer;
-    padding: 0.5rem 0;
-  }
-  
-  .back-btn:hover {
-    color: var(--dark);
-  }
-  
-  .product-container {
-    display: flex;
-    flex-direction: column;
-    gap: 2rem;
-    max-width: 1200px;
-    margin: 0 auto;
-    background-color: white;
-    border-radius: 12px;
-    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
-    overflow: hidden;
-  }
-  
-  .product-image-section {
-    width: 100%;
-    height: 300px;
-    overflow: hidden;
-  }
-  
-  .product-image {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-  
-  .product-details {
-    padding: 2rem;
-  }
-  
-  .product-title {
-    font-size: 2rem;
-    color: var(--dark);
-    margin-bottom: 0.5rem;
-  }
-  
-  .product-description {
-    color: var(--text-light);
-    margin-bottom: 2rem;
-    line-height: 1.6;
-  }
-  
-  .customization-section {
-    display: flex;
-    flex-direction: column;
-    gap: 2rem;
-  }
-  
-  .option-group {
-    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-    padding-bottom: 2rem;
-  }
-  
-  .option-title {
-    font-size: 1.2rem;
-    color: var(--primary);
-    margin-bottom: 1rem;
-  }
-  
-  /* Size selection */
-  .size-options {
-    display: flex;
-    gap: 1.5rem;
-    flex-wrap: wrap;
-  }
-  
-  .size-option {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    cursor: pointer;
-    transition: all 0.3s;
-    padding: 1rem;
-    border-radius: 8px;
-    border: 2px solid transparent;
-    min-width: 100px;
-  }
-  
-  .size-option.active {
-    border-color: var(--primary);
-    background-color: rgba(93, 64, 55, 0.05);
-  }
-  
-  .size-visual {
-    width: 40px;
-    /* background-color: var(--primary); */
-    border-radius: 4px;
-    margin-bottom: 0.75rem;
-  }
-  
-  .size-info {
-    text-align: center;
-  }
-  
-  .size-name {
-    display: block;
-    font-weight: 600;
-    margin-bottom: 0.25rem;
-  }
-  
-  .size-price {
-    color: var(--primary);
-    font-size: 0.9rem;
-  }
-  
-  /* Radio options for milk */
-  .radio-options {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-  }
-  
-  .radio-option {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    padding: 0.75rem 1rem;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.3s;
-  }
-  
-  .radio-option:hover {
-    background-color: rgba(93, 64, 55, 0.05);
-  }
-  
-  .radio-option.active {
-    background-color: rgba(93, 64, 55, 0.05);
-  }
-  
-  .radio-button {
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    border: 2px solid var(--primary);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  
-  .radio-inner {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background-color: var(--primary);
-  }
-  
-  .option-info {
-    display: flex;
-    justify-content: space-between;
-    flex: 1;
-  }
-  
-  .option-name {
-    font-weight: 500;
-  }
-  
-  .option-price {
-    color: var(--primary);
-    font-weight: 600;
-  }
-  
-  /* Checkbox options for add-ons */
-  .checkbox-options {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: 1rem;
-  }
-  
-  .checkbox-option {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    padding: 0.75rem 1rem;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.3s;
-  }
-  
-  .checkbox-option:hover {
-    background-color: rgba(93, 64, 55, 0.05);
-  }
-  
-  .checkbox-option.active {
-    background-color: rgba(93, 64, 55, 0.05);
-  }
-  
-  .checkbox {
-    width: 20px;
-    height: 20px;
-    border-radius: 4px;
-    border: 2px solid var(--primary);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--primary);
-  }
-  
-  /* Special instructions */
-  .instructions-input {
-    width: 100%;
-    padding: 1rem;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    font-size: 1rem;
-    min-height: 100px;
-    resize: vertical;
-  }
-  
-  .instructions-input:focus {
-    outline: none;
-    border-color: var(--primary);
-  }
-  
-  /* Quantity selector */
-  .quantity-section {
-    margin: 2rem 0;
-  }
-  
-  .quantity-controls {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    max-width: 180px;
-  }
-  
-  .quantity-btn {
-    width: 40px;
-    height: 40px;
-    background-color: var(--light);
-    border: none;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.3s;
-  }
-  
-  .quantity-btn:hover:not([disabled]) {
-    background-color: var(--secondary);
-    color: white;
-  }
-  
-  .quantity-btn[disabled] {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-  
-  .quantity-value {
-    flex: 1;
-    text-align: center;
-    font-weight: 600;
-    font-size: 1.2rem;
-  }
-  
-  /* Price summary and add to cart */
-  .price-summary {
-    margin-top: 2rem;
-    border-top: 1px solid rgba(0, 0, 0, 0.1);
-    padding-top: 2rem;
-  }
-  
-  .price-calculation {
-    margin-bottom: 2rem;
-  }
-  
-  .price-calculation > div {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 0.5rem;
-  }
-  
-  .item-total {
-    margin-top: 1rem;
-    padding-top: 1rem;
-    border-top: 1px dashed rgba(0, 0, 0, 0.1);
-  }
-  
-  .order-total {
-    font-size: 1.2rem;
-    margin-top: 0.5rem;
-    color: var(--primary);
-  }
-  
-  .add-to-cart-btn {
-    background-color: var(--primary);
-    color: white;
-    border: none;
-    border-radius: 8px;
-    padding: 1rem;
-    font-size: 1.1rem;
-    font-weight: 600;
-    width: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.75rem;
-    cursor: pointer;
-    transition: background-color 0.3s;
-  }
-  
-  .add-to-cart-btn:hover {
-    background-color: var(--dark);
-  }
-  
-  /* Loading state */
-  .loading-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-height: 400px;
-  }
-  
-  .loading-spinner {
-    width: 50px;
-    height: 50px;
-    border: 5px solid rgba(93, 64, 55, 0.2);
-    border-top-color: var(--primary);
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-    margin-bottom: 1rem;
-  }
-  
-  @keyframes spin {
-    to { transform: rotate(360deg); }
-  }
-  
-  /* Responsive adjustments */
-  @media (min-width: 768px) {
-    .product-container {
-      flex-direction: row;
-    }
-    
-    .product-image-section {
-      width: 40%;
-      height: auto;
-    }
-    
-    .product-details {
-      width: 60%;
-    }
-  }
-  
-  @media (max-width: 767px) {
-    .product-image-section {
-      height: 200px;
-    }
-    
-    .size-options {
-      justify-content: space-between;
-    }
-    
-    .size-option {
-      min-width: 80px;
-    }
-    
-    .checkbox-options {
-      grid-template-columns: 1fr;
-    }
-  }
-  </style>
+  },
+};
+</script>
