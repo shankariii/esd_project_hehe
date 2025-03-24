@@ -1,194 +1,107 @@
 from flask import Flask, request, jsonify
-import mysql.connector
-from mysql.connector import Error
-from dataclasses import dataclass
-import os
-import logging
-from flasgger import Swagger
+from flask_sqlalchemy import SQLAlchemy
+from flask_cors import CORS
+from os import environ
 
 app = Flask(__name__)
-Swagger(app)
-
-# Logging configuration
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+CORS(app)
 
 # Database configuration
-DB_CONFIG = {
-    'host': os.environ.get('DB_HOST', 'coffee_inventory_db'),  # Should match MySQL container name
-    'user': os.environ.get('DB_USER', 'root'),
-    'password': os.environ.get('DB_PASSWORD', ''),
-    'database': os.environ.get('DB_NAME', 'coffee_inventory')
-}
+app.config['SQLALCHEMY_DATABASE_URI'] = environ.get('dbURL')
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {'pool_recycle': 299}
 
-def get_db_connection():
-    """Retrieve a new database connection dynamically to avoid initialization issues."""
-    try:
-        return mysql.connector.connect(**DB_CONFIG)
-    except Error as e:
-        logger.error(f"Error getting database connection: {e}")
-        return None
+db = SQLAlchemy(app)
 
-@dataclass
-class InventoryItem:
-    ingredient_id: str
-    available_quantity: float
-    unit: str
+class Inventory(db.Model):
+    __tablename__ = 'inventory'
 
-def dict_from_row(cursor, row):
-    """Convert a row to a dictionary based on column names, with a safe check."""
-    if not row:
-        return None
-    columns = [col[0] for col in cursor.description or []]
-    return dict(zip(columns, row))
+    inventory_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    ingredient_id = db.Column(db.String(64), nullable=False)
+    available_quantity = db.Column(db.Float(precision=2), nullable=False)
+    unit = db.Column(db.String(32), nullable=False)
 
-@app.route('/inventory', methods=['GET'])
-def get_inventory():
-    """
-    Get all items in the inventory or filter by ingredient_id
-    """
-    ingredient_id = request.args.get('ingredient_id')
+    def __init__(self, ingredient_id, available_quantity, unit):
+        self.ingredient_id = ingredient_id
+        self.available_quantity = available_quantity
+        self.unit = unit
 
-    conn = get_db_connection()
-    if not conn:
-        return jsonify({'error': 'Database connection failed'}), 500
+    def json(self):
+        return {
+            "inventory_id": self.inventory_id,
+            "ingredient_id": self.ingredient_id,
+            "available_quantity": self.available_quantity,
+            "unit": self.unit
+        }
 
-    cursor = conn.cursor()
-    try:
-        query = 'SELECT * FROM inventory' if not ingredient_id else 'SELECT * FROM inventory WHERE ingredient_id = %s'
-        params = () if not ingredient_id else (ingredient_id,)
+@app.route("/inventory")
+def get_all_items():
+    item_list = db.session.scalars(db.select(Inventory)).all()
+    if item_list:
+        return jsonify({
+            "code": 200,
+            "data": {
+                "inventory": [item.json() for item in item_list]
+            }
+        })
+    return jsonify({"code": 404, "message": "No inventory items found."}), 404
 
-        cursor.execute(query, params)
-        rows = cursor.fetchall()
-        inventory_items = [dict_from_row(cursor, row) for row in rows]
+@app.route("/inventory/<int:inventory_id>")
+def get_item_by_id(inventory_id):
+    item = db.session.scalar(db.select(Inventory).filter_by(inventory_id=inventory_id))
+    if item:
+        return jsonify({"code": 200, "data": item.json()})
+    return jsonify({"code": 404, "message": "Inventory item not found."}), 404
 
-        return jsonify(inventory_items)
-    except Error as e:
-        logger.error(f"Database error: {e}")
-        return jsonify({'error': 'Database error'}), 500
-    finally:
-        cursor.close()
-        conn.close()
-
-@app.route('/inventory/<inventory_id>', methods=['GET'])
-def get_item(inventory_id):
-    """
-    Get a specific item by inventory_id
-    """
-    conn = get_db_connection()
-    if not conn:
-        return jsonify({'error': 'Database connection failed'}), 500
-
-    cursor = conn.cursor()
-    try:
-        cursor.execute('SELECT * FROM inventory WHERE inventory_id = %s', (inventory_id,))
-        row = cursor.fetchone()
-        if row is None:
-            return jsonify({'error': 'Item not found'}), 404
-
-        return jsonify(dict_from_row(cursor, row))
-    except Error as e:
-        logger.error(f"Database error: {e}")
-        return jsonify({'error': 'Database error'}), 500
-    finally:
-        cursor.close()
-        conn.close()
-
-@app.route('/inventory', methods=['POST'])
-def add_item():
-    """
-    Add a new item to the inventory
-    """
-    if not request.is_json:
-        return jsonify({'error': 'Request must be JSON'}), 400
-
+@app.route("/inventory", methods=["POST"])
+def create_item():
     data = request.get_json()
-    required_fields = ['ingredient_id', 'available_quantity', 'unit']
+    required = ['ingredient_id', 'available_quantity', 'unit']
+    if not all(key in data for key in required):
+        return jsonify({"code": 400, "message": "Missing required fields."}), 400
 
-    if not all(field in data for field in required_fields):
-        return jsonify({'error': 'Missing required fields'}), 400
-
-    conn = get_db_connection()
-    if not conn:
-        return jsonify({'error': 'Database connection failed'}), 500
-
-    cursor = conn.cursor()
+    item = Inventory(**data)
     try:
-        cursor.execute(
-            'INSERT INTO inventory (ingredient_id, available_quantity, unit) VALUES (%s, %s, %s)',
-            (data['ingredient_id'], data['available_quantity'], data['unit'])
-        )
-        conn.commit()
+        db.session.add(item)
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"code": 500, "message": "An error occurred creating the item.", "error": str(e)}), 500
 
-        return jsonify({'message': 'Item added successfully'}), 201
-    except Error as e:
-        conn.rollback()
-        logger.error(f"Database error: {e}")
-        return jsonify({'error': 'Database error'}), 500
-    finally:
-        cursor.close()
-        conn.close()
+    return jsonify({"code": 201, "data": item.json()}), 201
 
-@app.route('/inventory/<inventory_id>', methods=['PUT'])
+@app.route("/inventory/<int:inventory_id>", methods=["PUT"])
 def update_item(inventory_id):
-    """
-    Update an existing inventory item (requires all fields)
-    """
-    if not request.is_json:
-        return jsonify({'error': 'Request must be JSON'}), 400
+    item = db.session.scalar(db.select(Inventory).filter_by(inventory_id=inventory_id))
+    if not item:
+        return jsonify({"code": 404, "message": "Item not found."}), 404
 
     data = request.get_json()
-    required_fields = ['ingredient_id', 'available_quantity', 'unit']
-
-    if not all(field in data for field in required_fields):
-        return jsonify({'error': 'Missing required fields'}), 400
-
-    conn = get_db_connection()
-    if not conn:
-        return jsonify({'error': 'Database connection failed'}), 500
-
-    cursor = conn.cursor()
     try:
-        cursor.execute(
-            'UPDATE inventory SET ingredient_id = %s, available_quantity = %s, unit = %s WHERE inventory_id = %s',
-            (data['ingredient_id'], data['available_quantity'], data['unit'], inventory_id)
-        )
-        conn.commit()
+        item.ingredient_id = data.get("ingredient_id", item.ingredient_id)
+        item.available_quantity = data.get("available_quantity", item.available_quantity)
+        item.unit = data.get("unit", item.unit)
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"code": 500, "message": "An error occurred updating the item.", "error": str(e)}), 500
 
-        return jsonify({'message': 'Item updated successfully'})
-    except Error as e:
-        conn.rollback()
-        logger.error(f"Database error: {e}")
-        return jsonify({'error': 'Database error'}), 500
-    finally:
-        cursor.close()
-        conn.close()
+    return jsonify({"code": 200, "data": item.json()})
 
-@app.route('/inventory/<inventory_id>', methods=['DELETE'])
+@app.route("/inventory/<int:inventory_id>", methods=["DELETE"])
 def delete_item(inventory_id):
-    """
-    Delete an inventory item
-    """
-    conn = get_db_connection()
-    if not conn:
-        return jsonify({'error': 'Database connection failed'}), 500
+    item = db.session.scalar(db.select(Inventory).filter_by(inventory_id=inventory_id))
+    if not item:
+        return jsonify({"code": 404, "message": "Item not found."}), 404
 
-    cursor = conn.cursor()
     try:
-        cursor.execute('SELECT * FROM inventory WHERE inventory_id = %s', (inventory_id,))
-        if cursor.fetchone() is None:
-            return jsonify({'error': 'Item not found'}), 404
+        db.session.delete(item)
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"code": 500, "message": "Failed to delete item.", "error": str(e)}), 500
 
-        cursor.execute('DELETE FROM inventory WHERE inventory_id = %s', (inventory_id,))
-        conn.commit()
-        return jsonify({'message': f'Item {inventory_id} deleted successfully'})
-    except Error as e:
-        conn.rollback()
-        logger.error(f"Database error: {e}")
-        return jsonify({'error': 'Database error'}), 500
-    finally:
-        cursor.close()
-        conn.close()
+    return jsonify({"code": 200, "message": "Item deleted successfully."})
 
-if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000, debug=True)
