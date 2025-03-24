@@ -60,13 +60,13 @@ services:
     networks:
       - esd-net 
 
-    ###################################
+  ###################################
   # Cart_items_customisation: The Cart_items_customisation microservice
   ###################################
   cart_items_customisation:
     build:
       context: ./Cart_Items_Customisation
-      dockerfile: cart_itmes_customisation.Dockerfile
+      dockerfile: cart_items_customisation.Dockerfile
     image: shashass/cart_items_customisation:esd
     restart: always
     environment:
@@ -107,6 +107,26 @@ services:
       PYTHONUNBUFFERED: 1
     ports:
       - "5100:5100"
+    networks:
+      - esd-net
+
+  ###################################
+  # Add to Cart: The Add to Cart composite microservice
+  ###################################
+  addToCart:
+    build:
+      context: ./AddToCart
+      dockerfile: addToCart.Dockerfile
+    image: shashass/addtocart:esd
+    restart: always
+    depends_on:
+      - cart
+      - cart_items
+      - cart_items_customisation
+    environment:
+      PYTHONUNBUFFERED: 1
+    ports:
+      - "5200:5200"
     networks:
       - esd-net      
       

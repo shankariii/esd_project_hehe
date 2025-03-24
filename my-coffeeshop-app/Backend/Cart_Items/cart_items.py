@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
+from flask_cors import CORS
 from sqlalchemy import select
 from os import environ
 from sqlalchemy.orm import clear_mappers
@@ -7,6 +8,7 @@ from sqlalchemy.orm import clear_mappers
 
 
 app = Flask(__name__)
+CORS(app)
 
 clear_mappers()
 # app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://root@localhost:3306/cart'
