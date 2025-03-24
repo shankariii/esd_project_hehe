@@ -1,3 +1,6 @@
+## PLEASE CHANGE THE DOCKERID TO YOUR OWN!!!
+## REPLACE ALL THE SHASHASS WITH YOUR OWN DOCKERID:)
+
 networks:
   esd-net:
     driver: bridge
@@ -37,7 +40,42 @@ services:
     ports:
       - "5015:5015"
     networks:
-      - esd-net      
+      - esd-net    
+
+  
+  ###################################
+  # Cart_items: The Cart_items microservice
+  ###################################
+  cart_items:
+    build:
+      context: ./Cart_items
+      dockerfile: cart_items.Dockerfile
+    image: shashass/cart_items:esd
+    restart: always
+    environment:
+      dbURL: mysql+mysqlconnector://is213@host.docker.internal:3306/cart_items
+      PYTHONUNBUFFERED: 1
+    ports:
+      - "5016:5016"
+    networks:
+      - esd-net 
+
+    ###################################
+  # Cart_items_customisation: The Cart_items_customisation microservice
+  ###################################
+  cart_items_customisation:
+    build:
+      context: ./Cart_Items_Customisation
+      dockerfile: cart_itmes_customisation.Dockerfile
+    image: shashass/cart_items_customisation:esd
+    restart: always
+    environment:
+      dbURL: mysql+mysqlconnector://is213@host.docker.internal:3306/cart_items_customisation
+      PYTHONUNBUFFERED: 1
+    ports:
+      - "5017:5017"
+    networks:
+      - esd-net     
 
   ###################################
   # Profile: The Profile microservice
@@ -52,7 +90,7 @@ services:
       dbURL: mysql+mysqlconnector://is213@host.docker.internal:3306/profile
       PYTHONUNBUFFERED: 1
     ports:
-      - "5016:5016"
+      - "5018:5018"
     networks:
       - esd-net      
 
