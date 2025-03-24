@@ -24,6 +24,25 @@ services:
       - "5002:5002"
     networks:
       - esd-net      
+
+
+  ###################################
+  # Inventory: The Inventory microservice
+  ###################################
+  inventory:
+    build:
+      context: ./inventory
+      dockerfile: inventory.Dockerfile
+    ports:
+      - "5000:5000"
+    image: amritad/inventory:esd
+    restart: always
+    environment:
+      dbURL: mysql+mysqlconnector://is213@host.docker.internal:3306/inventory
+      PYTHONUNBUFFERED: 1
+    networks:
+      - esd-net
+
  
   ###################################
   # Cart: The Cart microservice
@@ -109,4 +128,3 @@ services:
       - "5100:5100"
     networks:
       - esd-net      
-      
