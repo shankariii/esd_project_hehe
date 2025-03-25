@@ -59,6 +59,17 @@
               required
             >
           </div>
+
+          <div class="form-group">
+            <label for="reg-name">Phone Number</label>
+            <input 
+              type="number" 
+              id="reg-phone" 
+              v-model="registerForm.phone" 
+              placeholder="91239843" 
+              required
+            >
+          </div>
           
           <div class="form-group">
             <label for="reg-email">Email</label>
@@ -100,6 +111,7 @@
   </template>
   
   <script>
+  import axios from 'axios'
   import { ref, reactive } from 'vue'
   import { 
     getAuth, 
@@ -109,20 +121,24 @@
     signInWithPopup,
     sendPasswordResetEmail
   } from 'firebase/auth'
+  import { useRouter } from 'vue-router';
+
   
   export default {
     name: 'LoginComponent',
     setup() {
+      const router = useRouter();
       const activeTab = ref('login')
       const errorMessage = ref('')
       
       const loginForm = reactive({
-        email: '',
+        email: '',  
         password: ''
       })
       
       const registerForm = reactive({
         name: '',
+        phone: '',
         email: '',
         password: ''
       })
@@ -134,27 +150,56 @@
           errorMessage.value = ''
           await signInWithEmailAndPassword(auth, loginForm.email, loginForm.password)
           // Redirect or handle successful login
-          console.log('Logged in successfully')
+          
+          // console.log('Logged in successfully')
+          alert('You have been logged in successfully!')
+          localStorage.setItem("selectedOutletId",'something' )
+          
+          console.log(router)
+          router.push(`/findOutlet`)
         } catch (error) {
           errorMessage.value = getErrorMessage(error.code)
         }
       }
       
       const handleRegister = async () => {
-        try {
-          errorMessage.value = ''
-          const userCredential = await createUserWithEmailAndPassword(
-            auth, 
-            registerForm.email, 
-            registerForm.password
-          )
-          
-          // You can save additional user info to firestore here
-          console.log('Account created successfully', userCredential.user)
-        } catch (error) {
-          errorMessage.value = getErrorMessage(error.code)
-        }
-      }
+  try {
+    errorMessage.value = ''
+    const userCredential = await createUserWithEmailAndPassword(
+      auth, 
+      registerForm.email, 
+      registerForm.password
+    )
+    
+    // Get the Firebase generated user ID
+    const firebaseUserId = userCredential.user.uid
+    // console.log(firebaseUserId)
+    // console.log(registerForm.phone)
+    // console.log(registerForm.email)
+    // console.log(registerForm.name)
+    
+    // Make API call to create profile in your database
+    await axios.post('http://127.0.0.1:5016/create_profile', {
+      email: registerForm.email,
+      phoneNum: registerForm.phone, // Note: this should be corrected to access from registerForm
+      userId: firebaseUserId,
+      userName: registerForm.name
+    })
+    
+    console.log('Account created successfully and profile saved to database')
+    
+    // Redirect or handle successful registration
+    // For example: router.push('/dashboard')
+  } catch (error) {
+    if (error.response) {
+      // Error from the API
+      errorMessage.value = `Profile creation failed: ${error.response.data.message || 'Unknown error'}`
+    } else {
+      // Error from Firebase
+      errorMessage.value = getErrorMessage(error.code)
+    }
+  }
+}
       
       const signInWithGoogle = async () => {
         try {
@@ -163,6 +208,11 @@
           await signInWithPopup(auth, provider)
           // Redirect or handle successful login
           console.log('Logged in with Google successfully')
+
+          alert('You have been logged in successfully!')
+          
+          console.log(router)
+          router.push(`/findOutlet`)
         } catch (error) {
           errorMessage.value = 'Google sign-in failed. Please try again.'
         }

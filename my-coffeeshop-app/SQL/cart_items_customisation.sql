@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1:3306
--- Generation Time: Mar 22, 2025 at 02:05 PM
+-- Generation Time: Mar 24, 2025 at 05:06 AM
 -- Server version: 8.2.0
 -- PHP Version: 8.2.13
 
@@ -18,34 +18,32 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Database: `profile`
-CREATE DATABASE IF NOT EXISTS `profile` DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;
-USE `profile`;
+-- Database: `cart_items_customisation`
+--
+CREATE DATABASE IF NOT EXISTS `cart_items_customisation` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
+USE `cart_items_customisation`;
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `profile`
+-- Table structure for table `cart_items_customisation`
 --
 
-DROP TABLE IF EXISTS `profile`;
-CREATE TABLE IF NOT EXISTS `profile` (
-  `userId` varchar(45) NOT NULL,
-  `userName` varchar(255) NOT NULL,
-  `email` varchar(255) NOT NULL,
-  `phoneNum` varchar(15) DEFAULT NULL,
-  PRIMARY KEY (`userId`),
-  UNIQUE KEY `userId_UNIQUE` (`userId`)
+DROP TABLE IF EXISTS `cart_items_customisation`;
+CREATE TABLE IF NOT EXISTS `cart_items_customisation` (
+  `cic_id` int NOT NULL,
+  `cart_item_id_fk` int NOT NULL,
+  `customisationId_fk` int NOT NULL,
+  PRIMARY KEY (`cic_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
--- Dumping data for table `profile`
+-- Dumping data for table `cart_items_customisation`
 --
 
-INSERT INTO `profile` (`userId`, `userName`, `email`, `phoneNum`) VALUES
-('iTeYSJ3xoBQuDdI0uXravnQgbqo2', 'gogo', 'gogo@gmail.com', '95434237'),
-('randoootext', 'JuJuss', 'juju@gmail.com.sg', '93434597'),
-('vPWKyHuXm9Np4YHoZE7grVeEZay2', 'yoyo', 'yoyo@gmail.com', '91234567');
+INSERT INTO `cart_items_customisation` (`cic_id`, `cart_item_id_fk`, `customisationId_fk`) VALUES
+(1, 1, 4),
+(2, 2, 2);
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

@@ -1,14 +1,15 @@
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_restful import Api, Resource
+from flask_cors import CORS
 import pymysql
 import os
 from os import environ
-from flask_cors import CORS
 
 
 # Initialize Flask App
 app = Flask(__name__)
+CORS(app)
 api = Api(app)
 
 # MySQL Configuration (Using Docker Environment Variables)
@@ -129,12 +130,22 @@ class CustomisationResource(Resource):
 
         customisations = Customisation.query.all()
         return jsonify([customisation.json() for customisation in customisations])
+    
+
+class CustomisationByTypeResource(Resource):
+    def get(self, customisation_type):
+        """Retrieve customisations by type"""
+        customisations = Customisation.query.filter_by(customisation_type=customisation_type).all()
+        if customisations:
+            return jsonify([customisations.json() for customisations in customisations])
+        return jsonify({"message": "No customisations found for this type"}), 404
 
 
 # Register API Endpoints
 api.add_resource(DrinkResource, '/drinks', '/drinks/<int:drink_id>')
 api.add_resource(DrinkIngredientResource, '/ingredients', '/ingredients/<int:drink_id>')
 api.add_resource(CustomisationResource, '/customisations', '/customisations/<int:customisation_id>')
+api.add_resource(CustomisationByTypeResource, '/customisations/type/<string:customisation_type>')
 
 
 # Run App

@@ -4,11 +4,7 @@
       <!-- Main Content Column -->
       <div class="main-content">
         <!-- Drink Header Section -->
-        <a @click="goBack">
-          <i class="fas fa-arrow-left"></i> <!-- FontAwesome arrow icon -->
-        </a>
         <div class="drink-header">
-
           <div class="drink-image-container">
             <img :src="drink.image" :alt="drink.drink_name" class="drink-image" />
           </div>
@@ -25,9 +21,13 @@
           <div class="customization-section">
             <h3>Size</h3>
             <div class="options-container">
-              <div v-for="size in sizeOptions" :key="size.customisation_id" class="option-button"
+              <div 
+                v-for="size in sizeOptions" 
+                :key="size.customisation_id" 
+                class="option-button"
                 :class="{ 'option-selected': selectedSize.customisation_id === size.customisation_id }"
-                @click="selectedSize = size">
+                @click="selectedSize = size"
+              >
                 {{ size.name }} (+${{ size.price_diff.toFixed(2) }})
               </div>
             </div>
@@ -37,9 +37,13 @@
           <div class="customization-section">
             <h3>Milk Options</h3>
             <div class="options-container">
-              <div v-for="milk in milkOptions" :key="milk.customisation_id" class="option-button"
+              <div 
+                v-for="milk in milkOptions" 
+                :key="milk.customisation_id" 
+                class="option-button"
                 :class="{ 'option-selected': selectedMilk.customisation_id === milk.customisation_id }"
-                @click="selectedMilk = milk">
+                @click="selectedMilk = milk"
+              >
                 {{ milk.name }}
                 <span v-if="milk.price_diff > 0">(+${{ milk.price_diff.toFixed(2) }})</span>
               </div>
@@ -50,9 +54,16 @@
           <div class="customization-section">
             <h3>Quantity</h3>
             <div class="counter-container">
-              <button class="counter-button" @click="decrementQuantity" :disabled="extraShots <= 0">-</button>
+              <button 
+                class="counter-button" 
+                @click="decrementQuantity" 
+                :disabled="extraShots <= 0"
+              >-</button>
               <span class="counter-value">{{ quantity }}</span>
-              <button class="counter-button" @click="incrementQuantity">+</button>
+              <button 
+                class="counter-button" 
+                @click="incrementQuantity"
+              >+</button>
             </div>
           </div>
 
@@ -61,7 +72,12 @@
             <h3>Extras</h3>
             <div class="checkbox-options">
               <div v-for="addon in addons" :key="addon.customisation_id" class="checkbox-option">
-                <input type="checkbox" :id="addon.name" :value="addon" v-model="selectedAddons" />
+                <input
+                  type="checkbox"
+                  :id="addon.name"
+                  :value="addon"
+                  v-model="selectedAddons"
+                />
                 <label :for="addon.name">{{ addon.name }} (+${{ addon.price_diff.toFixed(2) }})</label>
               </div>
             </div>
@@ -98,7 +114,7 @@
             </div>
             <div class="summary-item">
               <span class="item-label">Add-ons:</span>
-              <span class="item-value">{{selectedAddons.map(a => a.name).join(', ') || 'None'}}</span>
+              <span class="item-value">{{ selectedAddons.map(a => a.name).join(', ') || 'None' }}</span>
             </div>
             <!-- <div class="summary-item" v-if="specialInstructions">
               <span class="item-label">Special Instructions:</span>
@@ -138,8 +154,7 @@
 
 .main-content {
   flex: 1;
-  min-width: 0;
-  /* Prevents flex items from overflowing */
+  min-width: 0; /* Prevents flex items from overflowing */
 }
 
 .order-summary-sidebar {
@@ -426,7 +441,7 @@ textarea:focus {
   .content-wrapper {
     flex-direction: column;
   }
-
+  
   .order-summary-sidebar {
     width: 100%;
     position: static;
@@ -437,35 +452,35 @@ textarea:focus {
   .drink-header {
     flex-direction: column;
   }
-
+  
   .drink-image-container {
     flex: 0 0 auto;
     width: 100%;
     margin-bottom: 1rem;
   }
-
+  
   .options-container {
     flex-direction: column;
   }
-
+  
   .option-button {
     width: 100%;
   }
-
+  
   .checkbox-options {
     grid-template-columns: 1fr;
   }
-
+  
   .summary-item {
     flex-direction: column;
     margin-bottom: 1rem;
   }
-
+  
   .item-label {
     margin-bottom: 0.25rem;
     flex: 0 0 100%;
   }
-
+  
   .item-value {
     flex: 0 0 100%;
     text-align: left;
@@ -498,10 +513,10 @@ export default {
       total += this.selectedSize.price_diff || 0;
       total += this.selectedMilk.price_diff || 0;
       total += this.selectedAddons.reduce((sum, addon) => sum + addon.price_diff, 0);
-
+      
       // Add price for extra shots (assuming $0.75 per shot)
       total = total * this.quantity;
-
+      
       return total;
     },
   },
@@ -529,56 +544,20 @@ export default {
     goBack() {
       this.$router.go(-1); // Navigate back
     },
-    // async addToCart() {
-    //   // Add the customized drink to the cart
-    //   const order = {
-    //     drink: this.drink,
-    //     size: this.selectedSize,
-    //     milk: this.selectedMilk,
-    //     extraShots: this.extraShots,
-    //     addons: this.selectedAddons,
-    //     specialInstructions: this.specialInstructions,
-    //     totalPrice: this.totalPrice,
-    //   };
-
-    //   const addtoCart = await axios.post('http://127.0.0.1:5013/create_cart'){};
-    //   console.log('Added to cart:', order);
-    //   // You can implement cart logic here
-    // },
-
-    async addToCart() {
-      try {
-        const payload = {
-          outlet_id: 2, // Replace with dynamic value if needed
-          totalPrice: this.totalPrice.toFixed(2), // Use the computed total price
-          user_id: "iTeYSJ3xoBQuDdI0uXravnQgbqo2", // Replace with dynamic value if needed
-        };
-
-        const response = await axios.post('http://127.0.0.1:5015/create_cart', payload);
-        console.log(response)
-
-        if (response.data && response.data.data && response.data.data.cart_id) {
-          const cartId = response.data.data.cart_id;
-          console.log('Cart created successfully. Cart ID:', cartId);
-
-          // Optionally, you can redirect the user or show a success message
-          alert(`Cart created successfully! Cart ID: ${cartId}`);
-        } else {
-          console.error('Unexpected response:', response.data);
-          alert('Failed to create cart. Please try again.');
-        }
-      } catch (error) {
-        console.error('Error creating cart:', error);
-
-        // Show an error message to the user
-        if (error.response) {
-          alert(`Error: ${error.response.data.message || 'Failed to create cart.'}`);
-        } else {
-          alert('Network error. Please check your connection.');
-        }
-      }
+    addToCart() {
+      // Add the customized drink to the cart
+      const order = {
+        drink: this.drink,
+        size: this.selectedSize,
+        milk: this.selectedMilk,
+        extraShots: this.extraShots,
+        addons: this.selectedAddons,
+        specialInstructions: this.specialInstructions,
+        totalPrice: this.totalPrice,
+      };
+      console.log('Added to cart:', order);
+      // You can implement cart logic here
     },
-
     incrementQuantity() {
       this.quantity += 1;
     },

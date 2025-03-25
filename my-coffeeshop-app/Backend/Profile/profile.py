@@ -1,10 +1,13 @@
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import select
+from flask_cors import CORS
 from os import environ
 
 
+
 app = Flask(__name__)
+CORS(app)
 # app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://root@localhost:3306/profile'
 app.config['SQLALCHEMY_DATABASE_URI'] = environ.get('dbURL')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -185,4 +188,4 @@ def delete_profile(userId):
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5016, debug=True)
+    app.run(host='0.0.0.0', port=5018, debug=True)

@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1:3306
--- Generation Time: Mar 22, 2025 at 02:07 PM
+-- Generation Time: Mar 24, 2025 at 05:05 AM
 -- Server version: 8.2.0
 -- PHP Version: 8.2.13
 
@@ -19,7 +19,16 @@ SET time_zone = "+00:00";
 
 --
 -- Database: `cart`
+<<<<<<< Updated upstream
+CREATE DATABASE IF NOT EXISTS `cart` DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;
+=======
 --
+CREATE DATABASE IF NOT EXISTS `cart` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
+>>>>>>> Stashed changes
+USE `cart`;
 
 -- --------------------------------------------------------
 
@@ -34,7 +43,7 @@ CREATE TABLE IF NOT EXISTS `cart` (
   `outlet_id` int NOT NULL,
   `totalPrice` float NOT NULL,
   PRIMARY KEY (`cart_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=10008 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=10016 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Dumping data for table `cart`
@@ -46,73 +55,15 @@ INSERT INTO `cart` (`cart_id`, `user_id`, `outlet_id`, `totalPrice`) VALUES
 (10003, 'iTeYSJ3xoBQuDdI0uXravnQgbqo2', 2, 4.6),
 (10004, 'iTeYSJ3xoBQuDdI0uXravnQgbqo2', 2, 7.6),
 (10005, 'vPWKyHuXm9N', 1, 10.3),
-(10006, 'vPWKyHuXm9N', 2, 5.9);
-
--- --------------------------------------------------------
-
---
--- Table structure for table `cart_items`
---
-
-DROP TABLE IF EXISTS `cart_items`;
-CREATE TABLE IF NOT EXISTS `cart_items` (
-  `cart_items_id` int NOT NULL AUTO_INCREMENT,
-  `cart_id_fk` int DEFAULT NULL,
-  `drink_id` int DEFAULT NULL,
-  `Quantity` int DEFAULT NULL,
-  PRIMARY KEY (`cart_items_id`),
-  KEY `cart_id_fk` (`cart_id_fk`)
-) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
---
--- Dumping data for table `cart_items`
---
-
-INSERT INTO `cart_items` (`cart_items_id`, `cart_id_fk`, `drink_id`, `Quantity`) VALUES
-(1, 10000, 1, 2),
-(2, 10000, 2, 5),
-(5, 10006, 1, 2),
-(6, 10003, 1, 2),
-(8, 10003, 2, 1);
-
--- --------------------------------------------------------
-
---
--- Table structure for table `cart_item_customisation`
---
-
-DROP TABLE IF EXISTS `cart_item_customisation`;
-CREATE TABLE IF NOT EXISTS `cart_item_customisation` (
-  `cic_id` int NOT NULL AUTO_INCREMENT,
-  `cart_item_id_fk` int DEFAULT NULL,
-  `customisationId_fk` int DEFAULT NULL,
-  PRIMARY KEY (`cic_id`),
-  KEY `cart_item_id_fk` (`cart_item_id_fk`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
---
--- Dumping data for table `cart_item_customisation`
---
-
-INSERT INTO `cart_item_customisation` (`cic_id`, `cart_item_id_fk`, `customisationId_fk`) VALUES
-(1, 1, 4),
-(2, 2, 2);
-
---
--- Constraints for dumped tables
---
-
---
--- Constraints for table `cart_items`
---
-ALTER TABLE `cart_items`
-  ADD CONSTRAINT `cart_items_ibfk_1` FOREIGN KEY (`cart_id_fk`) REFERENCES `cart` (`cart_id`);
-
---
--- Constraints for table `cart_item_customisation`
---
-ALTER TABLE `cart_item_customisation`
-  ADD CONSTRAINT `cart_item_customisation_ibfk_1` FOREIGN KEY (`cart_item_id_fk`) REFERENCES `cart_items` (`cart_items_id`);
+(10006, 'vPWKyHuXm9N', 2, 5.9),
+(10008, 'iTeYSJ3xoBQuDdI0uXravnQgbqo2', 2, 7.6),
+(10009, 'PyfmvD0fIdYaEtMXkiBIZJO0GAG3', 2, 4.5),
+(10010, 'PyfmvD0fIdYaEtMXkiBIZJO0GAG3', 2, 10.6),
+(10011, 'PyfmvD0fIdYaEtMXkiBIZJO0GAG3', 2, 4.5),
+(10012, 'PyfmvD0fIdYaEtMXkiBIZJO0GAG3', 2, 6.05),
+(10013, 'PyfmvD0fIdYaEtMXkiBIZJO0GAG3', 2, 5),
+(10014, 'PyfmvD0fIdYaEtMXkiBIZJO0GAG3', 2, 5.25),
+(10015, 'iTeYSJ3xoBQuDdI0uXravnQgbqo2', 2, 10);
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

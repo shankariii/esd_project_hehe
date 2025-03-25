@@ -21,7 +21,11 @@
             
             <div class="selected-outlet" v-if="selectedOutlet">
               <div class="selected-header">
-                <h3>{{ selectedOutlet.name }}</h3>
+                <!-- <h3>{{ selectedOutlet.name }}</h3> -->
+                <h3><a :href="`https://www.google.com/maps/dir/?api=1&destination=${selectedOutlet.position.lat},${selectedOutlet.position.lng}`" 
+                 target="_blank">
+                {{selectedOutlet.name}}
+              </a></h3>
                 <div class="queue-indicator" :class="getQueueClass(selectedOutlet.queueCount)">
                   {{ selectedOutlet.queueCount }} in queue
                 </div>
@@ -30,10 +34,8 @@
                 <p><i class="detail-icon"></i> {{ selectedOutlet.address }}</p>
                 <p v-if="selectedOutlet.distance"><i class="detail-icon"></i> {{ formatDistance(selectedOutlet.distance) }}</p>
               </div>
-              <a :href="`https://www.google.com/maps/dir/?api=1&destination=${selectedOutlet.position.lat},${selectedOutlet.position.lng}`" 
-                 target="_blank" 
-                 class="directions-btn">
-                Get Directions
+              <a class="directions-btn" @click="chooseOutlet(selectedOutlet.id)">
+                Select
               </a>
             </div>
           </div>
@@ -73,8 +75,12 @@
   </template>
   
   <script>
+   import { useRouter } from 'vue-router';
   export default {
     name: 'OutletFinder',
+    setuo(){
+      const router = useRouter();
+    },
     data() {
       return {
         map: null,
@@ -141,6 +147,13 @@
       this.loadGoogleMapsScript();
     },
     methods: {
+      chooseOutlet(outletId){
+        console.log("hello")
+        alert("Outlet has been selected")
+        localStorage.setItem("selectedOutletId",outletId )
+        // const router = useRouter();
+        this.router.push(`/drinksy`)
+      },
       loadGoogleMapsScript() {
         const script = document.createElement('script');
         script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyDyzGN00mpIu7qElBpIFwiPjWyQlkIfHHM&callback=initMap`;
