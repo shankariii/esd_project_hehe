@@ -60,18 +60,42 @@ def get_all_cic():
 
 
 #Get items from Cart_items based on the cart_item_id
-@app.route("/cic/<int:cic_id>")
-def find_cic_by_id(cic_id):
-    cicList = db.session.scalar(
-    	db.select(Cart_Items_Customisation).filter_by(cic_id = cic_id)
-)
+# @app.route("/cic/<int:cic_id>")
+# def find_cic_by_id(cic_id):
+#     cicList = db.session.scalar(
+#     	db.select(Cart_Items_Customisation).filter_by(cic_id = cic_id)
+# )
+
+
+#     if cicList:
+#         return jsonify(
+#             {
+#                 "code": 200,
+#                 "data": cicList.json()
+#             }
+#         )
+#     return jsonify(
+#         {
+#             "code": 404,
+#             "message": "CIC Item not found."
+#         }
+#     ), 404
+
+@app.route("/cic/<int:cart_item_id_fk>")
+def find_cic_by_id(cart_item_id_fk):
+#     cicList = db.session.scalar(
+#     	db.select(Cart_Items_Customisation).filter_by(cart_item_id_fk = cart_item_id_fk)
+# )
+    cicList = db.session.scalars(
+            select(Cart_Items_Customisation).where(Cart_Items_Customisation.cart_item_id_fk == cart_item_id_fk)
+        ).all()
 
 
     if cicList:
         return jsonify(
             {
                 "code": 200,
-                "data": cicList.json()
+                "data": [item.json() for item in cicList]
             }
         )
     return jsonify(
@@ -108,7 +132,6 @@ def create_cic():
         }
     ), 201
 
-#Updating the quanity of drink
 @app.route("/cic/<int:cic_id>", methods=['PUT'])
 def update_customisation(cic_id):
     try:

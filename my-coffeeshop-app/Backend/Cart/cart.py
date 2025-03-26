@@ -84,6 +84,42 @@ def filter_byCartID(cart_id):
         }
     ), 404
 
+@app.route("/cart/<string:user_id>/<int:outlet_id>")
+def get_byUser(user_id, outlet_id):
+    
+    # Base query
+    query = db.select(Cart)
+
+    # Apply filters if query parameters are provided
+    if user_id:
+        query = query.where(Cart.user_id == user_id)
+    if outlet_id:
+        query = query.where(Cart.outlet_id == outlet_id)
+
+    # Execute the query
+    cartList = db.session.scalars(query).all()
+
+    # Check if any carts were found
+    if len(cartList):
+        return jsonify(
+            {
+                "code": 200,
+                "data": {
+                    "carts": [cart.json() for cart in cartList]
+                }
+            }
+        )
+    
+    # Return 404 if no carts were found
+    return jsonify(
+        {
+            "code": 404,
+            "message": "There are no carts."
+        }
+    ), 404
+
+
+
 
 @app.route("/cart", methods=['POST'])
 def create_cart():

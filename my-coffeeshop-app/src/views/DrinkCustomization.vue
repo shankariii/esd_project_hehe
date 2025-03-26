@@ -92,9 +92,9 @@
               <span class="item-label">Milk:</span>
               <span class="item-value">{{ selectedMilk.name }}</span>
             </div>
-            <div class="summary-item" v-if="extraShots > 0">
-              <span class="item-label">Extra Shots:</span>
-              <span class="item-value">{{ extraShots }}</span>
+            <div class="summary-item">
+              <span class="item-label">Quantity:</span>
+              <span class="item-value">{{ quantity }}</span>
             </div>
             <div class="summary-item">
               <span class="item-label">Add-ons:</span>
@@ -481,6 +481,7 @@ export default {
   data() {
     return {
       drink: {}, // Holds the drink details
+      drinkId: '',
       sizeOptions: [], // Holds size customizations
       milkOptions: [], // Holds milk customizations
       addons: [], // Holds add-ons
@@ -507,8 +508,8 @@ export default {
   },
   async created() {
     // Fetch drink details
-    const drinkId = this.$route.params.id; // Assuming the drink ID is passed via route
-    const drinkResponse = await axios.get(`http://127.0.0.1:5002/drinks/${drinkId}`);
+    this.drinkId = this.$route.params.id; // Assuming the drink ID is passed via route
+    const drinkResponse = await axios.get(`http://127.0.0.1:5002/drinks/${this.drinkId}`);
     this.drink = drinkResponse.data;
 
     // Fetch customization options
@@ -548,20 +549,53 @@ export default {
 
     async addToCart() {
       try {
-        const payload = {
-          outlet_id: 2, // Replace with dynamic value if needed
-          totalPrice: this.totalPrice.toFixed(2), // Use the computed total price
-          user_id: "iTeYSJ3xoBQuDdI0uXravnQgbqo2", // Replace with dynamic value if needed
-        };
+        // Collect all customization IDs
+        // const customisationIds = [
+        //   this.selectedSize.customisation_id,  // Size customization
+        //   this.selectedMilk.customisation_id ,  // Milk customization
+        //   // ...this.selectedAddons.map(addon => addon.customisation_id) 
+        // ];
 
-        const response = await axios.post('http://127.0.0.1:5015/create_cart', payload);
-        console.log(response)
+        // // Add all selected add-ons' customization IDs
+        // this.selectedAddons.forEach(addon => {
+        //   customisationIds.push(addon.customisation_id);
+        // });
+
+        const cartItemCustomisation = [
+          ...this.selectedAddons.map(addon => ({ customisationId_fk: addon.customisation_id }))];
+
+        // Include size and milk customizations if they exist
+        if (this.selectedSize.customisation_id) {
+          cartItemCustomisation.push({ customisationId_fk: this.selectedSize.customisation_id });
+        }
+        if (this.selectedMilk.customisation_id) {
+          cartItemCustomisation.push({ customisationId_fk: this.selectedMilk.customisation_id });
+        }
+
+        // Create the payload with the correct structure
+        const payload = {
+          "cart": {
+            "user_id": "iTeYSJ3xoBQuDdI0uXravnQgbqo2", // Replace with dynamic value if needed
+            "outlet_id": 23, // Replace with dynamic value if needed
+            "totalPrice": parseFloat(this.totalPrice)
+          },
+          "cart_items": [
+            {
+              "drink_id": this.drink.drink_id, // Use the actual drink ID
+              "quantity": this.quantity
+            }
+          ],
+          "cart_item_customisation": cartItemCustomisation
+        };
+        console.log(payload)
+
+        const response = await axios.post('http://127.0.0.1:5200/add_to_cart', payload);
+        console.log(response);
 
         if (response.data && response.data.data && response.data.data.cart_id) {
           const cartId = response.data.data.cart_id;
+          console.log(cartId)
           console.log('Cart created successfully. Cart ID:', cartId);
-
-          // Optionally, you can redirect the user or show a success message
           alert(`Cart created successfully! Cart ID: ${cartId}`);
         } else {
           console.error('Unexpected response:', response.data);
@@ -569,8 +603,6 @@ export default {
         }
       } catch (error) {
         console.error('Error creating cart:', error);
-
-        // Show an error message to the user
         if (error.response) {
           alert(`Error: ${error.response.data.message || 'Failed to create cart.'}`);
         } else {

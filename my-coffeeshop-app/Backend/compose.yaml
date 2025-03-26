@@ -158,6 +158,7 @@ services:
       - cart
       - cart_items
       - cart_items_customisation
+      - drink
     environment:
       PYTHONUNBUFFERED: 1
     ports:
