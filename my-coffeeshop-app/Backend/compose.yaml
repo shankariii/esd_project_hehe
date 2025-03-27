@@ -164,4 +164,24 @@ services:
     ports:
       - "5200:5200"
     networks:
+      - esd-net    
+
+  ###################################
+  # Add to Cart: The Add to Cart composite microservice
+  ###################################
+  viewCart:
+    build:
+      context: ./viewCart
+      dockerfile: viewCart.Dockerfile
+    image: shashass/viewcart:esd
+    restart: always
+    depends_on:
+      - cart
+      - cart_items
+      - cart_items_customisation
+    environment:
+      PYTHONUNBUFFERED: 1
+    ports:
+      - "5300:5300"
+    networks:
       - esd-net      

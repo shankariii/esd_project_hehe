@@ -1,44 +1,15 @@
 <template>
     <div>
-        <!-- <nav class="navbar">
-            <a href="#" class="logo">
-                <span>Brew Haven</span>
-            </a>
-        </nav> -->
-
         <div class="checkout-container">
             <div class="checkout-form">
                 <h1 class="form-title">Checkout</h1>
 
-                <div class="form-steps">
-                    <!-- <div class="step">Shipping</div>
-            <div class="step">Delivery</div>
-            <div class="step active">Payment</div> -->
-                </div>
-
                 <div class="payment-details">
                     <h2>Your Payment Details</h2>
 
-                    <!-- <form id="payment-form">
-                        <div id="payment-element">
-                            Stripe.js injects the Payment Element
-                        </div>
-                        <button id="submit">
-                            <div class="spinner hidden" id="spinner"></div>
-                            <span id="button-text">Pay now</span>
-                        </button>
-                        <div id="payment-message" class="hidden"></div>
-                    </form>
-
-                    <div id="card-element" class="stripe-element"></div>
-                    <div id="card-errors" class="payment-error" v-if="paymentError">{{ paymentError }}</div> -->
-
                     <div>
                         <div id="payment-element"></div>
-                        <!-- <button @click="handlePayment">Pay Now</button> -->
                     </div>
-
-
 
                     <button class="pay-now-btn" @click="handlePayment">PAY NOW</button>
                 </div>
@@ -48,46 +19,47 @@
                 <h2 class="summary-title">Order Summary</h2>
 
                 <div class="order-items">
-                    <div class="order-item" v-for="(item, index) in orderItems" :key="index">
+                    <div class="order-item" v-for="(item, index) in cartItems" :key="index">
                         <div class="item-image">
                             <img :src="item.image" :alt="item.name">
                         </div>
                         <div class="item-details">
                             <h3>{{ item.name }}</h3>
+                            <div v-if="item.customizations && item.customizations.length > 0">
+                                <p style="font-size: 0.8rem; color: var(--text-light); margin-bottom: 0.5rem;">
+                                    Customizations:
+                                </p>
+                                <ul style="list-style-type: none; padding-left: 0; margin-top: 0.25rem;">
+                                    <li v-for="customization in item.customizations" :key="customization.id"
+                                        style="font-size: 0.8rem; color: var(--text-light); margin-bottom: 0.25rem;">
+                                        {{ customization.name }}
+                                        <span v-if="customization.price_diff > 0"> (+${{ customization.price_diff.toFixed(2) }})</span>
+                                    </li>
+                                </ul>
+                            </div>
                         </div>
                         <div class="item-price">
-                            ${{ item.price.toFixed(2) }}
+                            ${{ (item.price * item.quantity).toFixed(2) }}
+                            <div style="font-size: 0.8rem; color: var(--text-light);">
+                                {{ item.quantity }} × ${{ item.price.toFixed(2) }}
+                            </div>
                         </div>
                     </div>
                 </div>
-
-                <!-- <div class="loyalty-section">
-                    <div class="loyalty-header">
-                        <h3>Loyalty Awards</h3>
-                        <span class="help-icon">?</span>
-                    </div>
-                    <p>We can apply discounts to loyal customers' purchases whether they're visiting in-store, in-app,
-                        or online.</p>
-                </div> -->
 
                 <div class="summary-line">
                     <span>Subtotal</span>
-                    <span>${{ calculateSubtotal().toFixed(2) }}</span>
+                    <span>${{ subtotal.toFixed(2) }}</span>
                 </div>
-
-                <!-- <div class="summary-line">
-                    <span>Delivery</span>
-                    <span>${{ orderSummary.deliveryFee.toFixed(2) }}</span>
-                </div> -->
 
                 <div class="summary-line">
                     <span>Taxes</span>
-                    <span>${{ calculateTax().toFixed(2) }}</span>
+                    <span>${{ tax.toFixed(2) }}</span>
                 </div>
 
                 <div class="summary-total">
                     <span>TOTAL</span>
-                    <span>${{ calculateTotal().toFixed(2) }}</span>
+                    <span>${{ total.toFixed(2) }}</span>
                 </div>
             </div>
         </div>
@@ -96,6 +68,7 @@
 
 <script>
 import { loadStripe } from '@stripe/stripe-js';
+import axios from 'axios';
 
 export default {
     data() {
@@ -103,98 +76,204 @@ export default {
             stripe: null,
             elements: null,
             clientSecret: null,
-            orderItems: [
-                { name: "Brew Haven Special Blend", price: 24.99, image: "#" },
-                { name: "Artisan Coffee Grinder", price: 89.50, image: "#" }
-            ],
-            orderSummary: {
-                // deliveryFee: 5.00,
-                taxRate: 9
+            cartItems: [],
+            loading: true,
+            userId: 'iTeYSJ3xoBQuDdI0uXravnQgbqo2', // Replace with dynamic user ID if needed
+            outletId: '23',   // Replace with dynamic outlet ID if needed
+            apiConfig: {
+                cartService: {
+                    baseURL: 'http://127.0.0.1:5300',
+                    timeout: 8000
+                },
+                drinkService: {
+                    baseURL: 'http://127.0.0.1:5002',
+                    timeout: 5000
+                }
             }
         };
     },
 
+    computed: {
+        subtotal() {
+            return this.cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        },
+        tax() {
+            return this.subtotal * 0.08; // 8% tax rate
+        },
+        total() {
+            return this.subtotal + this.tax;
+        }
+    },
+
     async mounted() {
+        await this.fetchCartDetails();
         await this.initializePayment();
     },
 
     methods: {
+        async fetchCartDetails() {
+            try {
+                this.loading = true;
+                console.log('Starting cart data fetch...');
+
+                // Create axios instances with different configurations
+                const cartClient = axios.create({
+                    baseURL: this.apiConfig.cartService.baseURL,
+                    timeout: this.apiConfig.cartService.timeout
+                });
+
+                const drinkClient = axios.create({
+                    baseURL: this.apiConfig.drinkService.baseURL,
+                    timeout: this.apiConfig.drinkService.timeout
+                });
+
+                // 1. Fetch cart data
+                console.log(`Fetching cart from ${this.apiConfig.cartService.baseURL}`);
+                const cartResponse = await cartClient.get(`/get_cart_details/${this.userId}/${this.outletId}`);
+                console.log('Cart response:', cartResponse.data);
+
+                if (!cartResponse.data?.data?.items) {
+                    console.warn('No items found in cart');
+                    this.cartItems = [];
+                    return;
+                }
+
+                // 2. Process each cart item
+                this.cartItems = await this.processCartItems(cartResponse.data.data.items, drinkClient);
+                console.log(this.cartItems);
+
+            } catch (error) {
+                console.error('Error in fetchCartDetails:', this.formatAxiosError(error));
+                alert('Failed to load cart. Please try again later.');
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        async processCartItems(items, drinkClient) {
+            const processedItems = [];
+
+            for (const [index, item] of items.entries()) {
+                try {
+                    console.log(item)
+                    console.log(`Processing item ${index + 1}/${items.length}`);
+
+                    // Fetch drink details
+                    const drinkResponse = await drinkClient.get(`/drinks/${item.drink_id}`);
+                    console.log(`Drink ${item.drink_id} details:`, drinkResponse.data);
+
+                    // Fetch customizations if they exist
+                    let customizations = [];
+                    if (item.customisations?.length > 0) {
+                        console.log(`Fetching ${item.customisations.length} customizations...`);
+                        const customizationPromises = item.customisations.map(c =>
+                            drinkClient.get(`/customisations/${c.customisationId_fk}`)
+                        );
+                        const customizationResponses = await Promise.all(customizationPromises);
+                        customizations = customizationResponses.map(r => ({
+                            id: r.data.customisation_id,
+                            name: r.data.name,
+                            price_diff: r.data.price_diff
+                        })).sort((a, b) => a.id - b.id);;
+                    }
+
+                    processedItems.push({
+                        id: item.drink_id,
+                        name: drinkResponse.data.drink_name,
+                        description: drinkResponse.data.description || 'No description available',
+                        price: parseFloat(drinkResponse.data.price) +
+                            customizations.reduce((sum, c) => sum + c.price_diff, 0),
+                        quantity: item.quantity || 1,
+                        image: drinkResponse.data.image || '/placeholder-image.png',
+                        customizations: customizations
+                    });
+
+                } catch (error) {
+                    console.error(`Error processing item ${item.drink_id}:`, this.formatAxiosError(error));
+                    // Continue with next item even if one fails
+                }
+            }
+
+            return processedItems;
+        },
+
+        formatAxiosError(error) {
+            if (error.response) {
+                return `Server error: ${error.response.status} - ${error.response.data}`;
+            } else if (error.request) {
+                return `No response received: ${error.message}`;
+            } else {
+                return `Request error: ${error.message}`;
+            }
+        },
+
         async initializePayment() {
-      try {
-        // 1️⃣ Fetch client secret from your backend
-        const response = await fetch("http://127.0.0.1:5100/create-payment-intent", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ 
-            amount: (this.calculateTotal().toFixed(2) * 100), 
-            currency: "sgd" 
-        }),
-        });
+            try {
+                // 1️⃣ Fetch client secret from your backend
+                const response = await fetch("http://127.0.0.1:5100/create-payment-intent", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ 
+                        amount: (this.total * 100), // Convert to cents
+                        currency: "sgd" 
+                    }),
+                });
 
-        const data = await response.json();
-        console.log("Fetched clientSecret:", data.client_secret);
+                const data = await response.json();
+                console.log("Fetched clientSecret:", data.client_secret);
 
-        if (!data.client_secret) {
-          console.error("Error: Missing client secret");
-          return;
-        }
+                if (!data.client_secret) {
+                    console.error("Error: Missing client secret");
+                    return;
+                }
 
-        this.clientSecret = data.client_secret;
+                this.clientSecret = data.client_secret;
 
-        // 2️⃣ Load Stripe and create elements
-        this.stripe = await loadStripe("pk_test_51QwwPAQRYfaBjPIXkJeTKXtIlovCeAoNntY9jRWsAyO3jpq9Kn8f0Y1ne9EJkbX4ic0YE8V9qEIn59UJ6BDiufml004WRnDQed");
+                // 2️⃣ Load Stripe and create elements
+                this.stripe = await loadStripe("pk_test_51QwwPAQRYfaBjPIXkJeTKXtIlovCeAoNntY9jRWsAyO3jpq9Kn8f0Y1ne9EJkbX4ic0YE8V9qEIn59UJ6BDiufml004WRnDQed");
 
-        const appearance = {
-          theme: "stripe",
-        };
+                const appearance = {
+                    theme: "stripe",
+                };
 
-        this.elements = this.stripe.elements({ clientSecret: this.clientSecret, appearance });
+                this.elements = this.stripe.elements({ clientSecret: this.clientSecret, appearance });
 
-        // 3️⃣ Create the PaymentElement and mount it
-        const paymentElement = this.elements.create("payment");
-        paymentElement.mount("#payment-element");
+                // 3️⃣ Create the PaymentElement and mount it
+                const paymentElement = this.elements.create("payment");
+                paymentElement.mount("#payment-element");
 
-      } catch (error) {
-        console.error("Error initializing Stripe:", error);
-      }
-    },
-    async handlePayment() {
-      if (!this.stripe || !this.elements) {
-        console.error("Stripe not initialized");
-        return;
-      }
-
-      const { error } = await this.stripe.confirmPayment({
-        elements: this.elements,
-        confirmParams: {
-          return_url: "http://localhost:5173/",
-        },
-      });
-
-      if (error) {
-        console.error("Payment error:", error);
-      } else {
-        console.log("Payment successful!");
-      }
-    },
-        calculateSubtotal() {
-            return this.orderItems.reduce((total, item) => total + item.price, 0);
+            } catch (error) {
+                console.error("Error initializing Stripe:", error);
+            }
         },
 
-        calculateTax() {
-            return this.calculateSubtotal() * (this.orderSummary.taxRate / 100);
-        },
+        async handlePayment() {
+            if (!this.stripe || !this.elements) {
+                console.error("Stripe not initialized");
+                return;
+            }
 
-        calculateTotal() {
-            return this.calculateSubtotal() + this.calculateTax();
+            const { error } = await this.stripe.confirmPayment({
+                elements: this.elements,
+                confirmParams: {
+                    return_url: "http://localhost:5173/",
+                },
+            });
+
+            if (error) {
+                console.error("Payment error:", error);
+            } else {
+                console.log("Payment successful!");
+            }
         }
     }
 };
 </script>
 
 <style scoped>
+/* Your existing styles remain the same */
 :root {
     --primary: #5D4037;
     --secondary: #8D6E63;
