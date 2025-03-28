@@ -17,19 +17,19 @@ class Inventory(db.Model):
     __tablename__ = 'inventory'
 
     inventory_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    ingredient_id = db.Column(db.String(64), nullable=False)
+    ingredient = db.Column(db.String(64), nullable=False)
     available_quantity = db.Column(db.Float(precision=2), nullable=False)
     unit = db.Column(db.String(32), nullable=False)
 
-    def __init__(self, ingredient_id, available_quantity, unit):
-        self.ingredient_id = ingredient_id
+    def __init__(self, ingredient, available_quantity, unit):
+        self.ingredient = ingredient
         self.available_quantity = available_quantity
         self.unit = unit
 
     def json(self):
         return {
             "inventory_id": self.inventory_id,
-            "ingredient_id": self.ingredient_id,
+            "ingredient": self.ingredient,
             "available_quantity": self.available_quantity,
             "unit": self.unit
         }
@@ -54,18 +54,18 @@ def get_item_by_id(inventory_id):
     return jsonify({"code": 404, "message": "Inventory item not found."}), 404
 
 #for scenario 3: get by ingredient id 
-@app.route("/inventory/ingredient/<string:ingredient_id>", methods=["GET"])
-def get_item_by_ingredient_id(ingredient_id):
-    item = db.session.scalar(db.select(Inventory).filter_by(ingredient_id=ingredient_id))
+@app.route("/inventory/ingredient/<string:ingredient>", methods=["GET"])
+def get_item_by_ingredient(ingredient):
+    item = db.session.scalar(db.select(Inventory).filter_by(ingredient=ingredient))
     if item:
         return jsonify({"code": 200, "data": item.json()})
-    return jsonify({"code": 404, "message": f"Inventory item with ingredient_id '{ingredient_id}' not found."}), 404
+    return jsonify({"code": 404, "message": f"Inventory item with '{ingredient}' not found."}), 404
 
 
 @app.route("/inventory", methods=["POST"])
 def create_item():
     data = request.get_json()
-    required = ['ingredient_id', 'available_quantity', 'unit']
+    required = ['ingredient', 'available_quantity', 'unit']
     if not all(key in data for key in required):
         return jsonify({"code": 400, "message": "Missing required fields."}), 400
 
@@ -87,7 +87,7 @@ def update_item(inventory_id):
 
     data = request.get_json()
     try:
-        item.ingredient_id = data.get("ingredient_id", item.ingredient_id)
+        item.ingredient = data.get("ingredient", item.ingredient)
         item.available_quantity = data.get("available_quantity", item.available_quantity)
         item.unit = data.get("unit", item.unit)
         db.session.commit()
