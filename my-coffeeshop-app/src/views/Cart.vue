@@ -169,7 +169,7 @@ export default {
       // shipping: 0,
       tax: 0,
       loading: true,
-      userId: 'iTeYSJ3xoBQuDdI0uXravnQgbqo2', // Replace with dynamic user ID if needed
+      userId: 'test23', // Replace with dynamic user ID if needed
       outletId: '23',   // Replace with dynamic outlet ID if needed
       apiConfig: {
         cartService: {
@@ -177,7 +177,11 @@ export default {
           timeout: 8000
         },
         drinkService: {
-          baseURL: 'http://127.0.0.1:5002',
+          baseURL: 'http://127.0.0.1:5005',
+          timeout: 5000
+        },
+        customService: {
+          baseURL: 'http://127.0.0.1:5007',
           timeout: 5000
         }
       }
@@ -208,6 +212,11 @@ export default {
           timeout: this.apiConfig.drinkService.timeout
         });
 
+        const customClient = axios.create({
+          baseURL: this.apiConfig.customService.baseURL,
+          timeout: this.apiConfig.customService.timeout
+        });
+
         // 1. Fetch cart data
         console.log(`Fetching cart from ${this.apiConfig.cartService.baseURL}`);
         const cartResponse = await cartClient.get(`/get_cart_details/${this.userId}/${this.outletId}`);
@@ -220,7 +229,7 @@ export default {
         }
 
         // 2. Process each cart item
-        this.cartItems = await this.processCartItems(cartResponse.data.data.items, drinkClient);
+        this.cartItems = await this.processCartItems(cartResponse.data.data.items, drinkClient, customClient);
         console.log(this.cartItems)
         this.tax = this.subtotal * 0.08;
 
@@ -232,7 +241,7 @@ export default {
       }
     },
 
-    async processCartItems(items, drinkClient) {
+    async processCartItems(items, drinkClient,customClient) {
       const processedItems = [];
 
       for (const [index, item] of items.entries()) {
@@ -249,25 +258,23 @@ export default {
           if (item.customisations?.length > 0) {
             console.log(`Fetching ${item.customisations.length} customizations...`);
             const customizationPromises = item.customisations.map(c =>
-              drinkClient.get(`/customisations/${c.customisationId_fk}`)
+              customClient.get(`/customisations/${c.customisationId_fk}`)
             );
             const customizationResponses = await Promise.all(customizationPromises);
             customizations = customizationResponses.map(r => ({
               id: r.data.customisation_id,
               name: r.data.name,
               price_diff: r.data.price_diff
-            })).sort((a, b) => a.id - b.id);;
-
-            // customizations = customizationResponses.map(r => r.data);
+            })).sort((a, b) => a.id - b.id);
           }
 
           processedItems.push({
             id: item.drink_id,
+            cart_item_id: item.cart_items_id, // Add this line to store the cart item ID
             name: drinkResponse.data.drink_name,
             description: drinkResponse.data.description || 'No description available',
-            // price: parseFloat(drinkResponse.data.price),
             price: parseFloat(drinkResponse.data.price) +
-              customizations.reduce((sum, c) => sum + c.price_diff, 0), // Total price
+              customizations.reduce((sum, c) => sum + c.price_diff, 0),
             quantity: item.quantity || 1,
             image: drinkResponse.data.image || '/placeholder-image.png',
             customizations: customizations
@@ -275,7 +282,6 @@ export default {
 
         } catch (error) {
           console.error(`Error processing item ${item.drink_id}:`, this.formatAxiosError(error));
-          // Continue with next item even if one fails
         }
       }
 
@@ -294,13 +300,13 @@ export default {
 
     incrementQuantity(index) {
       this.cartItems[index].quantity++;
-      this.updateCart();
+      this.updateCart(index);
     },
 
     decrementQuantity(index) {
       if (this.cartItems[index].quantity > 1) {
         this.cartItems[index].quantity--;
-        this.updateCart();
+        this.updateCart(index);
       }
     },
 
@@ -309,11 +315,30 @@ export default {
       this.updateCart();
     },
 
-    async updateCart() {
-      // In a real implementation, you would send the updated cart to your API
-      // For now, we'll just recalculate tax
-      this.tax = this.subtotal * 0.08;
+    async updateCart(index) {
+      try {
+        const cartClient = axios.create({
+          baseURL: 'http://127.0.0.1:5200', // Update with your actual update_cart service URL
+          timeout: 8000
+        });
+
+        // For quantity updates
+        const response = await cartClient.put('/update_cart', {
+          action: "update",
+          user_id: this.userId,
+          outlet_id: this.outletId,
+          item_id: item.cart_item_id,  // You'll need to track this in your cartItems
+          quantity: item.quantity
+        });
+
+        // Recalculate tax after successful update
+        this.tax = this.subtotal * 0.08;
+      } catch (error) {
+        console.error('Error updating cart:', error);
+        // Handle error (maybe revert the UI change)
+      }
     },
+
 
 
     proceedToPayment() {

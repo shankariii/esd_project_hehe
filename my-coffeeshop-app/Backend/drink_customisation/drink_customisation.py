@@ -63,18 +63,29 @@ def home():
 #         customisations = Customisation.query.all()
 #         return jsonify([customisation.json() for customisation in customisations])
     
+# class CustomisationResource(Resource):
+#     def get(self, customisation_id=None):
+#         """Retrieve all customisations or a specific customisation"""
+#         if customisation_id:
+#             customisations = Customisation.query.filter_by(customisation_id=customisation_id).all()
+#             if customisations:
+#                 return jsonify([customisation.json() for customisation in customisations])
+#             return jsonify({"message": "No customisations found"}), 404
+        
+#         customisations = Customisation.query.all()
+#         return jsonify([customisation.json() for customisation in customisations])
+    
 class CustomisationResource(Resource):
     def get(self, customisation_id=None):
         """Retrieve all customisations or a specific customisation"""
         if customisation_id:
-            customisations = Customisation.query.filter_by(customisation_id=customisation_id).all()
-            if customisations:
-                return jsonify([customisation.json() for customisation in customisations])
-            return jsonify({"message": "No customisations found"}), 404
-        
+            customisation = Customisation.query.get(customisation_id)
+            if customisation:
+                return jsonify(customisation.json())
+            return jsonify({"message": "Customisation not found"}), 404
+
         customisations = Customisation.query.all()
         return jsonify([customisation.json() for customisation in customisations])
-    
 
 class CustomisationByTypeResource(Resource):
     def get(self, customisation_type):
