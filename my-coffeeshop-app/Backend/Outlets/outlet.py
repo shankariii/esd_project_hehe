@@ -9,7 +9,7 @@ CORS(app)
 Swagger(app)
 
 # Database configuration
-app.config['SQLALCHEMY_DATABASE_URI'] = environ.get('dbURL')
+app.config['SQLALCHEMY_DATABASE_URI'] = environ.get('dbURL')  # Set this in your .env or environment
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {'pool_recycle': 299}
 
@@ -24,16 +24,18 @@ class Outlet(db.Model):
     address = db.Column(db.Text, nullable=False)
     latitude = db.Column(db.Float, nullable=False)
     longitude = db.Column(db.Float, nullable=False)
-    contact_info = db.Column(db.String(20), nullable=False)  # Storing phone number
+    contact_info = db.Column(db.String(20), nullable=False)  # Phone number
 
     def json(self):
         return {
-            "outlet_id": self.outlet_id,
+            "id": self.outlet_id,
             "name": self.name,
             "address": self.address,
-            "latitude": self.latitude,
-            "longitude": self.longitude,
-            "contact_info": self.contact_info
+            "position": {
+                "lat": self.latitude,
+                "lng": self.longitude
+            },
+            "queueCount": 0  # Placeholder value; integrate real data later if needed
         }
 
 @app.route("/")
