@@ -54,7 +54,7 @@ class SupplierIngredient(db.Model):
     __tablename__ = 'supplier_ingredient'
 
    
-    ingredient_id = db.Column(db.Integer, nullable=False, primary_key=True)
+    ingredient = db.Column(db.String(255), primary_key=True, nullable=False)
     supplier_id = db.Column(db.Integer, db.ForeignKey('supplier.supplier_id', ondelete='CASCADE'), nullable=False)
     price_per_unit = db.Column(db.DECIMAL(10, 2), nullable=False)
     lead_time = db.Column(db.Integer, nullable = False)
@@ -62,8 +62,8 @@ class SupplierIngredient(db.Model):
 
     supplier = db.relationship('Supplier', backref=db.backref('supplier_ingredient', lazy=True))
 
-    def __init__(self, ingredient_id, supplier_id, price_per_unit, lead_time):
-        self.ingredient_id = ingredient_id
+    def __init__(self, ingredient, supplier_id, price_per_unit, lead_time):
+        self.ingredient = ingredient
         self.supplier_id = supplier_id
         self.price_per_unit = price_per_unit
         self.lead_time = lead_time
@@ -71,7 +71,7 @@ class SupplierIngredient(db.Model):
     def json(self):
         return {
            
-            "ingredient_id": self.ingredient_id,
+            "ingredient": self.ingredient,
             "supplier_id": self.supplier_id,
             "price_per_unit": float(self.price_per_unit),
             "lead_time": self.lead_time,
@@ -79,7 +79,7 @@ class SupplierIngredient(db.Model):
         }
 
     def __repr__(self):
-        return f'<SupplierIngredient ingredient_id={self.ingredient_id} supplier_id={self.supplier_id}>'
+        return f'<SupplierIngredient ingredient={self.ingredient} supplier_id={self.supplier_id}>'
     
 
     
@@ -306,10 +306,10 @@ def get_all_supplier_ingredients():
     }), 404
 
 # GET the supplier for an ingredient
-@app.route("/supplier_ingredient/ingredient/<int:ingredient_id>/supplier", methods=['GET'])
-def get_supplier_by_ingredient(ingredient_id):
+@app.route("/supplier_ingredient/ingredient/<String:ingredient>/supplier", methods=['GET'])
+def get_supplier_by_ingredient(ingredient):
     supplier_ingredient = db.session.scalar(
-        db.select(SupplierIngredient).filter_by(ingredient_id=ingredient_id)
+        db.select(SupplierIngredient).filter_by(ingredient=ingredient)
     )
 
     if supplier_ingredient:
@@ -336,10 +336,10 @@ def get_supplier_by_ingredient(ingredient_id):
     
 
 # GET the price_per_unit for an ingredient
-@app.route("/supplier_ingredient/ingredient/<int:ingredient_id>/price", methods=['GET'])
-def get_price_by_ingredient(ingredient_id):
+@app.route("/supplier_ingredient/ingredient/<String:ingredient>/price", methods=['GET'])
+def get_price_by_ingredient(ingredient):
     supplier_ingredient = db.session.scalar(
-        db.select(SupplierIngredient).filter_by(ingredient_id=ingredient_id)
+        db.select(SupplierIngredient).filter_by(ingredient=ingredient)
     )
     if supplier_ingredient:
         return jsonify({
@@ -353,10 +353,10 @@ def get_price_by_ingredient(ingredient_id):
     }), 404
 
 # GET the lead_time for an ingredient
-@app.route("/supplier_ingredient/ingredient/<int:ingredient_id>/lead_time", methods=['GET'])
-def get_lead_time_by_ingredient(ingredient_id):
+@app.route("/supplier_ingredient/ingredient/<String:ingredient>/lead_time", methods=['GET'])
+def get_lead_time_by_ingredient(ingredient):
     supplier_ingredient = db.session.scalar(
-        db.select(SupplierIngredient).filter_by(ingredient_id=ingredient_id)
+        db.select(SupplierIngredient).filter_by(ingredient=ingredient)
     )
     if supplier_ingredient:
         return jsonify({
@@ -396,10 +396,10 @@ def create_supplier_ingredient():
     data = request.get_json()
 
     # Check for missing values
-    if not data.get("supplier_id") or not data.get("ingredient_id"):
+    if not data.get("supplier_id") or not data.get("ingredient"):
         return jsonify({
             "code": 400,
-            "message": "Supplier ID and Ingredient ID are required."
+            "message": "Supplier ID and Ingredient are required."
         }), 400
     
     # Check if supplier exists
@@ -415,7 +415,7 @@ def create_supplier_ingredient():
     # Check if ingredient already has a supplier
     existing_ingredient = db.session.scalar(
         db.select(SupplierIngredient).filter_by(
-            ingredient_id=data.get("ingredient_id")
+            ingredient=data.get("ingredient")
         )
     )
     if existing_ingredient:
@@ -441,11 +441,11 @@ def create_supplier_ingredient():
     }), 201
 
 # DELETE a supplier-ingredient relationship
-@app.route("/supplier_ingredient/<int:ingredient_id>", methods=['DELETE'])
-def delete_supplier_ingredient(ingredient_id):
+@app.route("/supplier_ingredient/<String:ingredient>", methods=['DELETE'])
+def delete_supplier_ingredient(ingredient):
     
     supplier_ingredient = db.session.scalar(
-        db.select(SupplierIngredient).filter_by(ingredient_id=ingredient_id)
+        db.select(SupplierIngredient).filter_by(ingredient=ingredient)
     )
 
     if not supplier_ingredient:

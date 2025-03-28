@@ -17,26 +17,31 @@ CREATE TABLE IF NOT EXISTS supplier (
 
 DROP TABLE IF EXISTS supplier_ingredient;
 CREATE TABLE IF NOT EXISTS supplier_ingredient (
-  ingredient_id int NOT NULL,
-  supplier_id int NOT NULL,
-  price_per_unit decimal(10,2) NOT NULL,
-  lead_time int NOT NULL,
-  last_updated timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (ingredient_id, supplier_id),
-  KEY supplier_id (supplier_id)
+    ingredient varchar(255) NOT NULL,
+    supplier_id int NOT NULL,
+    price_per_unit decimal(10,2) NOT NULL,
+    lead_time int NOT NULL,
+    last_updated timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (ingredient, supplier_id),
+    KEY supplier_id (supplier_id),
+    FOREIGN KEY (supplier_id) REFERENCES supplier(supplier_id) ON DELETE CASCADE
 );
 
 -- Insert sample data into the supplier table
 INSERT INTO supplier (name, contact_person, phone, email, address) VALUES
-('Fresh Produce Co.', 'John Tan', '67543254', 'john@freshproduce.com', '123 Bishan Street, West Town'),
-('Organic Supplies Ltd.', 'Jane Lim', '65087328', 'jane@organicsupplies.com', '45 Orchard Street, Orchard City'),
-('Global Spices', 'Robert Chua', '65432943', 'robert@globalspices.com', '78 Shenton Road, East Town');
+('Sweet Additions Co.', 'Jane Lim', '65087328', 'jane@sweetadditions.com', '45 Orchard Street, Orchard City'),
+('Cafe Supply Network', 'Robert Chua', '65432943', 'robert@cafesupply.com', '78 Shenton Road, East Town');
+('Brew & Beverage Wholesale', 'John Tan', '67543254', 'john@brewbev.com', '123 Bishan Street, West Town'),
 
 -- Insert sample data into the supplier_ingredient table
-INSERT INTO supplier_ingredient (ingredient_id, supplier_id, price_per_unit, lead_time) VALUES
-(1, 2, 6.55, 3),
-(2, 1, 1.75, 3),
-(3, 2, 5.00, 7),
-(4, 3, 3.25, 4),
-(5, 3, 5.45, 2),
-(6, 2, 9.95, 9);
+INSERT INTO supplier_ingredient (ingredient, supplier_id, price_per_unit, lead_time) VALUES
+("Coffee Beans", 2, 12.50, 5),
+("Regular Milk", 3, 2.75, 2),
+("Skim Milk", 2, 2.60, 2),
+("Soy Milk", 2, 2.75, 2),
+("Almond Milk", 3, 3.50, 2),
+("Oat Milk", 3, 4.00, 2),
+("Vanilla Syrup", 1, 5.95, 4),
+("Caramel Syrup", 1, 6.25, 3),
+("Hazelnut Syrup", 1, 7.50, 6),
+("Chocolate Sprinkles", 1, 6.75, 3);
