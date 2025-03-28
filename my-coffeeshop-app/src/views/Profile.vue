@@ -328,191 +328,175 @@
 </template>
 
 <script>
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import axios from 'axios';
+
 export default {
-    data() {
-        return {
-            activeTab: 'current-orders',
-            tabs: [
-                { id: 'current-orders', name: 'Current Orders', icon: 'fas fa-shopping-bag' },
-                { id: 'order-history', name: 'Order History', icon: 'fas fa-history' },
-                { id: 'account-settings', name: 'Account Settings', icon: 'fas fa-user-cog' }
-            ],
-            // Sample data for current orders
-            currentOrders: [
-                {
-                    id: 1,
-                    orderNumber: '10857',
-                    date: 'March 12, 2025',
-                    status: 'Processing',
-                    items: [
-                        { id: 101, name: 'Ethiopian Yirgacheffe Coffee', quantity: 2, price: 14.99, image: '/api/placeholder/60/60' },
-                        { id: 102, name: 'Coffee Grinder', quantity: 1, price: 49.99, image: '/api/placeholder/60/60' }
-                    ],
-                    total: 79.97
-                },
-                {
-                    id: 2,
-                    orderNumber: '10842',
-                    date: 'March 8, 2025',
-                    status: 'Preparing',
-                    items: [
-                        { id: 201, name: 'Colombian Supremo Coffee', quantity: 1, price: 12.99, image: '/api/placeholder/60/60' },
-                        { id: 202, name: 'Ceramic Pour-Over Dripper', quantity: 1, price: 24.99, image: '/api/placeholder/60/60' }
-                    ],
-                    total: 37.98
-                },
-                {
-                    id: 3,
-                    orderNumber: '10838',
-                    date: 'March 5, 2025',
-                    status: 'Completed',
-                    items: [
-                        { id: 201, name: 'Colombian Supremo Coffee', quantity: 1, price: 12.99, image: '/api/placeholder/60/60' },
-                        { id: 202, name: 'Ceramic Pour-Over Dripper', quantity: 1, price: 24.99, image: '/api/placeholder/60/60' }
-                    ],
-                    total: 37.98
-                }
-            ],
-            // Sample data for past orders
-            pastOrders: [
-                {
-                    id: 4,
-                    orderNumber: '10756',
-                    date: 'February 18, 2025',
-                    status: 'Delivered',
-                    items: [
-                        { id: 301, name: 'Brazilian Santos Coffee', quantity: 3, price: 13.99, image: '/api/placeholder/60/60' },
-                        { id: 302, name: 'Milk Frother', quantity: 1, price: 19.99, image: '/api/placeholder/60/60' }
-                    ],
-                    total: 61.96
-                },
-                {
-                    id: 5,
-                    orderNumber: '10698',
-                    date: 'January 25, 2025',
-                    status: 'Delivered',
-                    items: [
-                        { id: 401, name: 'Guatemalan Antigua Coffee', quantity: 2, price: 15.99, image: '/api/placeholder/60/60' }
-                    ],
-                    total: 31.98
-                },
-                {
-                    id: 6,
-                    orderNumber: '10542',
-                    date: 'December 12, 2024',
-                    status: 'Delivered',
-                    items: [
-                        { id: 501, name: 'Costa Rican Tarrazu Coffee', quantity: 1, price: 14.99, image: '/api/placeholder/60/60' },
-                        { id: 502, name: 'Coffee Scale', quantity: 1, price: 29.99, image: '/api/placeholder/60/60' },
-                        { id: 503, name: 'Coffee Mug Set', quantity: 2, price: 24.99, image: '/api/placeholder/60/60' }
-                    ],
-                    total: 94.96
-                }
-            ],
-            expandedOrders: [], // To track which past orders are expanded
-            // User profile data
-            userProfile: {
-                firstName: 'John',
-                lastName: 'Doe',
-                email: 'john.doe@example.com',
-                phone: '(555) 123-4567',
-                address: {
-                    line1: '123 Coffee St',
-                    line2: 'Apt 4B',
-                    city: 'Seattle',
-                    state: 'WA',
-                    zip: '98101'
-                },
-                preferences: {
-                    newsletter: true,
-                    textNotifications: false
-                }
-            },
-            // Password change data
-            passwordChange: {
-                current: '',
-                new: '',
-                confirm: ''
-            }
-        };
-    },
-    methods: {
-        // Get the appropriate style for order status badges
-        getStatusStyle(status) {
-            switch (status) {
-                case 'Processing':
-                    return 'background-color: #FFF3CD; color: #856404;';
-                case 'Preparing':
-                    return 'background-color: #D1ECF1; color: #37546e;';
-                case 'Completed':
-                    return 'background-color: #daf2ea; color: #657a62;';
-                case 'Collected':
-                    return 'background-color: #D4EDDA; color: #155724;';
-                case 'Cancelled':
-                    return 'background-color: #F8D7DA; color: #721C24;';
-                default:
-                    return 'background-color: #E2E3E5; color: #383D41;';
-            }
+  data() {
+    return {
+      activeTab: 'current-orders',
+      tabs: [
+        { id: 'current-orders', name: 'Current Orders', icon: 'fas fa-shopping-bag' },
+        { id: 'order-history', name: 'Order History', icon: 'fas fa-history' },
+        { id: 'account-settings', name: 'Account Settings', icon: 'fas fa-user-cog' }
+      ],
+      currentOrders: [/* your order data */],
+      pastOrders: [/* your past order data */],
+      expandedOrders: [],
+      userProfile: {
+        firstName: '',
+        lastName: '',
+        email: '',
+        phone: '',
+        address: {
+          line1: '',
+          line2: '',
+          city: '',
+          state: '',
+          zip: ''
         },
-
-        // Toggle the expanded state of order details
-        toggleOrderDetails(orderId) {
-            if (this.expandedOrders.includes(orderId)) {
-                this.expandedOrders = this.expandedOrders.filter(id => id !== orderId);
-            } else {
-                this.expandedOrders.push(orderId);
-            }
-        },
-
-        // Track an order (in a real app, this would navigate to a tracking page)
-        trackOrder(orderId) {
-            alert(`Tracking order #${orderId}`);
-            // In a real app, you would navigate to a tracking page
-        },
-
-        // Cancel an order
-        cancelOrder(orderId) {
-            if (confirm('Are you sure you want to cancel this order?')) {
-                // In a real app, you would call an API to cancel the order
-                alert(`Order #${orderId} has been cancelled`);
-
-                // Update the order status (for demo purposes)
-                const orderIndex = this.currentOrders.findIndex(order => order.id === orderId);
-                if (orderIndex !== -1) {
-                    this.currentOrders[orderIndex].status = 'Cancelled';
-                    // Move to past orders (in a real app, this would happen server-side)
-                    this.pastOrders.unshift(this.currentOrders[orderIndex]);
-                    this.currentOrders.splice(orderIndex, 1);
-                }
-            }
-        },
-
-        // Reorder items from a past order
-        reorderItems(orderId) {
-            // In a real app, you would add all items to the cart and redirect to checkout
-            alert(`Adding items from order #${orderId} to your cart`);
-        },
-
-        // Save account settings
-        saveAccountSettings() {
-            // Validate password if the user is trying to change it
-            if (this.passwordChange.current && this.passwordChange.new) {
-                if (this.passwordChange.new !== this.passwordChange.confirm) {
-                    alert('New passwords do not match');
-                    return;
-                }
-
-                // In a real app, you would validate the current password and update it
-                alert('Password updated successfully');
-                this.passwordChange.current = '';
-                this.passwordChange.new = '';
-                this.passwordChange.confirm = '';
-            }
-
-            // In a real app, you would send the updated profile to the server
-            alert('Account settings saved successfully');
+        preferences: {
+          newsletter: false,
+          textNotifications: false
         }
+      },
+      passwordChange: {
+        current: '',
+        new: '',
+        confirm: ''
+      }
+    };
+  },
+
+  mounted() {
+    const auth = getAuth();
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        this.fetchUserProfile(user);
+      } else {
+        console.warn("User not logged in.");
+        this.$router.push('/login'); // optional redirect
+      }
+    });
+  },
+
+  methods: {
+    async fetchUserProfile(user) {
+      try {
+        const idToken = await user.getIdToken();
+        const res = await axios.get("http://localhost:5019/profile", {
+          headers: {
+            Authorization: idToken
+          }
+        });
+
+        const profile = res.data;
+        const [firstName, ...lastNameParts] = profile.userName.split(" ");
+        const lastName = lastNameParts.join(" ");
+
+        this.userProfile.firstName = firstName;
+        this.userProfile.lastName = lastName;
+        this.userProfile.email = profile.email;
+        this.userProfile.phone = profile.phoneNum;
+
+      } catch (error) {
+        console.error("Failed to fetch profile:", error);
+      }
+    },
+
+    async updateProfile() {
+      try {
+        const auth = getAuth();
+        const currentUser = auth.currentUser;
+
+        if (!currentUser) {
+          alert("User not logged in.");
+          return;
+        }
+
+        const idToken = await currentUser.getIdToken();
+        const userId = currentUser.uid;
+        const fullName = `${this.userProfile.firstName} ${this.userProfile.lastName}`;
+
+        await axios.put(`http://localhost:5018/update_profile/${userId}`, {
+          email: this.userProfile.email,
+          phoneNum: this.userProfile.phone,
+          userName: fullName
+        }, {
+          headers: {
+            Authorization: idToken
+          }
+        });
+
+        alert("Profile updated successfully!");
+
+      } catch (error) {
+        console.error("Profile update failed:", error);
+        alert("Failed to update profile. Please try again.");
+      }
+    },
+
+    async saveAccountSettings() {
+      if (this.passwordChange.current && this.passwordChange.new) {
+        if (this.passwordChange.new !== this.passwordChange.confirm) {
+          alert('New passwords do not match');
+          return;
+        }
+
+        alert('Password updated successfully (mock)');
+        this.passwordChange.current = '';
+        this.passwordChange.new = '';
+        this.passwordChange.confirm = '';
+      }
+
+      await this.updateProfile();
+    },
+
+    getStatusStyle(status) {
+      switch (status) {
+        case 'Processing':
+          return 'background-color: #FFF3CD; color: #856404;';
+        case 'Preparing':
+          return 'background-color: #D1ECF1; color: #37546e;';
+        case 'Completed':
+          return 'background-color: #daf2ea; color: #657a62;';
+        case 'Collected':
+          return 'background-color: #D4EDDA; color: #155724;';
+        case 'Cancelled':
+          return 'background-color: #F8D7DA; color: #721C24;';
+        default:
+          return 'background-color: #E2E3E5; color: #383D41;';
+      }
+    },
+
+    toggleOrderDetails(orderId) {
+      if (this.expandedOrders.includes(orderId)) {
+        this.expandedOrders = this.expandedOrders.filter(id => id !== orderId);
+      } else {
+        this.expandedOrders.push(orderId);
+      }
+    },
+
+    trackOrder(orderId) {
+      alert(`Tracking order #${orderId}`);
+    },
+
+    cancelOrder(orderId) {
+      if (confirm('Are you sure you want to cancel this order?')) {
+        alert(`Order #${orderId} has been cancelled`);
+        const orderIndex = this.currentOrders.findIndex(order => order.id === orderId);
+        if (orderIndex !== -1) {
+          this.currentOrders[orderIndex].status = 'Cancelled';
+          this.pastOrders.unshift(this.currentOrders[orderIndex]);
+          this.currentOrders.splice(orderIndex, 1);
+        }
+      }
+    },
+
+    reorderItems(orderId) {
+      alert(`Adding items from order #${orderId} to your cart`);
     }
+  }
 };
 </script>
 

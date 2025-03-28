@@ -59,7 +59,24 @@ services:
       - PYTHONUNBUFFERED=1
     networks:
       - esd-net
- 
+
+###################################
+  # Login: The Outlet microservice
+  ###################################
+  login:
+    build:
+      context: ./Login   
+      dockerfile: login.Dockerfile 
+    image: amritad/login:esd
+    ports:
+      - "5019:5019"
+    restart: always
+    environment:
+      - dbURL=mysql+mysqlconnector://is213@host.docker.internal:3306/profile
+      - PYTHONUNBUFFERED=1
+    networks:
+      - esd-net
+
   ###################################
   # Cart: The Cart microservice
   ###################################

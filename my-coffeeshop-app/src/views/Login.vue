@@ -162,44 +162,45 @@
         }
       }
       
+      //new handleregister funtion 
       const handleRegister = async () => {
-  try {
-    errorMessage.value = ''
-    const userCredential = await createUserWithEmailAndPassword(
-      auth, 
-      registerForm.email, 
-      registerForm.password
-    )
-    
-    // Get the Firebase generated user ID
-    const firebaseUserId = userCredential.user.uid
-    // console.log(firebaseUserId)
-    // console.log(registerForm.phone)
-    // console.log(registerForm.email)
-    // console.log(registerForm.name)
-    
-    // Make API call to create profile in your database
-    await axios.post('http://127.0.0.1:5016/create_profile', {
-      email: registerForm.email,
-      phoneNum: registerForm.phone, // Note: this should be corrected to access from registerForm
-      userId: firebaseUserId,
-      userName: registerForm.name
-    })
-    
-    console.log('Account created successfully and profile saved to database')
-    
-    // Redirect or handle successful registration
-    // For example: router.push('/dashboard')
-  } catch (error) {
-    if (error.response) {
-      // Error from the API
-      errorMessage.value = `Profile creation failed: ${error.response.data.message || 'Unknown error'}`
-    } else {
-      // Error from Firebase
-      errorMessage.value = getErrorMessage(error.code)
-    }
-  }
-}
+      try {
+        errorMessage.value = '';
+
+        // Step 1: We create Firebase Auth account
+        const userCredential = await createUserWithEmailAndPassword(
+          auth,
+          registerForm.email,
+          registerForm.password
+        );
+
+        // Step 2: Send user data to Flask `/register` endpoint (login.py)
+        const response = await axios.post('http://localhost:5019/register', {
+          email: registerForm.email,
+          password: registerForm.password,
+          username: registerForm.name,
+          phoneNum: registerForm.phone
+        });
+
+        if (response.status === 201) {
+          console.log('Account registered and profile created!');
+          alert('Registration successful!');
+          router.push('/login');  // Or wherever you want to redirect
+        } else {
+          errorMessage.value = response.data.error || 'Something went wrong.';
+        }
+
+      } catch (error) {
+        if (error.response) {
+          // Error returned by Flask backend
+          errorMessage.value = error.response.data.details || 'Backend registration error.';
+        } else {
+          // Firebase error
+          errorMessage.value = getErrorMessage(error.code);
+        }
+      }
+    };
+
       
       const signInWithGoogle = async () => {
         try {
