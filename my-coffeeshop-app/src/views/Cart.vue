@@ -169,8 +169,8 @@ export default {
       // shipping: 0,
       tax: 0,
       loading: true,
-      userId: 'test23', // Replace with dynamic user ID if needed
-      outletId: '23',   // Replace with dynamic outlet ID if needed
+      userId: 'test24', // Replace with dynamic user ID if needed
+      outletId: '24',   // Replace with dynamic outlet ID if needed
       apiConfig: {
         cartService: {
           baseURL: 'http://127.0.0.1:5200',

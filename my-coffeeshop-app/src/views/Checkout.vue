@@ -78,15 +78,19 @@ export default {
             clientSecret: null,
             cartItems: [],
             loading: true,
-            userId: 'iTeYSJ3xoBQuDdI0uXravnQgbqo2', // Replace with dynamic user ID if needed
-            outletId: '23',   // Replace with dynamic outlet ID if needed
+            userId: 'test24', // Replace with dynamic user ID if needed
+            outletId: '24',   // Replace with dynamic outlet ID if needed
             apiConfig: {
                 cartService: {
                     baseURL: 'http://127.0.0.1:5200',
                     timeout: 8000
                 },
                 drinkService: {
-                    baseURL: 'http://127.0.0.1:5002',
+                    baseURL: 'http://127.0.0.1:5005',
+                    timeout: 5000
+                },
+                customService: {
+                    baseURL: 'http://127.0.0.1:5007',
                     timeout: 5000
                 }
             }
@@ -127,6 +131,11 @@ export default {
                     timeout: this.apiConfig.drinkService.timeout
                 });
 
+                const customClient = axios.create({
+                    baseURL: this.apiConfig.customService.baseURL,
+                    timeout: this.apiConfig.customService.timeout
+                });
+
                 // 1. Fetch cart data
                 console.log(`Fetching cart from ${this.apiConfig.cartService.baseURL}`);
                 const cartResponse = await cartClient.get(`/get_cart_details/${this.userId}/${this.outletId}`);
@@ -139,7 +148,7 @@ export default {
                 }
 
                 // 2. Process each cart item
-                this.cartItems = await this.processCartItems(cartResponse.data.data.items, drinkClient);
+                this.cartItems = await this.processCartItems(cartResponse.data.data.items, drinkClient, customClient);
                 console.log(this.cartItems);
 
             } catch (error) {
@@ -150,7 +159,7 @@ export default {
             }
         },
 
-        async processCartItems(items, drinkClient) {
+        async processCartItems(items, drinkClient, customClient) {
             const processedItems = [];
 
             for (const [index, item] of items.entries()) {
@@ -167,7 +176,7 @@ export default {
                     if (item.customisations?.length > 0) {
                         console.log(`Fetching ${item.customisations.length} customizations...`);
                         const customizationPromises = item.customisations.map(c =>
-                            drinkClient.get(`/customisations/${c.customisationId_fk}`)
+                            customClient.get(`/customisations/${c.customisationId_fk}`)
                         );
                         const customizationResponses = await Promise.all(customizationPromises);
                         customizations = customizationResponses.map(r => ({
@@ -258,7 +267,7 @@ export default {
             const { error } = await this.stripe.confirmPayment({
                 elements: this.elements,
                 confirmParams: {
-                    return_url: "http://localhost:5173/",
+                    return_url: "http://localhost:5174/",
                 },
             });
 

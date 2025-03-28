@@ -575,8 +575,8 @@ export default {
         // Create the payload with the correct structure
         const payload = {
           "cart": {
-            "user_id": "test23", // Replace with dynamic value if needed
-            "outlet_id": 23, // Replace with dynamic value if needed
+            "user_id": "test24", // Replace with dynamic value if needed
+            "outlet_id": 24, // Replace with dynamic value if needed
             "totalPrice": parseFloat(this.totalPrice)
           },
           "cart_items": [
