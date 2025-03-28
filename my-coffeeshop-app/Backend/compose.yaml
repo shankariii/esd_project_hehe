@@ -23,8 +23,58 @@ services:
     ports:
       - "5002:5002"
     networks:
-      - esd-net      
+      - esd-net  
 
+  ###################################
+  # Drink: The Drink Menu microservice
+  ###################################
+  drink_menu:
+    build:
+      context: ./drink_menu
+      dockerfile: drink_menu.Dockerfile
+    image: jiaxuanlai/drink_menu:esd
+    restart: always
+    environment:
+      dbURL: mysql+pymysql://root:@host.docker.internal:3306/drink_menu
+      PYTHONUNBUFFERED: 1
+    ports:
+      - "5005:5005"
+    networks:
+      - esd-net     
+
+  ###################################
+  # Drink: The Drink Ingredient microservice
+  ###################################
+  drink_ingredients:
+    build:
+      context: ./drink_ingredients
+      dockerfile: drink_ingredients.Dockerfile
+    image: jiaxuanlai/drink_ingredients:esd
+    restart: always
+    environment:
+      dbURL: mysql+pymysql://root:@host.docker.internal:3306/drink_ingredients
+      PYTHONUNBUFFERED: 1
+    ports:
+      - "5006:5006"
+    networks:
+      - esd-net   
+
+  ###################################
+  # Drink: The Drink Customisation microservice
+  ###################################
+  drink_customisation:
+    build:
+      context: ./drink_customisation
+      dockerfile: drink_customisation.Dockerfile
+    image: jiaxuanlai/drink_customisation:esd
+    restart: always
+    environment:
+      dbURL: mysql+pymysql://root:@host.docker.internal:3306/drink_customisation
+      PYTHONUNBUFFERED: 1
+    ports:
+      - "5007:5007"
+    networks:
+      - esd-net   
 
   ###################################
   # Inventory: The Inventory microservice
