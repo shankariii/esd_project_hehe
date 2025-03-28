@@ -509,17 +509,17 @@ export default {
   async created() {
     // Fetch drink details
     this.drinkId = this.$route.params.id; // Assuming the drink ID is passed via route
-    const drinkResponse = await axios.get(`http://127.0.0.1:5002/drinks/${this.drinkId}`);
+    const drinkResponse = await axios.get(`http://127.0.0.1:5005/drinks/${this.drinkId}`);
     this.drink = drinkResponse.data;
 
     // Fetch customization options
-    const sizeResponse = await axios.get('http://127.0.0.1:5002/customisations/type/S');
+    const sizeResponse = await axios.get('http://127.0.0.1:5007/customisations/type/S');
     this.sizeOptions = sizeResponse.data;
 
-    const milkResponse = await axios.get('http://127.0.0.1:5002/customisations/type/M');
+    const milkResponse = await axios.get('http://127.0.0.1:5007/customisations/type/M');
     this.milkOptions = milkResponse.data;
 
-    const addonsResponse = await axios.get('http://127.0.0.1:5002/customisations/type/A');
+    const addonsResponse = await axios.get('http://127.0.0.1:5007/customisations/type/A');
     this.addons = addonsResponse.data;
 
     // Set default selections

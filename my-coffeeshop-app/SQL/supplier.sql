@@ -30,8 +30,8 @@ CREATE TABLE IF NOT EXISTS supplier_ingredient (
 -- Insert sample data into the supplier table
 INSERT INTO supplier (name, contact_person, phone, email, address) VALUES
 ('Sweet Additions Co.', 'Jane Lim', '65087328', 'jane@sweetadditions.com', '45 Orchard Street, Orchard City'),
-('Cafe Supply Network', 'Robert Chua', '65432943', 'robert@cafesupply.com', '78 Shenton Road, East Town');
-('Brew & Beverage Wholesale', 'John Tan', '67543254', 'john@brewbev.com', '123 Bishan Street, West Town'),
+('Cafe Supply Network', 'Robert Chua', '65432943', 'robert@cafesupply.com', '78 Shenton Road, East Town'),
+('Brew & Beverage Wholesale', 'John Tan', '67543254', 'john@brewbev.com', '123 Bishan Street, West Town');
 
 -- Insert sample data into the supplier_ingredient table
 INSERT INTO supplier_ingredient (ingredient, supplier_id, price_per_unit, lead_time) VALUES

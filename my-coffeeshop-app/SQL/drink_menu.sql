@@ -19,7 +19,9 @@ SET time_zone = "+00:00";
 
 --
 -- Database: `drink_menu`
---
+CREATE DATABASE IF NOT EXISTS `drink_menu` DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;
+USE `drink_menu`;
+
 
 -- --------------------------------------------------------
 

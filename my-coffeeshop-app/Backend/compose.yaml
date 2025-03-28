@@ -69,7 +69,7 @@ services:
     image: jiaxuanlai/drink_customisation:esd
     restart: always
     environment:
-      dbURL: mysql+pymysql://root:@host.docker.internal:3306/drink_customisation
+      dbURL: mysql+pymysql://root:@host.docker.internal:3306/customisation
       PYTHONUNBUFFERED: 1
     ports:
       - "5007:5007"
@@ -113,19 +113,19 @@ services:
 ###################################
   # Login: The Outlet microservice
   ###################################
-  login:
-    build:
-      context: ./Login   
-      dockerfile: login.Dockerfile 
-    image: amritad/login:esd
-    ports:
-      - "5019:5019"
-    restart: always
-    environment:
-      - dbURL=mysql+mysqlconnector://is213@host.docker.internal:3306/profile
-      - PYTHONUNBUFFERED=1
-    networks:
-      - esd-net
+  # login:
+  #   build:
+  #     context: ./Login   
+  #     dockerfile: login.Dockerfile 
+  #   image: amritad/login:esd
+  #   ports:
+  #     - "5019:5019"
+  #   restart: always
+  #   environment:
+  #     - dbURL=mysql+mysqlconnector://is213@host.docker.internal:3306/profile
+  #     - PYTHONUNBUFFERED=1
+  #   networks:
+  #     - esd-net
 
   ###################################
   # Cart: The Cart microservice
@@ -215,11 +215,11 @@ services:
   ###################################
   # Add to Cart: The Add to Cart composite microservice
   ###################################
-  addToCart:
+  CartCompositeServie:
     build:
-      context: ./AddToCart
-      dockerfile: addToCart.Dockerfile
-    image: shashass/addtocart:esd
+      context: ./CartCompositeServie
+      dockerfile: CartCompositeServie.Dockerfile
+    image: shashass/cartcompositeservie:esd
     restart: always
     depends_on:
       - cart
@@ -231,24 +231,4 @@ services:
     ports:
       - "5200:5200"
     networks:
-      - esd-net    
-
-  ###################################
-  # Add to Cart: The Add to Cart composite microservice
-  ###################################
-  viewCart:
-    build:
-      context: ./viewCart
-      dockerfile: viewCart.Dockerfile
-    image: shashass/viewcart:esd
-    restart: always
-    depends_on:
-      - cart
-      - cart_items
-      - cart_items_customisation
-    environment:
-      PYTHONUNBUFFERED: 1
-    ports:
-      - "5300:5300"
-    networks:
-      - esd-net      
+      - esd-net     

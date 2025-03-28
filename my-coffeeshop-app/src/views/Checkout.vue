@@ -82,7 +82,7 @@ export default {
             outletId: '23',   // Replace with dynamic outlet ID if needed
             apiConfig: {
                 cartService: {
-                    baseURL: 'http://127.0.0.1:5300',
+                    baseURL: 'http://127.0.0.1:5200',
                     timeout: 8000
                 },
                 drinkService: {

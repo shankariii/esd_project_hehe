@@ -71,7 +71,7 @@
         try {
           this.loading = true;
           // Replace with your actual API endpoint
-          const response = await axios.get('http://127.0.0.1:5002/drinks');
+          const response = await axios.get('http://127.0.0.1:5005/drinks');
           this.drinks = response.data;
           console.log(this.drinks)
           this.loading = false;
