@@ -170,6 +170,7 @@ def get_cart_details(user_id, outlet_id):
             
             # Consolidate relevant fields for this item
             consolidated_item = {
+                "cart_items_id":item["cart_items_id"],
                 "drink_id": item["drink_id"],
                 "quantity": item["quantity"],
                 "customisations": customisations

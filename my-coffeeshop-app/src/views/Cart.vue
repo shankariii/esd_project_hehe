@@ -3,8 +3,8 @@
     <!-- Cart section -->
     <section class="section">
       <div class="section-heading">
-        <h2>Your Shopping Cart</h2>
-        <p>Review your items and proceed to payment</p>
+        <!-- <h2>Your Shopping Cart</h2>
+        <p>Review your items and proceed to payment</p> -->
       </div>
 
       <!-- Back to menu link -->
@@ -171,6 +171,8 @@ export default {
       loading: true,
       userId: 'test24', // Replace with dynamic user ID if needed
       outletId: '24',   // Replace with dynamic outlet ID if needed
+      cartId: 0,
+      currentTotal: 0,
       apiConfig: {
         cartService: {
           baseURL: 'http://127.0.0.1:5200',
@@ -220,6 +222,8 @@ export default {
         // 1. Fetch cart data
         console.log(`Fetching cart from ${this.apiConfig.cartService.baseURL}`);
         const cartResponse = await cartClient.get(`/get_cart_details/${this.userId}/${this.outletId}`);
+        this.cartId = cartResponse.data.data.cart_id
+        this.currentTotal = cartResponse.data.data.totalPrice
         console.log('Cart response:', cartResponse.data);
 
         if (!cartResponse.data?.data?.items) {
@@ -241,7 +245,8 @@ export default {
       }
     },
 
-    async processCartItems(items, drinkClient,customClient) {
+    async processCartItems(items, drinkClient, customClient) {
+
       const processedItems = [];
 
       for (const [index, item] of items.entries()) {
@@ -261,6 +266,7 @@ export default {
               customClient.get(`/customisations/${c.customisationId_fk}`)
             );
             const customizationResponses = await Promise.all(customizationPromises);
+            // cartItemId = customizationResponses.
             customizations = customizationResponses.map(r => ({
               id: r.data.customisation_id,
               name: r.data.name,
@@ -300,6 +306,7 @@ export default {
 
     incrementQuantity(index) {
       this.cartItems[index].quantity++;
+      console.log(this.cartItems[index])
       this.updateCart(index);
     },
 
@@ -317,28 +324,33 @@ export default {
 
     async updateCart(index) {
       try {
-        const cartClient = axios.create({
-          baseURL: 'http://127.0.0.1:5200', // Update with your actual update_cart service URL
-          timeout: 8000
-        });
+        const item = this.cartItems[index];
+        const cartItemId = item.cart_item_id;
+        const newQuantity = item.quantity;
 
-        // For quantity updates
-        const response = await cartClient.put('/update_cart', {
-          action: "update",
-          user_id: this.userId,
-          outlet_id: this.outletId,
-          item_id: item.cart_item_id,  // You'll need to track this in your cartItems
-          quantity: item.quantity
-        });
+        // Update quantity in backend
+        await axios.put(
+          `http://localhost:5016/cart_items/${cartItemId}`,
+          { quantity: newQuantity }
+        );
 
-        // Recalculate tax after successful update
-        this.tax = this.subtotal * 0.08;
+        // Get current cart total from backend or use local computed total
+        // differenceinTotal = item.price
+        console.log(item.price)
+
+        // Update cart total in backend (just add one more item's price)
+        await axios.put(
+          `http://localhost:5015/cart/${this.cartId}`,
+          { totalPrice: this.subtotal }
+        );
+
+        // UI will update automatically through computed properties
+
       } catch (error) {
         console.error('Error updating cart:', error);
-        // Handle error (maybe revert the UI change)
+        this.fetchCartDetails(); // Refresh data
       }
     },
-
 
 
     proceedToPayment() {
