@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from os import environ
+from datetime import datetime
 
 app = Flask(__name__)
 CORS(app)
@@ -17,21 +18,27 @@ class Inventory(db.Model):
     __tablename__ = 'inventory'
 
     inventory_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    ingredient_id = db.Column(db.String(64), nullable=False)
+    ingredient = db.Column(db.String(64), nullable=False)
     available_quantity = db.Column(db.Float(precision=2), nullable=False)
     unit = db.Column(db.String(32), nullable=False)
+    date_time = db.Column(db.DateTime, default=datetime.utcnow)
+    change_in_quantity = db.Column(db.Float(precision=2), default=0.0)
 
-    def __init__(self, ingredient_id, available_quantity, unit):
-        self.ingredient_id = ingredient_id
+    def __init__(self, ingredient, available_quantity, unit, change_in_quantity=0.0):
+        self.ingredient = ingredient
         self.available_quantity = available_quantity
         self.unit = unit
+        self.date_time = datetime.utcnow()
+        self.change_in_quantity = change_in_quantity
 
     def json(self):
         return {
             "inventory_id": self.inventory_id,
-            "ingredient_id": self.ingredient_id,
+            "ingredient": self.ingredient,
             "available_quantity": self.available_quantity,
-            "unit": self.unit
+            "unit": self.unit,
+            "date_time": self.date_time.strftime('%Y-%m-%d %H:%M:%S'),
+            "change_in_quantity": self.change_in_quantity
         }
 
 @app.route("/inventory")
@@ -53,23 +60,28 @@ def get_item_by_id(inventory_id):
         return jsonify({"code": 200, "data": item.json()})
     return jsonify({"code": 404, "message": "Inventory item not found."}), 404
 
-#for scenario 3: get by ingredient id 
-@app.route("/inventory/ingredient/<string:ingredient_id>", methods=["GET"])
-def get_item_by_ingredient_id(ingredient_id):
-    item = db.session.scalar(db.select(Inventory).filter_by(ingredient_id=ingredient_id))
+@app.route("/inventory/ingredient/<string:ingredient>", methods=["GET"])
+def get_item_by_ingredient(ingredient):
+    item = db.session.scalar(db.select(Inventory).filter_by(ingredient=ingredient))
     if item:
         return jsonify({"code": 200, "data": item.json()})
-    return jsonify({"code": 404, "message": f"Inventory item with ingredient_id '{ingredient_id}' not found."}), 404
-
+    return jsonify({"code": 404, "message": f"Inventory item with ingredient '{ingredient}' not found."}), 404
 
 @app.route("/inventory", methods=["POST"])
 def create_item():
     data = request.get_json()
-    required = ['ingredient_id', 'available_quantity', 'unit']
+    required = ['ingredient', 'available_quantity', 'unit']
     if not all(key in data for key in required):
         return jsonify({"code": 400, "message": "Missing required fields."}), 400
 
-    item = Inventory(**data)
+    change = data.get('change_in_quantity', data['available_quantity'])
+
+    item = Inventory(
+        ingredient=data['ingredient'],
+        available_quantity=data['available_quantity'],
+        unit=data['unit'],
+        change_in_quantity=change
+    )
     try:
         db.session.add(item)
         db.session.commit()
@@ -87,9 +99,15 @@ def update_item(inventory_id):
 
     data = request.get_json()
     try:
-        item.ingredient_id = data.get("ingredient_id", item.ingredient_id)
-        item.available_quantity = data.get("available_quantity", item.available_quantity)
+        new_quantity = data.get("available_quantity", item.available_quantity)
+        change = new_quantity - item.available_quantity
+
+        item.ingredient = data.get("ingredient", item.ingredient)
+        item.available_quantity = new_quantity
         item.unit = data.get("unit", item.unit)
+        item.date_time = datetime.utcnow()
+        item.change_in_quantity = change
+
         db.session.commit()
     except Exception as e:
         db.session.rollback()
