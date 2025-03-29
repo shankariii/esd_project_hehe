@@ -23,58 +23,8 @@ services:
     ports:
       - "5002:5002"
     networks:
-      - esd-net  
+      - esd-net      
 
-  ###################################
-  # Drink: The Drink Menu microservice
-  ###################################
-  drink_menu:
-    build:
-      context: ./drink_menu
-      dockerfile: drink_menu.Dockerfile
-    image: jiaxuanlai/drink_menu:esd
-    restart: always
-    environment:
-      dbURL: mysql+pymysql://root:@host.docker.internal:3306/drink_menu
-      PYTHONUNBUFFERED: 1
-    ports:
-      - "5005:5005"
-    networks:
-      - esd-net     
-
-  ###################################
-  # Drink: The Drink Ingredient microservice
-  ###################################
-  drink_ingredients:
-    build:
-      context: ./drink_ingredients
-      dockerfile: drink_ingredients.Dockerfile
-    image: jiaxuanlai/drink_ingredients:esd
-    restart: always
-    environment:
-      dbURL: mysql+pymysql://root:@host.docker.internal:3306/drink_ingredients
-      PYTHONUNBUFFERED: 1
-    ports:
-      - "5006:5006"
-    networks:
-      - esd-net   
-
-  ###################################
-  # Drink: The Drink Customisation microservice
-  ###################################
-  drink_customisation:
-    build:
-      context: ./drink_customisation
-      dockerfile: drink_customisation.Dockerfile
-    image: jiaxuanlai/drink_customisation:esd
-    restart: always
-    environment:
-      dbURL: mysql+pymysql://root:@host.docker.internal:3306/customisation
-      PYTHONUNBUFFERED: 1
-    ports:
-      - "5007:5007"
-    networks:
-      - esd-net   
 
   ###################################
   # Inventory: The Inventory microservice
@@ -113,20 +63,21 @@ services:
 ###################################
   # Login: The Outlet microservice
   ###################################
-  # login:
-  #   build:
-  #     context: ./Login   
-  #     dockerfile: login.Dockerfile 
-  #   image: amritad/login:esd
-  #   ports:
-  #     - "5019:5019"
-  #   restart: always
-  #   environment:
-  #     - dbURL=mysql+mysqlconnector://is213@host.docker.internal:3306/profile
-  #     - PYTHONUNBUFFERED=1
-  #   networks:
-  #     - esd-net
+  login:
+    build:
+      context: ./Login   
+      dockerfile: login.Dockerfile 
+    image: amritad/login:esd
+    ports:
+      - "5019:5019"
+    restart: always
+    environment:
+      - dbURL=mysql+mysqlconnector://is213@host.docker.internal:3306/profile
+      - PYTHONUNBUFFERED=1
+    networks:
+      - esd-net
 
+ 
   ###################################
   # Cart: The Cart microservice
   ###################################
@@ -213,55 +164,13 @@ services:
       - esd-net
 
   ###################################
-  # Supplier: The Supplier microservice
-  ###################################
-  supplier:
-    build:
-      context: ./supplier
-      dockerfile: supplier.Dockerfile
-    image: namyra/supplier:1.0
-    container_name: supplier
-    ports:
-      - "8000:8000"
-    environment:
-      - dbURL=mysql+mysqlconnector://is213@host.docker.internal:3306/supplier
-
-  ###################################
-  # Supplier_ingredient: The Supplier_ingredient microservice
-  ###################################
-  supplier_ingredient:
-    build:
-      context: ./supplier_ingredient
-      dockerfile: supplier_ingredient.Dockerfile
-    image: namyra/supplier_ingredient:1.0
-    container_name: supplier_ingredient
-    ports:
-      - "8001:8001"
-    environment:
-      - dbURL=mysql+mysqlconnector://is213@host.docker.internal:3306/supplier_ingredient
-
-  ###################################
-  # Threshold: The Threshold microservice
-  ###################################
-  threshold:
-    build:
-      context: ./threshold
-      dockerfile: threshold.Dockerfile
-    image: namyra/threshold:1.0
-    container_name: threshold
-    ports:
-      - "8100:8100"
-    environment:
-      - dbURL=mysql+mysqlconnector://is213@host.docker.internal:3306/threshold
-
-  ###################################
   # Add to Cart: The Add to Cart composite microservice
   ###################################
-  CartCompositeServie:
+  addToCart:
     build:
-      context: ./CartCompositeServie
-      dockerfile: CartCompositeServie.Dockerfile
-    image: shashass/cartcompositeservie:esd
+      context: ./AddToCart
+      dockerfile: addToCart.Dockerfile
+    image: shashass/addtocart:esd
     restart: always
     depends_on:
       - cart
@@ -273,4 +182,24 @@ services:
     ports:
       - "5200:5200"
     networks:
-      - esd-net     
+      - esd-net    
+
+  ###################################
+  # Add to Cart: The Add to Cart composite microservice
+  ###################################
+  viewCart:
+    build:
+      context: ./viewCart
+      dockerfile: viewCart.Dockerfile
+    image: shashass/viewcart:esd
+    restart: always
+    depends_on:
+      - cart
+      - cart_items
+      - cart_items_customisation
+    environment:
+      PYTHONUNBUFFERED: 1
+    ports:
+      - "5300:5300"
+    networks:
+      - esd-net      
