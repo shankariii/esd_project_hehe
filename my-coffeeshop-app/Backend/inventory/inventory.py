@@ -3,9 +3,11 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from os import environ
 from datetime import datetime
+from flasgger import Swagger
 
 app = Flask(__name__)
 CORS(app)
+Swagger(app)  # Enable Swagger UI
 
 # Database configuration
 app.config['SQLALCHEMY_DATABASE_URI'] = environ.get('dbURL')
@@ -41,8 +43,17 @@ class Inventory(db.Model):
             "change_in_quantity": self.change_in_quantity
         }
 
-@app.route("/inventory")
+@app.route("/inventory", methods=["GET"])
 def get_all_items():
+    """
+    Get all inventory items
+    ---
+    responses:
+      200:
+        description: A list of inventory items
+      404:
+        description: No inventory items found
+    """
     item_list = db.session.scalars(db.select(Inventory)).all()
     if item_list:
         return jsonify({
@@ -53,16 +64,45 @@ def get_all_items():
         })
     return jsonify({"code": 404, "message": "No inventory items found."}), 404
 
-@app.route("/inventory/<int:inventory_id>")
+@app.route("/inventory/<int:inventory_id>", methods=["GET"])
 def get_item_by_id(inventory_id):
+    """
+    Get an inventory item by ID
+    ---
+    parameters:
+      - in: path
+        name: inventory_id
+        required: true
+        schema:
+          type: integer
+    responses:
+      200:
+        description: Item found
+      404:
+        description: Inventory item not found
+    """
     item = db.session.scalar(db.select(Inventory).filter_by(inventory_id=inventory_id))
     if item:
         return jsonify({"code": 200, "data": item.json()})
     return jsonify({"code": 404, "message": "Inventory item not found."}), 404
 
-#for scenario 3: get by ingredient id 
 @app.route("/inventory/ingredient/<string:ingredient>", methods=["GET"])
 def get_item_by_ingredient(ingredient):
+    """
+    Get an inventory item by ingredient name
+    ---
+    parameters:
+      - in: path
+        name: ingredient
+        required: true
+        schema:
+          type: string
+    responses:
+      200:
+        description: Item found
+      404:
+        description: Inventory item with that ingredient not found
+    """
     item = db.session.scalar(db.select(Inventory).filter_by(ingredient=ingredient))
     if item:
         return jsonify({"code": 200, "data": item.json()})
@@ -70,6 +110,36 @@ def get_item_by_ingredient(ingredient):
 
 @app.route("/inventory", methods=["POST"])
 def create_item():
+    """
+    Create a new inventory item
+    ---
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - ingredient
+              - available_quantity
+              - unit
+            properties:
+              ingredient:
+                type: string
+              available_quantity:
+                type: number
+              unit:
+                type: string
+              change_in_quantity:
+                type: number
+    responses:
+      201:
+        description: Item created
+      400:
+        description: Missing fields
+      500:
+        description: Server error
+    """
     data = request.get_json()
     required = ['ingredient', 'available_quantity', 'unit']
     if not all(key in data for key in required):
@@ -94,6 +164,36 @@ def create_item():
 
 @app.route("/inventory/<int:inventory_id>", methods=["PUT"])
 def update_item(inventory_id):
+    """
+    Update an inventory item
+    ---
+    parameters:
+      - in: path
+        name: inventory_id
+        required: true
+        schema:
+          type: integer
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              ingredient:
+                type: string
+              available_quantity:
+                type: number
+              unit:
+                type: string
+    responses:
+      200:
+        description: Item updated
+      404:
+        description: Item not found
+      500:
+        description: Server error
+    """
     item = db.session.scalar(db.select(Inventory).filter_by(inventory_id=inventory_id))
     if not item:
         return jsonify({"code": 404, "message": "Item not found."}), 404
@@ -118,6 +218,23 @@ def update_item(inventory_id):
 
 @app.route("/inventory/<int:inventory_id>", methods=["DELETE"])
 def delete_item(inventory_id):
+    """
+    Delete an inventory item
+    ---
+    parameters:
+      - in: path
+        name: inventory_id
+        required: true
+        schema:
+          type: integer
+    responses:
+      200:
+        description: Item deleted
+      404:
+        description: Item not found
+      500:
+        description: Failed to delete item
+    """
     item = db.session.scalar(db.select(Inventory).filter_by(inventory_id=inventory_id))
     if not item:
         return jsonify({"code": 404, "message": "Item not found."}), 404
