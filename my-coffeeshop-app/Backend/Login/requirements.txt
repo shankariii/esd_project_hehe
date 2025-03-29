@@ -1,0 +1,7 @@
+Werkzeug==2.2.3
+firebase-admin
+flask-bcrypt
+flask-cors
+flask-sqlalchemy
+mysql-connector-python
+

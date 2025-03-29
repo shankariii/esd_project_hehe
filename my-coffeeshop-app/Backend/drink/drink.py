@@ -14,7 +14,7 @@ api = Api(app)
 
 # MySQL Configuration (Using Docker Environment Variables)
 # app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:@localhost/drink'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:@host.docker.internal:3306/drink'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://is213:@host.docker.internal:3306/drink'
 # app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 # app.config['SQLALCHEMY_DATABASE_URI'] = environ.get('dbURL')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
