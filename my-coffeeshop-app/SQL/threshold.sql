@@ -6,7 +6,6 @@ CREATE TABLE IF NOT EXISTS threshold (
   threshold_id int NOT NULL AUTO_INCREMENT,
   supplier_id int NOT NULL,
   ingredient varchar(255) NOT NULL,
-  -- ingredient_id int NOT NULL,
   threshold decimal(10,2) NOT NULL,
   safety_stock decimal(10,2) NOT NULL,
   created_at timestamp NULL DEFAULT CURRENT_TIMESTAMP,

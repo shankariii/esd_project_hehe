@@ -19,7 +19,7 @@ class Threshold(db.Model):
 
     threshold_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     supplier_id = db.Column(db.Integer, nullable=False)
-    ingredient = db.Column(db.String(255), primary_key=True, nullable=False)
+    ingredient = db.Column(db.String(255), nullable=False)
     threshold = db.Column(db.DECIMAL(10, 2), nullable=False)
     safety_stock = db.Column(db.DECIMAL(10, 2), nullable=False)
     created_at = db.Column(db.TIMESTAMP, default=datetime.utcnow)
@@ -144,7 +144,7 @@ def find_safety_stock_by_threshold_id(threshold_id):
         "message": "Threshold not found."
     }), 404
 
-# GET thresholds by supplier ID
+# GET thresholds of all ingredients from a supplier, by supplier ID
 @app.route("/threshold/supplier/<int:supplier_id>", methods=['GET'])
 def find_thresholds_by_supplier(supplier_id):
     thresholds = db.session.scalars(
@@ -165,7 +165,7 @@ def find_thresholds_by_supplier(supplier_id):
     }), 404
 
 # GET threshold by ingredient
-@app.route("/threshold/ingredient/<String:ingredient>", methods=['GET'])
+@app.route("/threshold/ingredient/<string:ingredient>", methods=['GET'])
 def find_thresholds_by_ingredient(ingredient):
     thresholds = db.session.scalars(
         db.select(Threshold).filter_by(ingredient=ingredient)
@@ -185,7 +185,7 @@ def find_thresholds_by_ingredient(ingredient):
     }), 404
 
 # GET a specific threshold by supplier and ingredient
-@app.route("/threshold/supplier/<int:supplier_id>/<String:ingredient>", methods=['GET'])
+@app.route("/threshold/supplier/<int:supplier_id>/<string:ingredient>", methods=['GET'])
 def find_threshold_by_supplier_and_ingredient(supplier_id, ingredient):
     threshold = db.session.scalar(
         db.select(Threshold).filter_by(supplier_id=supplier_id, ingredient=ingredient)
@@ -290,7 +290,7 @@ def update_threshold(threshold_id):
     })
 
 # Update threshold by supplier and ingredients
-@app.route("/threshold/supplier/<int:supplier_id>/<String:ingredient>", methods=['PUT'])
+@app.route("/threshold/supplier/<int:supplier_id>/<string:ingredient>", methods=['PUT'])
 def update_threshold_by_supplier_and_ingredient(supplier_id, ingredient):
     threshold = db.session.scalar(
         db.select(Threshold).filter_by(supplier_id=supplier_id, ingredient=ingredient)
@@ -351,7 +351,7 @@ def delete_threshold(threshold_id):
     })
 
 # DELETE threshold by supplier and ingredient
-@app.route("/threshold/supplier/<int:supplier_id>/<String:ingredient>", methods=['DELETE'])
+@app.route("/threshold/supplier/<int:supplier_id>/<string:ingredient>", methods=['DELETE'])
 def delete_threshold_by_supplier_and_ingredient(supplier_id, ingredient):
     threshold = db.session.scalar(
         db.select(Threshold).filter_by(supplier_id=supplier_id, ingredient=ingredient)
