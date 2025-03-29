@@ -8,8 +8,7 @@ CREATE TABLE IF NOT EXISTS supplier_ingredient (
     price_per_unit decimal(10,2) NOT NULL,
     lead_time int NOT NULL,
     last_updated timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    PRIMARY KEY (ingredient, supplier_id),
-    KEY supplier_id (supplier_id)
+    PRIMARY KEY (ingredient)
 );
 
 -- Insert sample data into the supplier_ingredient table
