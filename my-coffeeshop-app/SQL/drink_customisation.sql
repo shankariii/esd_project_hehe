@@ -22,11 +22,11 @@ values
 	(6, "M", "Almond", 0.75),
 	(7, "M", "Oat", 0.75),
 	(8, "M", "Soy", 0.75),
-	(9, "A", "Vanialla Syrup", 0.50),
+	(9, "A", "Vanilla Syrup", 0.50),
 	(10, "A", "Caramel Syrup", 0.50),
 	(11, "A", "Hazelnut Syrup", 0.50),
-	(12, "A", "Whipped Syrup", 0.50),
-	(13, "A", "Choclate Sprinkles", 0.25);
+	(12, "A", "Whipped Cream", 0.50),
+	(13, "A", "Chocolate Sprinkles", 0.25);
 
 
 select * from customisation;

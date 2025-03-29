@@ -3,7 +3,7 @@ from flask_cors import CORS
 import stripe
 
 app = Flask(__name__)
-CORS(app, origins=["http://localhost:5173"])
+CORS(app)
 
 # Set your secret key. Remember to switch to your live secret key in production!
 stripe.api_key = 'rk_test_51QwwPAQRYfaBjPIX2SKCUHNnwPZ2J7ZqRWyEwARvKdQS8IC8kTBFqFBhNUptjTou5qEODE1lr2DwS5kyog06ZyMO004fgzMxEL'  # Replace with your Stripe secret key

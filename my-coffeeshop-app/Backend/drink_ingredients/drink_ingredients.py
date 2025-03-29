@@ -27,7 +27,7 @@ class DrinkIngredient(db.Model):
 
     drink_ingredient_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     drink_id = db.Column(db.Integer, db.ForeignKey('drink_menu.drink_id'), nullable=False)
-    ingredient_id = db.Column(db.Integer, nullable=False)
+    ingredient = db.Column(db.String(255), nullable=False)
     quantity = db.Column(db.Integer, nullable=False)
     unit = db.Column(db.String(15), nullable=False)
 
@@ -35,7 +35,7 @@ class DrinkIngredient(db.Model):
         return {
             "drink_ingredient_id": self.drink_ingredient_id,
             "drink_id": self.drink_id,
-            "ingredient_id": self.ingredient_id,
+            "ingredient": self.ingredient,
             "quantity": self.quantity,
             "unit": self.unit
         }
@@ -53,11 +53,11 @@ class DrinkIngredientResource(Resource):
         if drink_id:
             ingredients = DrinkIngredient.query.filter_by(drink_id=drink_id).all()
             if ingredients:
-                return jsonify([ingredient.json() for ingredient in ingredients])
+                return jsonify([ing.json() for ing in ingredients])
             return jsonify({"message": "No ingredients found for this drink"}), 404
         
         ingredients = DrinkIngredient.query.all()
-        return jsonify([ingredient.json() for ingredient in ingredients])
+        return jsonify([ing.json() for ing in ingredients])
 
 
 # Register API Endpoints

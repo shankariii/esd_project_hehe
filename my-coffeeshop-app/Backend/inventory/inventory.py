@@ -60,6 +60,7 @@ def get_item_by_id(inventory_id):
         return jsonify({"code": 200, "data": item.json()})
     return jsonify({"code": 404, "message": "Inventory item not found."}), 404
 
+#for scenario 3: get by ingredient id 
 @app.route("/inventory/ingredient/<string:ingredient>", methods=["GET"])
 def get_item_by_ingredient(ingredient):
     item = db.session.scalar(db.select(Inventory).filter_by(ingredient=ingredient))

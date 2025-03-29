@@ -19,29 +19,29 @@ class Threshold(db.Model):
 
     threshold_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     supplier_id = db.Column(db.Integer, nullable=False)
-    ingredient_id = db.Column(db.Integer, nullable=False)
+    ingredient = db.Column(db.String(255), nullable=False)
     threshold = db.Column(db.DECIMAL(10, 2), nullable=False)
     safety_stock = db.Column(db.DECIMAL(10, 2), nullable=False)
     created_at = db.Column(db.TIMESTAMP, default=datetime.utcnow)
     updated_at = db.Column(db.TIMESTAMP, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # Create a unique constraint for supplier_id and ingredient_id
-    __table_args__ = (db.UniqueConstraint('supplier_id', 'ingredient_id', name='unique_supplier_ingredient'),)
+    __table_args__ = (db.UniqueConstraint('supplier_id', 'ingredient', name='unique_supplier_ingredient'),)
 
-    def __init__(self, supplier_id, ingredient_id, threshold, safety_stock):
+    def __init__(self, supplier_id, ingredient, threshold, safety_stock):
         self.supplier_id = supplier_id
-        self.ingredient_id = ingredient_id
+        self.ingredient = ingredient
         self.threshold = threshold
         self.safety_stock = safety_stock
 
     def __repr__(self):
-        return f'<Threshold supplier_id={self.supplier_id} ingredient_id={self.ingredient_id}>'
+        return f'<Threshold supplier_id={self.supplier_id} ingredient={self.ingredient}>'
 
     def json(self):
         return {
             "threshold_id": self.threshold_id,
             "supplier_id": self.supplier_id,
-            "ingredient_id": self.ingredient_id,
+            "ingredient": self.ingredient,
             "threshold": float(self.threshold),
             "safety_stock": float(self.safety_stock),
             "created_at": self.created_at.isoformat() if self.created_at else None,
@@ -104,9 +104,9 @@ def find_supplier_id_by_threshold_id(threshold_id):
         "message": "Threshold not found."
     }), 404
 
-# GET ingredient id by threshold id
+# GET ingredient by threshold id
 @app.route("/threshold/<int:threshold_id>/ingredient", methods=['GET'])
-def find_ingredient_id_by_threshold_id(threshold_id):
+def find_ingredient_by_threshold_id(threshold_id):
     threshold = db.session.scalar(
         db.select(Threshold).filter_by(threshold_id=threshold_id)
     )
@@ -115,7 +115,7 @@ def find_ingredient_id_by_threshold_id(threshold_id):
         return jsonify({
             "code": 200,
             "data": {
-                "ingredient_id": threshold.ingredient_id
+                "ingredient": threshold.ingredient
             }
         })
 
@@ -144,7 +144,7 @@ def find_safety_stock_by_threshold_id(threshold_id):
         "message": "Threshold not found."
     }), 404
 
-# GET thresholds by supplier ID
+# GET thresholds of all ingredients from a supplier, by supplier ID
 @app.route("/threshold/supplier/<int:supplier_id>", methods=['GET'])
 def find_thresholds_by_supplier(supplier_id):
     thresholds = db.session.scalars(
@@ -164,11 +164,11 @@ def find_thresholds_by_supplier(supplier_id):
         "message": "No thresholds found for this supplier."
     }), 404
 
-# GET threshold by ingredient ID
-@app.route("/threshold/ingredient/<int:ingredient_id>", methods=['GET'])
-def find_thresholds_by_ingredient_id(ingredient_id):
+# GET threshold by ingredient
+@app.route("/threshold/ingredient/<string:ingredient>", methods=['GET'])
+def find_thresholds_by_ingredient(ingredient):
     thresholds = db.session.scalars(
-        db.select(Threshold).filter_by(ingredient_id=ingredient_id)
+        db.select(Threshold).filter_by(ingredient=ingredient)
     ).all()
 
     if thresholds:
@@ -184,11 +184,11 @@ def find_thresholds_by_ingredient_id(ingredient_id):
         "message": "No thresholds found for this ingredient."
     }), 404
 
-# GET a specific threshold by supplier and ingredient IDs
-@app.route("/threshold/supplier/<int:supplier_id>/ingredient/<int:ingredient_id>", methods=['GET'])
-def find_threshold_by_supplier_and_ingredient(supplier_id, ingredient_id):
+# GET a specific threshold by supplier and ingredient
+@app.route("/threshold/supplier/<int:supplier_id>/<string:ingredient>", methods=['GET'])
+def find_threshold_by_supplier_and_ingredient(supplier_id, ingredient):
     threshold = db.session.scalar(
-        db.select(Threshold).filter_by(supplier_id=supplier_id, ingredient_id=ingredient_id)
+        db.select(Threshold).filter_by(supplier_id=supplier_id, ingredient=ingredient)
     )
 
     if threshold:
@@ -209,7 +209,7 @@ def create_threshold():
     data = request.get_json()
 
     # Check for required fields
-    if not all(key in data for key in ['supplier_id', 'ingredient_id', 'threshold', 'safety_stock']):
+    if not all(key in data for key in ['supplier_id', 'ingredient', 'threshold', 'safety_stock']):
         return jsonify({
             "code": 400,
             "message": "Missing required fields."
@@ -219,7 +219,7 @@ def create_threshold():
     existing_threshold = db.session.scalar(
         db.select(Threshold).filter_by(
             supplier_id=data['supplier_id'],
-            ingredient_id=data['ingredient_id']
+            ingredient=data['ingredient']
         )
     )
 
@@ -232,7 +232,7 @@ def create_threshold():
     # Create new threshold
     threshold = Threshold(
         supplier_id=data['supplier_id'],
-        ingredient_id=data['ingredient_id'],
+        ingredient=data['ingredient'],
         threshold=data['threshold'],
         safety_stock=data['safety_stock']
     )
@@ -273,8 +273,8 @@ def update_threshold(threshold_id):
         threshold.safety_stock = data['safety_stock']
     if 'supplier_id' in data:
         threshold.supplier_id = data['supplier_id']
-    if 'ingredient_id' in data:
-        threshold.ingredient_id = data['ingredient_id']
+    if 'ingredient' in data:
+        threshold.ingredient = data['ingredient']
 
     try:
         db.session.commit()
@@ -289,11 +289,11 @@ def update_threshold(threshold_id):
         "data": threshold.json()
     })
 
-# Update threshold by supplier and ingredient IDs
-@app.route("/threshold/supplier/<int:supplier_id>/ingredient/<int:ingredient_id>", methods=['PUT'])
-def update_threshold_by_supplier_and_ingredient(supplier_id, ingredient_id):
+# Update threshold by supplier and ingredients
+@app.route("/threshold/supplier/<int:supplier_id>/<string:ingredient>", methods=['PUT'])
+def update_threshold_by_supplier_and_ingredient(supplier_id, ingredient):
     threshold = db.session.scalar(
-        db.select(Threshold).filter_by(supplier_id=supplier_id, ingredient_id=ingredient_id)
+        db.select(Threshold).filter_by(supplier_id=supplier_id, ingredient=ingredient)
     )
 
     if not threshold:
@@ -350,11 +350,11 @@ def delete_threshold(threshold_id):
         "message": "Threshold deleted successfully."
     })
 
-# DELETE threshold by supplier and ingredient IDs
-@app.route("/threshold/supplier/<int:supplier_id>/ingredient/<int:ingredient_id>", methods=['DELETE'])
-def delete_threshold_by_supplier_and_ingredient(supplier_id, ingredient_id):
+# DELETE threshold by supplier and ingredient
+@app.route("/threshold/supplier/<int:supplier_id>/<string:ingredient>", methods=['DELETE'])
+def delete_threshold_by_supplier_and_ingredient(supplier_id, ingredient):
     threshold = db.session.scalar(
-        db.select(Threshold).filter_by(supplier_id=supplier_id, ingredient_id=ingredient_id)
+        db.select(Threshold).filter_by(supplier_id=supplier_id, ingredient=ingredient)
     )
 
     if not threshold:
