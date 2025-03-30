@@ -252,4 +252,6 @@ services:
     ports:
       - "5300:5300"
     networks:
-      - esd-net      
+      - esd-net  
+
+    
