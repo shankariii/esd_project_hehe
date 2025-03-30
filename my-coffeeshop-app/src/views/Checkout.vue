@@ -79,7 +79,7 @@ export default {
             cartItems: [],
             loading: true,
             userId: 'test24', // Replace with dynamic user ID if needed
-            outletId: '24',   // Replace with dynamic outlet ID if needed
+            outletId: JSON.parse(localStorage.getItem('selectedOutletId')),   // Replace with dynamic outlet ID if needed
             apiConfig: {
                 cartService: {
                     baseURL: 'http://127.0.0.1:5200',

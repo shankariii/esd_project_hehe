@@ -13,7 +13,7 @@ def create_payment_intent():
     try:
         # Parse the request data
         data = request.get_json()
-        amount = data['amount']  # Dynamic amount from the frontend
+        amount = int(float(data['amount']))  # Dynamic amount from the frontend
         currency = data.get('currency', 'sgd')  # Default to 'sgd' if not provided
 
         # Create a PaymentIntent

@@ -194,7 +194,33 @@ def delete_by_cicId(cic_id):
                 "code": 404,
                 "message": "CIC Item not found."
             }
-        ), 404   
+        ), 404
+    
+@app.route("/cic/delete_by_cart_item/<int:cart_item_id_fk>", methods=["DELETE"])
+def delete_by_cartItemId(cart_item_id_fk):
+    # Query ALL matching records (not just the first one)
+    cic_records = db.session.execute(
+        db.select(Cart_Items_Customisation).filter_by(cart_item_id_fk=cart_item_id_fk)
+    ).scalars().all()
+
+    if cic_records:
+        # Delete all matching records
+        for record in cic_records:
+            db.session.delete(record)
+        db.session.commit()
+        return jsonify(
+            {
+                "code": 200,
+                "message": f"All {len(cic_records)} CIC items with cart_item_id_fk={cart_item_id_fk} deleted successfully."
+            }
+        )
+    else:
+        return jsonify(
+            {
+                "code": 404,
+                "message": "No CIC items found with the given cart_item_id_fk."
+            }
+        ), 404
 
 
 

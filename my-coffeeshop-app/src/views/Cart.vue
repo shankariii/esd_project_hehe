@@ -170,7 +170,7 @@ export default {
       tax: 0,
       loading: true,
       userId: 'test24', // Replace with dynamic user ID if needed
-      outletId: '24',   // Replace with dynamic outlet ID if needed
+      outletId: JSON.parse(localStorage.getItem('selectedOutletId')),   // Replace with dynamic outlet ID if needed
       cartId: 0,
       currentTotal: 0,
       apiConfig: {
@@ -317,9 +317,26 @@ export default {
       }
     },
 
-    removeItem(index) {
-      this.cartItems.splice(index, 1);
-      this.updateCart();
+    async removeItem(index) {
+      try {
+        const cartItemId = this.cartItems[index].cart_item_id;
+        console.log(cartItemId)
+        const response = await axios.delete(
+          `http://localhost:5200/delete_cart_item/${cartItemId}`
+        );
+
+        // Remove item from local state
+        this.cartItems.splice(index, 1);
+
+        // Refresh cart data if needed
+        if (response.data.data.cart_deleted) {
+          this.fetchCartDetails();
+        }
+
+      } catch (error) {
+        console.error("Delete failed:", error);
+        // Handle error
+      }
     },
 
     async updateCart(index) {
