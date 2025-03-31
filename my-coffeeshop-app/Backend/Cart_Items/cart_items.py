@@ -65,7 +65,7 @@ def get_all_cart_items():
 
 
 #Get items from Cart_items based on the cart_item_id
-@app.route("/cart_items_cartItemId/<int:cart_items_id>")
+@app.route("/cart_items/cartItemId/<int:cart_items_id>")
 def find_cartItem_by_id(cart_items_id):
     cart_item = db.session.scalar(
     	db.select(Cart_Items).filter_by(cart_items_id = cart_items_id)
@@ -89,7 +89,7 @@ def find_cartItem_by_id(cart_items_id):
 
 
 #Get items from Cart_items based on the cart_id
-@app.route("/cart_items_cartId/<int:cart_id_fk>")
+@app.route("/cart_items/cartId/<int:cart_id_fk>")
 def cartItem_by_cartId(cart_id_fk):
     # Fetch all cart items with the given cart_id_fk
     cart_items = db.session.scalars(
@@ -179,7 +179,7 @@ def update_quantity(cart_items_id):
         ), 500
 
 
-@app.route("/cart_item/<int:cart_items_id>", methods=["DELETE"])
+@app.route("/cart_items/<int:cart_items_id>", methods=["DELETE"])
 def delete_by_cartItemId(cart_items_id):
     # Find the cart by cartId
     cart_item = db.session.scalar(

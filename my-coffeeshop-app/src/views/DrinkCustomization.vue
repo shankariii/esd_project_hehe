@@ -576,7 +576,7 @@ export default {
         const payload = {
           "cart": {
             "user_id": "test24", // Replace with dynamic value if needed
-            "outlet_id": 24, // Replace with dynamic value if needed
+            "outlet_id": JSON.parse(localStorage.getItem('selectedOutletId')), // Replace with dynamic value if needed
             "totalPrice": parseFloat(this.totalPrice)
           },
           "cart_items": [

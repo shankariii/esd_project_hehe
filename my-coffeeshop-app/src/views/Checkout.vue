@@ -7,7 +7,10 @@
                 <div class="payment-details">
                     <h2>Your Payment Details</h2>
 
-                    <div>
+                    <div style="padding-bottom: 30px;">
+                        <div id="link-authentication-element">
+                            <!-- Elements will create authentication element here -->
+                        </div>
                         <div id="payment-element"></div>
                     </div>
 
@@ -33,7 +36,8 @@
                                     <li v-for="customization in item.customizations" :key="customization.id"
                                         style="font-size: 0.8rem; color: var(--text-light); margin-bottom: 0.25rem;">
                                         {{ customization.name }}
-                                        <span v-if="customization.price_diff > 0"> (+${{ customization.price_diff.toFixed(2) }})</span>
+                                        <span v-if="customization.price_diff > 0"> (+${{
+                                            customization.price_diff.toFixed(2) }})</span>
                                     </li>
                                 </ul>
                             </div>
@@ -63,14 +67,22 @@
                 </div>
             </div>
         </div>
+
+        <!-- Order Confirmation Modal -->
+        <OrderConfirmation :show="showConfirmation" :payment-id="paymentId" :items="cartItems" :subtotal="subtotal"
+            :tax="tax" :total="total" @close="closeConfirmation" />
     </div>
 </template>
 
 <script>
 import { loadStripe } from '@stripe/stripe-js';
 import axios from 'axios';
+import OrderConfirmation from '../components/orderConfirmation.vue';
 
 export default {
+    components: {
+        OrderConfirmation
+    },
     data() {
         return {
             stripe: null,
@@ -78,8 +90,12 @@ export default {
             clientSecret: null,
             cartItems: [],
             loading: true,
+            isProcessing: false,
+            paymentError: null,
+            paymentId: '',
+            showConfirmation: false,
             userId: 'test24', // Replace with dynamic user ID if needed
-            outletId: '24',   // Replace with dynamic outlet ID if needed
+            outletId: JSON.parse(localStorage.getItem('selectedOutletId')),   // Replace with dynamic outlet ID if needed
             apiConfig: {
                 cartService: {
                     baseURL: 'http://127.0.0.1:5200',
@@ -92,7 +108,11 @@ export default {
                 customService: {
                     baseURL: 'http://127.0.0.1:5007',
                     timeout: 5000
-                }
+                },
+                // paymentService: {
+                //     baseURL: 'http://127.0.0.1:5100',
+                //     timeout: 8000
+                // }
             }
         };
     },
@@ -112,6 +132,7 @@ export default {
     async mounted() {
         await this.fetchCartDetails();
         await this.initializePayment();
+        this.setupWebhookListener();
     },
 
     methods: {
@@ -224,9 +245,9 @@ export default {
                     headers: {
                         "Content-Type": "application/json",
                     },
-                    body: JSON.stringify({ 
+                    body: JSON.stringify({
                         amount: (this.total * 100), // Convert to cents
-                        currency: "sgd" 
+                        currency: "sgd"
                     }),
                 });
 
@@ -244,7 +265,7 @@ export default {
                 this.stripe = await loadStripe("pk_test_51QwwPAQRYfaBjPIXkJeTKXtIlovCeAoNntY9jRWsAyO3jpq9Kn8f0Y1ne9EJkbX4ic0YE8V9qEIn59UJ6BDiufml004WRnDQed");
 
                 const appearance = {
-                    theme: "stripe",
+                    theme: "flat",
                 };
 
                 this.elements = this.stripe.elements({ clientSecret: this.clientSecret, appearance });
@@ -252,6 +273,8 @@ export default {
                 // 3️⃣ Create the PaymentElement and mount it
                 const paymentElement = this.elements.create("payment");
                 paymentElement.mount("#payment-element");
+                const linkAuthenticationElement = elements.create("linkAuthentication");
+                linkAuthenticationElement.mount("#link-authentication-element");
 
             } catch (error) {
                 console.error("Error initializing Stripe:", error);
@@ -261,21 +284,128 @@ export default {
         async handlePayment() {
             if (!this.stripe || !this.elements) {
                 console.error("Stripe not initialized");
+                this.paymentError = "Payment system not ready. Please refresh and try again.";
                 return;
             }
 
-            const { error } = await this.stripe.confirmPayment({
-                elements: this.elements,
-                confirmParams: {
-                    return_url: "http://localhost:5174/",
-                },
-            });
+            this.isProcessing = true;
+            this.paymentError = null;
 
-            if (error) {
-                console.error("Payment error:", error);
-            } else {
-                console.log("Payment successful!");
+            try {
+                // Confirm the payment
+                const result = await this.stripe.confirmPayment({
+                    elements: this.elements,
+                    redirect: 'if_required',
+                });
+
+                if (result.error) {
+                    // Show error to your customer
+                    console.error("Payment error:", result.error);
+                    this.paymentError = result.error.message;
+                    this.isProcessing = false;
+                } else {
+                    // The payment has been processed!
+                    console.log("Payment successful:", result.paymentIntent);
+
+                    // Save payment ID
+                    this.paymentId = result.paymentIntent.id;
+                    console.log("Payment ID:", this.paymentId);
+
+                    // Process order (you might want to make an API call to your backend here)
+                    await this.processOrder(result.paymentIntent);
+
+                    // Clear cart (make an API call to clear cart)
+                    await this.clearCart();
+
+                    // Show confirmation
+                    this.showConfirmation = true;
+                }
+            } catch (error) {
+                console.error("Error handling payment:", error);
+                this.paymentError = "An unexpected error occurred. Please try again.";
+            } finally {
+                this.isProcessing = false;
             }
+        },
+        // Set up a function to listen for webhook events
+        setupWebhookListener() {
+            // This is a simplified example to demonstrate the concept
+            // In a real app, you'd have a server-side solution to handle webhooks
+            // This client-side polling is not recommended for production
+            const checkPaymentStatus = async (paymentIntentId) => {
+                try {
+                    const response = await axios.get(`${this.apiConfig.paymentService.baseURL}/payment-status/${paymentIntentId}`);
+                    console.log("Payment status:", response.data);
+
+                    if (response.data.status === 'succeeded') {
+                        console.log("Payment confirmed by webhook!");
+                        // Additional handling if needed
+                    }
+                } catch (error) {
+                    console.error("Error checking payment status:", error);
+                }
+            };
+
+            // This would normally be handled via server-side events
+            this.$on('payment-completed', (paymentIntentId) => {
+                checkPaymentStatus(paymentIntentId);
+            });
+        },
+
+        async processOrder(paymentIntent) {
+            // Here you would typically:
+            // 1. Send order details to your backend
+            // 2. Create an order record in your database
+            // 3. Link it with the payment ID
+            
+            console.log("Processing order with payment:", paymentIntent.id);
+            
+            try {
+                // Example of what this might look like:
+                const orderData = {
+                    userId: this.userId,
+                    outletId: this.outletId,
+                    items: this.cartItems,
+                    total: this.total,
+                    tax: this.tax,
+                    paymentId: paymentIntent.id,
+                    paymentStatus: paymentIntent.status,
+                    orderDate: new Date().toISOString()
+                };
+                
+                // Simulate an API call to create order
+                console.log("Order data to be saved:", orderData);
+                
+                // In a real implementation, you would make an API call:
+                // const response = await axios.post('http://127.0.0.1:5200/create-order', orderData);
+                // console.log("Order created:", response.data);
+                
+                // For demo purposes, we're just logging the data
+            } catch (error) {
+                console.error("Error processing order:", error);
+                // Even if there's an error here, we don't want to reject the payment
+                // Instead, log it and maybe retry later or alert an admin
+            }
+        },
+        async clearCart() {
+            try {
+                // This would be an API call to clear the cart
+                console.log("Clearing cart for user:", this.userId);
+                
+                // Example of what this might look like:
+                // const response = await axios.delete(`${this.apiConfig.cartService.baseURL}/clear-cart/${this.userId}`);
+                // console.log("Cart cleared:", response.data);
+                
+                // For demo purposes, just log it
+            } catch (error) {
+                console.error("Error clearing cart:", error);
+            }
+        },
+        
+        closeConfirmation() {
+            this.showConfirmation = false;
+            // Navigate back to home or wherever you want
+            this.$router.push('/');
         }
     }
 };

@@ -9,7 +9,7 @@ networks:
 services:
 
   ###################################
-  # Drink: The Drink microservice
+  # Drink: The Drink microservice (to be deleted)
   ###################################
   drink:
     build:
@@ -25,6 +25,56 @@ services:
     networks:
       - esd-net      
 
+  ###################################
+  # Drink: The Drink Menu microservice
+  ###################################
+  drink_menu:
+    build:
+      context: ./drink_menu
+      dockerfile: drink_menu.Dockerfile
+    image: jiaxuanlai/drink_menu:esd
+    restart: always
+    environment:
+      dbURL: mysql+pymysql://root:@host.docker.internal:3306/drink_menu
+      PYTHONUNBUFFERED: 1
+    ports:
+      - "5005:5005"
+    networks:
+      - esd-net     
+
+  ###################################
+  # Drink: The Drink Ingredient microservice
+  ###################################
+  drink_ingredients:
+    build:
+      context: ./drink_ingredients
+      dockerfile: drink_ingredients.Dockerfile
+    image: jiaxuanlai/drink_ingredients:esd
+    restart: always
+    environment:
+      dbURL: mysql+pymysql://root:@host.docker.internal:3306/drink_ingredients
+      PYTHONUNBUFFERED: 1
+    ports:
+      - "5006:5006"
+    networks:
+      - esd-net   
+
+  ###################################
+  # Drink: The Drink Customisation microservice
+  ###################################
+  drink_customisation:
+    build:
+      context: ./drink_customisation
+      dockerfile: drink_customisation.Dockerfile
+    image: jiaxuanlai/drink_customisation:esd
+    restart: always
+    environment:
+      dbURL: mysql+pymysql://root:@host.docker.internal:3306/customisation
+      PYTHONUNBUFFERED: 1
+    ports:
+      - "5007:5007"
+    networks:
+      - esd-net   
 
   ###################################
   # Inventory: The Inventory microservice
@@ -61,7 +111,7 @@ services:
       - esd-net
 
 ###################################
-  # Login: The Outlet microservice
+  # Login: The Login microservice
   ###################################
   login:
     build:
@@ -163,14 +213,14 @@ services:
     networks:
       - esd-net
 
-  ###################################
+###################################
   # Add to Cart: The Add to Cart composite microservice
   ###################################
-  addToCart:
+  CartCompositeServie:
     build:
-      context: ./AddToCart
-      dockerfile: addToCart.Dockerfile
-    image: shashass/addtocart:esd
+      context: ./CartCompositeServie
+      dockerfile: CartCompositeServie.Dockerfile
+    image: shashass/cartcompositeservie:esd
     restart: always
     depends_on:
       - cart
@@ -182,10 +232,10 @@ services:
     ports:
       - "5200:5200"
     networks:
-      - esd-net    
+      - esd-net     
 
   ###################################
-  # Add to Cart: The Add to Cart composite microservice
+  # Add to Cart: The Add to Cart composite microservice (to be deleted)
   ###################################
   viewCart:
     build:
@@ -202,4 +252,6 @@ services:
     ports:
       - "5300:5300"
     networks:
-      - esd-net      
+      - esd-net  
+
+    

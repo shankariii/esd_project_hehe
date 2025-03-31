@@ -146,7 +146,7 @@ def get_cart_details(user_id, outlet_id):
         cart_id = cart["cart_id"]
         
         # Step 2: Fetch cart items
-        cart_items_url = f"http://host.docker.internal:5016/cart_items_cartId/{cart_id}"
+        cart_items_url = f"http://host.docker.internal:5016/cart_items/cartId/{cart_id}"
         cart_items_response = requests.get(cart_items_url)
         
         if cart_items_response.status_code != 200 or not cart_items_response.text.strip():
@@ -190,6 +190,83 @@ def get_cart_details(user_id, outlet_id):
     
     except Exception as e:
         return jsonify({"code": 500, "message": str(e)}), 500
+
+@app.route('/delete_cart_item/<int:cart_item_id>', methods=['DELETE'])
+def delete_cart_item(cart_item_id):
+    try:
+        # Step 1: Get the cart item details
+        cart_item_url = f"{cart_items_service_url}/cartItemId/{cart_item_id}"
+        print(cart_item_url)
+        cart_item_response = invoke_http(cart_item_url, method="GET")
+        
+        if cart_item_response["code"] != 200:
+            return jsonify({
+                "code": 404,
+                "message": "Cart item not found"
+            }), 404
+        
+        cart_id = cart_item_response["data"]["cart_id_fk"]
+        
+        # Step 2: Delete all customizations for this item first
+        cic_delete_url = f"{cic_service_url}/delete_by_cart_item/{cart_item_id}"
+        print ("Cic Delete" + cic_delete_url)
+        cic_delete_response = invoke_http(cic_delete_url, method="DELETE")
+        
+        if cic_delete_response["code"] not in range(200, 300):
+            return jsonify({
+                "code": cic_delete_response["code"],
+                "message": f"Failed to delete customizations: {cic_delete_response['message']}"
+            }), cic_delete_response["code"]
+        
+        # Step 3: Delete the cart item itself
+        deleteCartItem_service = f"{cart_items_service_url}/{cart_item_id}"
+        item_delete_response = invoke_http(deleteCartItem_service, method="DELETE")
+        
+        if item_delete_response["code"] not in range(200, 300):
+            return jsonify({
+                "code": item_delete_response["code"],
+                "message": f"Failed to delete cart item: {item_delete_response['message']}"
+            }), item_delete_response["code"]
+        
+        # Step 4: Check if this was the last item in the cart
+        remaining_items_url = f"{cart_items_service_url}/cartId/{cart_id}"
+        remaining_items_response = invoke_http(remaining_items_url, method="GET")
+        
+        if remaining_items_response["code"] == 200 and not remaining_items_response["data"]:
+            # No items left - delete the entire cart
+            cart_delete_url = f"{cart_service_url}/{cart_id}"
+            cart_delete_response = invoke_http(cart_delete_url, method="DELETE")
+            
+            if cart_delete_response["code"] not in range(200, 300):
+                return jsonify({
+                    "code": cart_delete_response["code"],
+                    "message": f"Failed to delete empty cart: {cart_delete_response['message']}"
+                }), cart_delete_response["code"]
+            
+            return jsonify({
+                "code": 200,
+                "message": "Successfully deleted cart item and empty cart",
+                "data": {
+                    "cart_deleted": True,
+                    "cart_id": cart_id
+                }
+            }), 200
+        
+        return jsonify({
+            "code": 200,
+            "message": "Successfully deleted cart item",
+            "data": {
+                "cart_deleted": False,
+                "cart_id": cart_id
+            }
+        }), 200
+    
+    except Exception as e:
+        return jsonify({
+            "code": 500,
+            "message": f"Internal server error: {str(e)}"
+        }), 500
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5200, debug=True)
