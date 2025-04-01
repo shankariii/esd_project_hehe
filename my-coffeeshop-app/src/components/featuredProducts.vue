@@ -66,6 +66,9 @@ onMounted(fetchDrinks);
   overflow: hidden;
   box-shadow: 0 3px 10px rgba(0,0,0,0.1);
   transition: transform 0.3s, box-shadow 0.3s;
+  display: flex; /* Ensure proper alignment */
+  flex-direction: column; /* Stack elements vertically */
+  height: 100%; /* Ensure the card takes full height */
 }
 
 .product-card:hover {
@@ -81,6 +84,10 @@ onMounted(fetchDrinks);
 
 .product-content {
   padding: 1.5rem;
+  display: flex; /* Use flexbox for alignment */
+  flex-direction: column; /* Stack items vertically */
+  justify-content: space-between; /* Space out items evenly */
+  height: 100%; /* Ensure the container takes full height */
 }
 
 .product-title {
@@ -93,11 +100,15 @@ onMounted(fetchDrinks);
   color: var(--text-light);
   margin-bottom: 1rem;
   font-size: 0.9rem;
+  margin-bottom: 1rem; /* Add spacing between description and price */
+  font-size: 0.9rem;
+  flex-grow: 1; /* Allow description to take up available space */
 }
 
 .product-price {
   font-weight: bold;
   color: var(--primary);
   font-size: 1.2rem;
+  margin-top: auto; /* Push price to the bottom */
 }
 </style>
