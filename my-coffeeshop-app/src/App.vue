@@ -7,8 +7,16 @@
         <li><router-link to="/">Home</router-link></li>
         <li><router-link to="/#about">About</router-link></li>
         <li><router-link to="/menu">Menu</router-link></li>
-        <li><router-link to="/profile">Profile</router-link></li>
-        <li><router-link to="/cart"><i class="fas fa-cart-shopping"></i></router-link></li>
+        <!-- Conditional rendering for profile/login -->
+        <li v-if="isLoggedIn"><router-link to="/profile">Profile</router-link></li>
+        <li v-else><router-link to="/login">Login</router-link></li>
+        <!-- Cart with item count -->
+        <li>
+          <router-link to="/cart" class="cart-link">
+            <i class="fas fa-cart-shopping"></i>
+            <span v-if="cartItemCount > 0" class="cart-count">{{ cartItemCount }}</span>
+          </router-link>
+        </li>
       </ul>
     </nav>
 
@@ -75,7 +83,9 @@ export default {
   name: 'App',
   data() {
     return {
-      mobileMenuOpen: false
+      mobileMenuOpen: false,
+      isLoggedIn: false, // Set this to false by default - you'll update this with your auth logic later
+      cartItemCount: 3 // Hard-coded cart count - you'll replace this with your actual cart logic later
     }
   },
   methods: {
@@ -86,3 +96,26 @@ export default {
 }
 </script>
 
+<style>
+/* Add these styles to your existing CSS */
+.cart-link {
+  position: relative;
+  display: inline-block;
+}
+
+.cart-count {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background-color: #e74c3c;
+  color: white;
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
+</style>

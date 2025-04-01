@@ -191,6 +191,54 @@ def get_cart_details(user_id, outlet_id):
     except Exception as e:
         return jsonify({"code": 500, "message": str(e)}), 500
 
+@app.route('/get_cart_item_count/<user_id>/<int:outlet_id>', methods=['GET'])
+def get_cart_item_count(user_id, outlet_id):
+    try:
+        # Step 1: Check if cart exists for this user and outlet
+        check_cart_url = f"{cart_service_url}/{user_id}/{outlet_id}"
+        cart_response = invoke_http(check_cart_url, method="GET")
+        
+        if cart_response["code"] != 200 or not cart_response["data"]["carts"]:
+            return jsonify({
+                "code": 200,
+                "data": {
+                    "item_count": 0,
+                    "message": "No cart exists for this user and outlet"
+                }
+            }), 200
+        
+        cart_id = cart_response["data"]["carts"][0]["cart_id"]
+        
+        # Step 2: Get all cart items for this cart
+        cart_items_url = f"{cart_items_service_url}/cartId/{cart_id}"
+        cart_items_response = invoke_http(cart_items_url, method="GET")
+        
+        if cart_items_response["code"] != 200:
+            return jsonify({
+                "code": 500,
+                "message": "Failed to fetch cart items"
+            }), 500
+        
+        # Calculate total quantity of all items
+        total_items = 0
+        if cart_items_response["data"]:
+            total_items = sum(item["quantity"] for item in cart_items_response["data"])
+        
+        return jsonify({
+            "code": 200,
+            "data": {
+                "cart_id": cart_id,
+                "item_count": total_items
+            }
+        }), 200
+    
+    except Exception as e:
+        return jsonify({
+            "code": 500,
+            "message": f"Internal server error: {str(e)}"
+        }), 500
+
+
 #this is to delete cart_items in cart page
 @app.route('/delete_cart_item/<int:cart_item_id>', methods=['DELETE'])
 def delete_cart_item(cart_item_id):

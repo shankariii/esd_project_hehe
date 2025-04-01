@@ -20,10 +20,10 @@
           <h3 style="margin-bottom: 1rem; color: var(--dark);">Your cart is empty</h3>
           <p style="color: var(--text-light); margin-bottom: 2rem;">Looks like you haven't added any products to your
             cart yet.</p>
-          <a href="products.html"
-            style="background-color: var(--primary); color: white; padding: 0.8rem 1.5rem; border-radius: 5px; text-decoration: none; display: inline-block;">
+          <button @click="proceedToMenu"
+            style="background-color: var(--primary); color: white; padding: 0.8rem 1.5rem; border-radius: 5px; text-decoration: none; display: inline-block; ">
             Continue Shopping
-          </a>
+          </button>
         </div>
 
         <!-- Loading state -->
@@ -239,7 +239,7 @@ export default {
 
       } catch (error) {
         console.error('Error in fetchCartDetails:', this.formatAxiosError(error));
-        alert('Failed to load cart. Please try again later.');
+        // alert('Failed to load cart. Please try again later.');
       } finally {
         this.loading = false;
       }
@@ -374,6 +374,12 @@ export default {
 
       console.log("Proceeding to payment!");
       this.$router.push('/checkout');
+    },
+
+    proceedToMenu() {
+
+      console.log("Proceeding to Menu!");
+      this.$router.push('/menu');
     }
   },
   created() {

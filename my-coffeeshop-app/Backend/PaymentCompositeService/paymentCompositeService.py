@@ -125,23 +125,34 @@ def process_payment_flow(payment_data):
             items_result.append(item_result)
             print(f'Item {item.get("drink_id")} result:', item_result)
             
-            # 2c. Process customizations for each item
-            print('\n-----Invoking order customizations microservice-----')
-            customizations_result = []
-            for customization in item.get('customisations', []):
-                customization_data = {
-                    "cart_item_id_fk": item.get('cart_items_id'),
-                    "cic_id": customization.get('cic_id'),
-                    "customisationId_fk": customization.get('customisationId_fk')
-                }
-                
+        # 2c. Process customizations for each item
+        print('\n-----Invoking order customizations microservice-----')
+        customizations_result = []
+        for customization in item.get('customisations', []):
+            customization_data = {
+                "cart_item_id_fk": item.get('cart_items_id'),
+                "cic_id": customization.get('cic_id'),
+                "customisationId_fk": customization.get('customisationId_fk')
+            }
+            
+            try:
                 customization_result = invoke_http(
                     order_customizations_URL,
                     method='POST',
                     json=customization_data
                 )
+                
+                # Ensure we have a proper dictionary response
+                if not isinstance(customization_result, dict):
+                    customization_result = {"response": str(customization_result)}
+                    
                 customizations_result.append(customization_result)
                 print(f'Customization {customization.get("customisationId_fk")} result:', customization_result)
+            
+            except Exception as e:
+                error_msg = f"Failed to process customization {customization.get('customisationId_fk')}: {str(e)}"
+                print(error_msg)
+                customizations_result.append({"error": error_msg})
         
         # 3. Delete cart since payment and order creation were successful
         print('\n-----Invoking cart microservice to delete cart-----')

@@ -37,7 +37,7 @@
               <p><i class="detail-icon"></i> {{ selectedOutlet.address }}</p>
               <p v-if="selectedOutlet.distance"><i class="detail-icon"></i> {{ formatDistance(selectedOutlet.distance) }}</p>
             </div>
-            <a class="directions-btn" @click="chooseOutlet(selectedOutlet.id)">
+            <a class="directions-btn" @click="chooseOutlet(selectedOutlet)">
               Select
             </a>
           </div>
@@ -130,10 +130,11 @@ export default {
         }
       },
     chooseOutlet(outletId) {
-      alert("Outlet has been selected");
-      localStorage.setItem("selectedOutletId", outletId);
-      this.router.push(`/drinksy`);
+      alert( outletId.name + " has been selected");
+      localStorage.setItem("selectedOutletId", outletId.id);
+      this.$router.push('/');
     },
+    
     loadGoogleMapsScript() {
       const script = document.createElement('script');
       script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyDyzGN00mpIu7qElBpIFwiPjWyQlkIfHHM&callback=initMap`;
