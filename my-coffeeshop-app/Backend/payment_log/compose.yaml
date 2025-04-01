@@ -1,0 +1,9 @@
+services:
+ payment_log:
+   image: jiaxuanlai/payment_log:1.0
+    # image: <dockerid>/book:1.0
+   container_name: payment_log
+   ports:
+     - "5123:5123"
+   environment:
+     - dbURL=mysql+mysqlconnector://is213@host.docker.internal:3306/payment_log

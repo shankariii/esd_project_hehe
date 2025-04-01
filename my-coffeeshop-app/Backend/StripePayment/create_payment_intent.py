@@ -15,7 +15,11 @@ def create_payment_intent():
     try:
         # Parse the request data
         data = request.get_json()
+        print(data)
         amount = int(float(data['amount']))  # Dynamic amount from the frontend
+        userid = data['user_id']
+        outelt_id = data['outlet_id']
+        orderid = data['order_id']
         currency = data.get('currency', 'sgd')  # Default to 'sgd' if not provided
 
         # Create a PaymentIntent
@@ -24,15 +28,32 @@ def create_payment_intent():
             currency=currency,
             automatic_payment_methods={
                     'enabled': True,
-                }
+                },
+            metadata = {
+                "User_ID": userid,
+                "Outlet_ID": outelt_id,
+                "Order_ID": orderid
+            }
             # payment_method_types=['card','paynow'],
             # Add additional parameters if needed, such as metadata, description, etc.
         )
 
         # Return the client secret to the frontend
         return jsonify({
-            'client_secret': intent.client_secret
+            'client_secret': intent.client_secret,
+            # 'intent': intent,
+            # 'status': intent.status
         }), 200
+
+        # # In the payment intent service
+        # return jsonify({
+        #     "code": 200,
+        #     "data": {
+        #         "id": intent.id,  # include the payment intent ID
+        #         "client_secret": intent.client_secret
+        #     }
+        # })
+
 
     except Exception as e:
         # Handle errors

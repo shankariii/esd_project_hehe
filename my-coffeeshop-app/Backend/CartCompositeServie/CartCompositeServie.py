@@ -191,6 +191,7 @@ def get_cart_details(user_id, outlet_id):
     except Exception as e:
         return jsonify({"code": 500, "message": str(e)}), 500
 
+#this is to delete cart_items in cart page
 @app.route('/delete_cart_item/<int:cart_item_id>', methods=['DELETE'])
 def delete_cart_item(cart_item_id):
     try:
@@ -258,6 +259,73 @@ def delete_cart_item(cart_item_id):
             "data": {
                 "cart_deleted": False,
                 "cart_id": cart_id
+            }
+        }), 200
+    
+    except Exception as e:
+        return jsonify({
+            "code": 500,
+            "message": f"Internal server error: {str(e)}"
+        }), 500
+    
+
+#this is to remove the whole cart at the end
+@app.route('/delete_cart/<int:cart_id>', methods=['DELETE'])
+def delete_cart(cart_id):
+    try:
+        # Step 1: Verify the cart exists
+        cart_info_url = f"{cart_service_url}/{cart_id}"
+        cart_response = invoke_http(cart_info_url, method="GET")
+        
+        if cart_response["code"] != 200:
+            return jsonify({
+                "code": 404,
+                "message": "Cart not found"
+            }), 404
+        
+        # Step 2: Get all cart items for this cart
+        cart_items_url = f"{cart_items_service_url}/cartId/{cart_id}"
+        cart_items_response = invoke_http(cart_items_url, method="GET")
+        
+        if cart_items_response["code"] == 200 and cart_items_response["data"]:
+            # Step 3: Delete all customizations for each cart item
+            for item in cart_items_response["data"]:
+                cart_item_id = item["cart_items_id"]
+                cic_delete_url = f"{cic_service_url}/delete_by_cart_item/{cart_item_id}"
+                cic_delete_response = invoke_http(cic_delete_url, method="DELETE")
+                
+                if cic_delete_response["code"] not in range(200, 300):
+                    return jsonify({
+                        "code": cic_delete_response["code"],
+                        "message": f"Failed to delete customizations for item {cart_item_id}: {cic_delete_response['message']}"
+                    }), cic_delete_response["code"]
+            
+            # Step 4: Delete all cart items in bulk
+            delete_all_items_url = f"{cart_items_service_url}/byCartId/{cart_id}"
+            items_delete_response = invoke_http(delete_all_items_url, method="DELETE")
+            
+            if items_delete_response["code"] not in range(200, 300):
+                return jsonify({
+                    "code": items_delete_response["code"],
+                    "message": f"Failed to delete cart items: {items_delete_response['message']}"
+                }), items_delete_response["code"]
+        
+        # Step 5: Delete the cart itself
+        cart_delete_url = f"{cart_service_url}/{cart_id}"
+        cart_delete_response = invoke_http(cart_delete_url, method="DELETE")
+        
+        if cart_delete_response["code"] not in range(200, 300):
+            return jsonify({
+                "code": cart_delete_response["code"],
+                "message": f"Failed to delete cart: {cart_delete_response['message']}"
+            }), cart_delete_response["code"]
+        
+        return jsonify({
+            "code": 200,
+            "message": "Successfully deleted cart with all items and customizations",
+            "data": {
+                "cart_id": cart_id,
+                "items_deleted": len(cart_items_response.get("data", [])) if cart_items_response.get("code") == 200 else 0
             }
         }), 200
     

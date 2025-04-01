@@ -89,9 +89,11 @@ export default {
             elements: null,
             clientSecret: null,
             cartItems: [],
+            cart: {},
             loading: true,
             isProcessing: false,
             paymentError: null,
+            status: null,
             paymentId: '',
             showConfirmation: false,
             userId: 'test24', // Replace with dynamic user ID if needed
@@ -109,10 +111,10 @@ export default {
                     baseURL: 'http://127.0.0.1:5007',
                     timeout: 5000
                 },
-                // paymentService: {
-                //     baseURL: 'http://127.0.0.1:5100',
-                //     timeout: 8000
-                // }
+                paymentService: {
+                    baseURL: 'http://127.0.0.1:5100',
+                    timeout: 8000
+                }
             }
         };
     },
@@ -160,7 +162,10 @@ export default {
                 // 1. Fetch cart data
                 console.log(`Fetching cart from ${this.apiConfig.cartService.baseURL}`);
                 const cartResponse = await cartClient.get(`/get_cart_details/${this.userId}/${this.outletId}`);
+                this.cart = cartResponse.data.data
+                // console.log
                 console.log('Cart response:', cartResponse.data);
+                console.log("Cart", this.cart)
 
                 if (!cartResponse.data?.data?.items) {
                     console.warn('No items found in cart');
@@ -247,7 +252,10 @@ export default {
                     },
                     body: JSON.stringify({
                         amount: (this.total * 100), // Convert to cents
-                        currency: "sgd"
+                        currency: "sgd",
+                        user_id: this.cart.user_id,
+                        outlet_id: this.outletId,
+                        order_id: this.cart.cart_id
                     }),
                 });
 
@@ -309,16 +317,33 @@ export default {
 
                     // Save payment ID
                     this.paymentId = result.paymentIntent.id;
+                    this.status = result.paymentIntent.status;
                     console.log("Payment ID:", this.paymentId);
+                    console.log("Status:", this.status);
 
-                    // Process order (you might want to make an API call to your backend here)
-                    await this.processOrder(result.paymentIntent);
+                    // After successful payment in handlePayment method
+                    const paymentData = {
+                        cart: this.cart,
+                        paymentId: this.paymentId,
+                        paymentStatus: this.status
+                    };
 
-                    // Clear cart (make an API call to clear cart)
-                    await this.clearCart();
+                    try {
+                        const response = await axios.post('http://localhost:5300/process_payment', paymentData);
+                        console.log('Payment processing result:', response.data);
+                    } catch (error) {
+                        console.error('Error processing payment:', error);
+                    }
 
                     // Show confirmation
-                    this.showConfirmation = true;
+                    if (this.status == "succeeded") {
+                        this.showConfirmation = true;
+                        // console.log("cart")
+                    }
+                    else {
+                        alert("An error has occured, payment did go through")
+                    }
+
                 }
             } catch (error) {
                 console.error("Error handling payment:", error);
@@ -334,7 +359,7 @@ export default {
             // This client-side polling is not recommended for production
             const checkPaymentStatus = async (paymentIntentId) => {
                 try {
-                    const response = await axios.get(`${this.apiConfig.paymentService.baseURL}/payment-status/${paymentIntentId}`);
+                    const response = await axios.get(`${this.apiConfig.paymentService.baseURL}/webhook/${paymentIntentId}`);
                     console.log("Payment status:", response.data);
 
                     if (response.data.status === 'succeeded') {
@@ -357,9 +382,9 @@ export default {
             // 1. Send order details to your backend
             // 2. Create an order record in your database
             // 3. Link it with the payment ID
-            
+
             console.log("Processing order with payment:", paymentIntent.id);
-            
+
             try {
                 // Example of what this might look like:
                 const orderData = {
@@ -367,19 +392,18 @@ export default {
                     outletId: this.outletId,
                     items: this.cartItems,
                     total: this.total,
-                    tax: this.tax,
                     paymentId: paymentIntent.id,
                     paymentStatus: paymentIntent.status,
                     orderDate: new Date().toISOString()
                 };
-                
+
                 // Simulate an API call to create order
                 console.log("Order data to be saved:", orderData);
-                
+
                 // In a real implementation, you would make an API call:
                 // const response = await axios.post('http://127.0.0.1:5200/create-order', orderData);
                 // console.log("Order created:", response.data);
-                
+
                 // For demo purposes, we're just logging the data
             } catch (error) {
                 console.error("Error processing order:", error);
@@ -387,21 +411,7 @@ export default {
                 // Instead, log it and maybe retry later or alert an admin
             }
         },
-        async clearCart() {
-            try {
-                // This would be an API call to clear the cart
-                console.log("Clearing cart for user:", this.userId);
-                
-                // Example of what this might look like:
-                // const response = await axios.delete(`${this.apiConfig.cartService.baseURL}/clear-cart/${this.userId}`);
-                // console.log("Cart cleared:", response.data);
-                
-                // For demo purposes, just log it
-            } catch (error) {
-                console.error("Error clearing cart:", error);
-            }
-        },
-        
+
         closeConfirmation() {
             this.showConfirmation = false;
             // Navigate back to home or wherever you want

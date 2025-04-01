@@ -1,158 +1,180 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-import stripe
-import pika
-import json
-import os
-from os import environ
+import os, sys
+import requests
 from invokes import invoke_http
 
 app = Flask(__name__)
 CORS(app)
 
-# Configuration
-stripe.api_key = environ.get('STRIPE_KEY') or 'rk_test_51QwwPAQRYfaBjPIX2SKCUHNnwPZ2J7ZqRWyEwARvKdQS8IC8kTBFqFBhNUptjTou5qEODE1lr2DwS5kyog06ZyMO004fgzMxEL'
-order_service_url = environ.get('ORDER_URL') or 'http://localhost:5001/order'
-payment_log_queue = environ.get('PAYMENT_LOG_QUEUE') or 'payment_logs'
+# Define microservice URLs
+payment_log_URL = "http://host.docker.internal:5123/log_payment"
+order_service_URL = "https://personal-9fpjlj95.outsystemscloud.com/CoffeeShop2/rest/GetCartData/GetCartDetails"
+order_items_URL = "https://personal-9fpjlj95.outsystemscloud.com/CoffeeShop2/rest/GetCartData/GetCartItems"
+order_customizations_URL = "https://personal-9fpjlj95.outsystemscloud.com/CoffeeShop2/rest/GetCartData/GetCartItemCustomisation"
+cart_service_URL = "http://host.docker.internal:5200"
 
-# RabbitMQ setup
-rabbit_host = environ.get('RABBIT_HOST') or 'localhost'
-rabbit_port = environ.get('RABBIT_PORT') or 5672
-exchange_name = environ.get('EXCHANGE_NAME') or 'payment_events'
-exchange_type = environ.get('EXCHANGE_TYPE') or 'topic'
-
-# Initialize RabbitMQ connection
-connection = None
-channel = None
-
-def connect_to_rabbitmq():
-    global connection, channel
-    try:
-        connection = pika.BlockingConnection(
-            pika.ConnectionParameters(host=rabbit_host, port=rabbit_port))
-        channel = connection.channel()
-        channel.exchange_declare(
-            exchange=exchange_name,
-            exchange_type=exchange_type,
-            durable=True
-        )
-        channel.queue_declare(queue=payment_log_queue, durable=True)
-        channel.queue_bind(
-            exchange=exchange_name,
-            queue=payment_log_queue,
-            routing_key='payment.*'
-        )
-    except Exception as e:
-        print(f"Failed to connect to RabbitMQ: {str(e)}")
-        raise
-
-@app.route('/process-payment', methods=['POST'])
+@app.route("/process_payment", methods=['POST'])
 def process_payment():
-    if not request.is_json:
-        return jsonify({"code": 400, "message": "Invalid JSON input"}), 400
+    if request.is_json:
+        try:
+            payment_data = request.get_json()
+            print("\nReceived payment data in JSON:", payment_data)
 
+            result = process_payment_flow(payment_data)
+            return jsonify(result), result["code"]
+
+        except Exception as e:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+            ex_str = str(e) + " at " + str(exc_type) + ": " + fname + ": line " + str(exc_tb.tb_lineno)
+            print(ex_str)
+
+            return jsonify({
+                "code": 500,
+                "message": "process_payment.py internal error: " + ex_str
+            }), 500
+
+    return jsonify({
+        "code": 400,
+        "message": "Invalid JSON input: " + str(request.get_data())
+    }), 400
+
+def process_payment_flow(payment_data):
+    cart = payment_data.get('cart')
+    payment_id = payment_data.get('paymentId')
+    payment_status = payment_data.get('paymentStatus')
+    
+    # 1. Always log the payment regardless of status
+    print('\n-----Invoking payment_log microservice-----')
+    payment_log_data = {
+        "payment_id": payment_id,
+        "payment_status": payment_status,
+        "order_id": cart.get('cart_id'),
+        "outlet_id": cart.get('outlet_id'),
+        "user_id": cart.get('user_id'),
+        "amount": cart.get('totalPrice')
+    }
+    
+    payment_log_result = invoke_http(
+        payment_log_URL, 
+        method='POST', 
+        json=payment_log_data
+    )
+    print('payment_log_result:', payment_log_result)
+    
+    # Check if payment was successful
+    if payment_status.lower() != 'succeeded':
+        return {
+            "code": 200,
+            "data": {
+                "payment_log_result": payment_log_result
+            },
+            "message": "Payment not successful - only logged payment"
+        }
+    
+    # 2. Split and process order data
     try:
-        data = request.get_json()
-        cart_details = data.get('cart_details')
-        payment_details = data.get('payment_details')
-        
-        # 1. Create Stripe Payment Intent
-        payment_intent = stripe.PaymentIntent.create(
-            amount=int(float(cart_details['totalPrice']) * 100),  # Convert to cents
-            currency='sgd',
-            payment_method_types=['card'],
-            metadata={
-                'user_id': cart_details['user_id'],
-                'outlet_id': cart_details['outlet_id']
-            }
-        )
-        
-        # 2. Create Order (using your existing order service)
+        # 2a. Create main order record
+        print('\n-----Invoking order microservice-----')
         order_data = {
-            'user_id': cart_details['user_id'],
-            'items': cart_details['items'],
-            'total_amount': cart_details['totalPrice'],
-            'payment_intent_id': payment_intent.id
+            "cart_id": cart.get('cart_id'),
+            "user_id": cart.get('user_id'),
+            "outlet_id": cart.get('outlet_id'),
+            "totalPrice": cart.get('totalPrice')
+            # "payment_id": payment_id
         }
-        order_result = invoke_http(order_service_url, method='POST', json=order_data)
+        print(order_data)
         
-        if order_result['code'] not in range(200, 300):
-            raise Exception(f"Order creation failed: {order_result['message']}")
-        
-        # 3. Publish payment log to RabbitMQ
-        payment_log = {
-            'payment_intent_id': payment_intent.id,
-            'amount': cart_details['totalPrice'],
-            'currency': 'sgd',
-            'status': 'succeeded',
-            'user_id': cart_details['user_id'],
-            'order_id': order_result['data']['order_id'],
-            'timestamp': order_result['data']['created']
-        }
-        
-        if not connection or not connection.is_open:
-            connect_to_rabbitmq()
-            
-        channel.basic_publish(
-            exchange=exchange_name,
-            routing_key='payment.success',
-            body=json.dumps(payment_log),
-            properties=pika.BasicProperties(
-                delivery_mode=2  # Make message persistent
-            )
+        order_result = invoke_http(
+            order_service_URL,
+            method='POST',
+            json=order_data
         )
+        print('order_result:', order_result)
+        order_code = int(order_result.get('code', 500))
         
-        # 4. Return success response
-        return jsonify({
-            'code': 200,
-            'data': {
-                'client_secret': payment_intent.client_secret,
-                'order_id': order_result['data']['order_id'],
-                'payment_status': 'succeeded'
+        # Check if order creation was successful
+        if order_code not in range(200, 300):
+            print("error order")
+            return {
+                "code": 400,
+                "data": {
+                    "payment_log_result": payment_log_result,
+                    "order_result": order_result
+                },
+                "message": "Order creation failed - cart not deleted"
             }
-        }), 200
         
-    except stripe.error.StripeError as e:
-        # Handle Stripe-specific errors
-        log_payment_error(str(e), data)
-        return jsonify({
-            'code': 400,
-            'message': f'Payment processing failed: {str(e)}'
-        }), 400
-        
-    except Exception as e:
-        # Handle other errors
-        log_payment_error(str(e), data)
-        return jsonify({
-            'code': 500,
-            'message': f'Internal server error: {str(e)}'
-        }), 500
-
-def log_payment_error(error_message, original_data):
-    """Log payment errors to RabbitMQ"""
-    try:
-        if not connection or not connection.is_open:
-            connect_to_rabbitmq()
+        # 2b. Process cart items
+        print('\n-----Invoking order items microservice-----')
+        items_result = []
+        for item in cart.get('items', []):
+            item_data = {
+                "cart_id_fk": cart.get('cart_id'),
+                "cart_items_id": item.get('cart_items_id'),
+                "drink_id": item.get('drink_id'),
+                "quantity": item.get('quantity')
+            }
             
-        error_log = {
-            'error': error_message,
-            'original_data': original_data,
-            'status': 'failed',
-            'timestamp': dastetime.datetime.utcnow().isoformat()
-        }
-        
-        channel.basic_publish(
-            exchange=exchange_name,
-            routing_key='payment.error',
-            body=json.dumps(error_log),
-            properties=pika.BasicProperties(
-                delivery_mode=2  # Make message persistent
+            item_result = invoke_http(
+                order_items_URL,
+                method='POST',
+                json=item_data
             )
+            items_result.append(item_result)
+            print(f'Item {item.get("drink_id")} result:', item_result)
+            
+            # 2c. Process customizations for each item
+            print('\n-----Invoking order customizations microservice-----')
+            customizations_result = []
+            for customization in item.get('customisations', []):
+                customization_data = {
+                    "cart_item_id_fk": item.get('cart_items_id'),
+                    "cic_id": customization.get('cic_id'),
+                    "customisationId_fk": customization.get('customisationId_fk')
+                }
+                
+                customization_result = invoke_http(
+                    order_customizations_URL,
+                    method='POST',
+                    json=customization_data
+                )
+                customizations_result.append(customization_result)
+                print(f'Customization {customization.get("customisationId_fk")} result:', customization_result)
+        
+        # 3. Delete cart since payment and order creation were successful
+        print('\n-----Invoking cart microservice to delete cart-----')
+        delete_cart_URL = f"{cart_service_URL}/delete_cart/{cart.get('cart_id')}"
+        delete_cart_result = invoke_http(
+            delete_cart_URL,
+            method='DELETE'
         )
+        print('delete_cart_result:', delete_cart_result)
+        
+        # Return all results
+        return {
+            "code": 201,
+            "data": {
+                "payment_log_result": payment_log_result,
+                "order_result": order_result,
+                "items_result": items_result,
+                "customizations_result": customizations_result,
+                "delete_cart_result": delete_cart_result
+            },
+            "message": "Payment processed, order created with items and customizations, and cart deleted successfully"
+        }
+    
     except Exception as e:
-        print(f"Failed to log payment error: {str(e)}")
+        print(f"Error during order processing: {str(e)}")
+        return {
+            "code": 500,
+            "data": {
+                "payment_log_result": payment_log_result
+            },
+            "message": f"Error during order processing: {str(e)} - cart not deleted"
+        }
 
-if __name__ == '__main__':
-    print("Starting Payment Composite Service...")
-    connect_to_rabbitmq()
-    app.run(host='0.0.0.0', port=5200, debug=True)
+if __name__ == "__main__":
+    print("This is flask " + os.path.basename(__file__) + " for processing payments...")
+    app.run(host="0.0.0.0", port=5300, debug=True)

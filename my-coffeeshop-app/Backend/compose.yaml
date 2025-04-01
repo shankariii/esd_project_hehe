@@ -213,6 +213,23 @@ services:
     networks:
       - esd-net
 
+
+  ###################################
+  # Payment_log: The Payment_log microservice
+  ###################################
+  payment_log:
+    build:
+      context: ./payment_log
+      dockerfile: payment_log.Dockerfile
+    image: shashass/payment_log:esd
+    restart: always
+    environment:
+      PYTHONUNBUFFERED: 1
+    ports:
+      - "5123:5123"
+    networks:
+      - esd-net
+
 ###################################
   # Add to Cart: The Add to Cart composite microservice
   ###################################
@@ -235,18 +252,14 @@ services:
       - esd-net     
 
   ###################################
-  # Add to Cart: The Add to Cart composite microservice (to be deleted)
+  # Payment Composite: The Payment composite microservice (to be deleted)
   ###################################
-  viewCart:
+  PaymentComposite:
     build:
-      context: ./viewCart
-      dockerfile: viewCart.Dockerfile
-    image: shashass/viewcart:esd
+      context: ./PaymentCompositeService
+      dockerfile: paymentComposite.Dockerfile
+    image: shashass/payment-composite:esd
     restart: always
-    depends_on:
-      - cart
-      - cart_items
-      - cart_items_customisation
     environment:
       PYTHONUNBUFFERED: 1
     ports:
