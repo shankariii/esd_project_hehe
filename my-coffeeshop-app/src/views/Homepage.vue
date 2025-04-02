@@ -1,9 +1,4 @@
-<script setup>
-// import HelloWorld from '../components/HelloWorld.vue'
-import featureProduct from '../components/featuredProducts.vue'
-import testimonials from '../components/testimonials.vue'
-import location from '../components/locations.vue'
-</script>
+
 
 <template>
   <section class="hero" style="padding: 0rem 0rem;">
@@ -13,7 +8,9 @@ import location from '../components/locations.vue'
         Welcome to Brew Haven, where we believe in the art of exceptional coffee. Every cup tells a story, and we're
         here to make yours memorable.
       </p>
-      <a href="order.html" class="cta-btn">Order Now</a>
+      <!-- <a href="order.html" class="cta-btn">Order Now</a> -->
+      <button @click="goToMenu" class="cta-btn">Order Now</button>
+
     </div>
   </section>
 
@@ -64,6 +61,21 @@ import location from '../components/locations.vue'
     </p>
   </section>
 </template>
+
+
+<script setup>
+// import HelloWorld from '../components/HelloWorld.vue'
+import featureProduct from '../components/featuredProducts.vue'
+import testimonials from '../components/testimonials.vue'
+import location from '../components/locations.vue'
+import { useRouter } from 'vue-router';
+
+const router = useRouter();
+
+const goToMenu = () => {
+  router.push('/menu'); // Navigates to the Menu view
+};
+</script>
 
 <style scoped>
 .hero {
