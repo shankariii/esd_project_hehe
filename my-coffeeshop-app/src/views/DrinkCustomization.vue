@@ -600,6 +600,9 @@ export default {
           console.log(cartId)
           console.log('Cart created successfully. Cart ID:', cartId);
           alert(`Cart created successfully! Cart ID: ${cartId}`);
+          this.$router.push('/menu').then(() => {
+            window.location.reload();
+          });
         } else {
           console.error('Unexpected response:', response.data);
           alert('Failed to create cart. Please try again.');
@@ -621,7 +624,8 @@ export default {
       if (this.quantity > 1) {
         this.quantity -= 1;
       }
-    }
+    },
+
   },
 };
 </script>

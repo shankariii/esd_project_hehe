@@ -79,19 +79,50 @@
 </template>
 
 <script>
+import axios from 'axios';
+
 export default {
   name: 'App',
   data() {
     return {
       mobileMenuOpen: false,
-      isLoggedIn: true, // Set this to false by default - you'll update this with your auth logic later
-      cartItemCount: 3 // Hard-coded cart count - you'll replace this with your actual cart logic later
+      isLoggedIn: false, // Set this based on your auth logic
+      cartItemCount: 0, // Initialize to 0
+      user_id: "test24",
+      outletId: JSON.parse(localStorage.getItem('selectedOutletId'))
     }
   },
   methods: {
     toggleMenu() {
       this.mobileMenuOpen = !this.mobileMenuOpen;
+    },
+    async fetchCartItemCount() {
+      try {
+        // Replace 'test24/24' with your actual user ID or dynamic values
+        const response = await axios.get(`http://localhost:5200/get_cart_item_count/${this.user_id}/${this.outletId}`);
+        // const cartResponse = await cartClient.get(`/get_cart_details/${this.userId}/${this.outletId}`);
+
+        
+        if (response.data.code === 200) {
+          this.cartItemCount = response.data.data.item_count;
+        } else {
+          console.error('Error fetching cart count:', response.data);
+        }
+      } catch (error) {
+        console.error('Error fetching cart count:', error);
+      }
     }
+  },
+  created() {
+    // Fetch cart count when component is created
+    this.fetchCartItemCount();
+    
+    // Optional: Set up polling to keep cart count updated
+    // this.polling = setInterval(this.fetchCartItemCount, 30000); // Update every 30 seconds
+  },
+  beforeUnmount() {
+    // Clean up polling if used
+    // if (this.polling) clearInterval(this.polling);
   }
 }
 </script>
