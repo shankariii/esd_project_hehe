@@ -9,9 +9,9 @@ CORS(app)
 
 # Define microservice URLs
 payment_log_URL = "http://host.docker.internal:5123/log_payment"
-order_service_URL = "https://personal-9fpjlj95.outsystemscloud.com/CoffeeShop2/rest/GetCartData/GetCartDetails"
-order_items_URL = "https://personal-9fpjlj95.outsystemscloud.com/CoffeeShop2/rest/GetCartData/GetCartItems"
-order_customizations_URL = "https://personal-9fpjlj95.outsystemscloud.com/CoffeeShop2/rest/GetCartData/GetCartItemCustomisation"
+order_service_URL = "https://personal-9fpjlj95.outsystemscloud.com/CoffeeShop2/rest/CartToOrderAPI/GetCartDetails"
+order_items_URL = "https://personal-9fpjlj95.outsystemscloud.com/CoffeeShop2/rest/CartToOrderAPI/GetCartItems"
+order_customizations_URL = "https://personal-9fpjlj95.outsystemscloud.com/CoffeeShop2/rest/CartToOrderAPI/GetCartItemCustomisation"
 cart_service_URL = "http://host.docker.internal:5200"
 
 @app.route("/process_payment", methods=['POST'])

@@ -84,7 +84,7 @@ export default {
   data() {
     return {
       mobileMenuOpen: false,
-      isLoggedIn: false, // Set this to false by default - you'll update this with your auth logic later
+      isLoggedIn: true, // Set this to false by default - you'll update this with your auth logic later
       cartItemCount: 3 // Hard-coded cart count - you'll replace this with your actual cart logic later
     }
   },

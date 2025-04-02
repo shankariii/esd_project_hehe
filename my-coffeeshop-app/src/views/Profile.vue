@@ -215,7 +215,7 @@
                     </div>
 
                     <!-- Address Section -->
-                    <div style="margin-bottom: 2rem;">
+                    <!-- <div style="margin-bottom: 2rem;">
                         <h4 style="margin-bottom: 1rem; color: var(--dark); font-size: 1.1rem;">Default Address</h4>
 
                         <div style="margin-bottom: 1rem;">
@@ -257,7 +257,7 @@
                                     style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 5px; outline: none; transition: border-color 0.3s;">
                             </div>
                         </div>
-                    </div>
+                    </div> -->
 
                     <!-- Password Section -->
                     <div style="margin-bottom: 2rem;">
@@ -292,7 +292,7 @@
                     </div>
 
                     <!-- Preferences Section -->
-                    <div style="margin-bottom: 2rem;">
+                    <!-- <div style="margin-bottom: 2rem;">
                         <h4 style="margin-bottom: 1rem; color: var(--dark); font-size: 1.1rem;">Preferences</h4>
 
                         <div style="margin-bottom: 1rem;">
@@ -312,7 +312,7 @@
                                 <span style="color: var(--text);">Receive text notifications for order updates</span>
                             </label>
                         </div>
-                    </div>
+                    </div> -->
 
                     <!-- Submit Button -->
                     <div style="display: flex; justify-content: flex-end;">
