@@ -35,7 +35,7 @@ services:
     image: jiaxuanlai/drink_menu:esd
     restart: always
     environment:
-      dbURL: mysql+pymysql://root:@host.docker.internal:3306/drink_menu
+      dbURL: mysql+pymysql://is213:@host.docker.internal:3306/drink_menu
       PYTHONUNBUFFERED: 1
     ports:
       - "5005:5005"
