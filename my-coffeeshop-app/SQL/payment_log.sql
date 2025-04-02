@@ -41,6 +41,8 @@ CREATE TABLE IF NOT EXISTS `payment_log` (
   UNIQUE KEY `transaction_id` (`payment_id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=28 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
+use payment_log;
+
 --
 -- Dumping data for table `payment_log`
 --

@@ -10,7 +10,8 @@
         <div class="drink-header">
 
           <div class="drink-image-container">
-            <img :src="drink.image" :alt="drink.drink_name" class="drink-image" />
+            <!-- <img :src="drink.image" :alt="drink.drink_name" class="drink-image" /> -->
+            <img :src="'/' + drink.image" :alt="drink.drink_name" class="drink-image" />
           </div>
           <div class="drink-details">
             <h2>{{ drink.drink_name }}</h2>
@@ -156,6 +157,7 @@
   gap: 2rem;
   margin-bottom: 2rem;
   align-items: flex-start;
+  margin-top: 30px;
 }
 
 .drink-image-container {
@@ -511,6 +513,7 @@ export default {
     this.drinkId = this.$route.params.id; // Assuming the drink ID is passed via route
     const drinkResponse = await axios.get(`http://127.0.0.1:5005/drinks/${this.drinkId}`);
     this.drink = drinkResponse.data;
+    console.log(this.drink)
 
     // Fetch customization options
     const sizeResponse = await axios.get('http://127.0.0.1:5007/customisations/type/S');
