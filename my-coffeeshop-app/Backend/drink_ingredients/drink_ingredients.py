@@ -1,11 +1,13 @@
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
+from flasgger import Swagger
 from os import environ
 
 # Initialize Flask App
 app = Flask(__name__)
 CORS(app)
+Swagger(app)  # Enable Swagger UI
 
 # MySQL Configuration using environment variable
 app.config['SQLALCHEMY_DATABASE_URI'] = environ.get('dbURL')  
@@ -36,6 +38,12 @@ class DrinkIngredient(db.Model):
 
 @app.route('/')
 def index():
+    """Health check endpoint
+    ---
+    responses:
+      200:
+        description: Returns a message if service is running
+    """
     return jsonify({"message": "Drink Ingredients microservice is running!"}), 200
 
 @app.route('/ingredients', methods=['GET'])
