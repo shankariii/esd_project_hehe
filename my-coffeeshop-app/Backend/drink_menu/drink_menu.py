@@ -1,21 +1,16 @@
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
-from flask_restful import Api, Resource
-import pymysql
-import os
-from os import environ
 from flask_cors import CORS
-
+from os import environ
 
 # Initialize Flask App
 app = Flask(__name__)
-api = Api(app)
 CORS(app)
 
-# MySQL Configuration (Using Docker Environment Variables)
-# app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:@localhost/drink_menu'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:@host.docker.internal:3306/drink_menu'
+# MySQL Configuration using environment variable
+app.config['SQLALCHEMY_DATABASE_URI'] = environ.get('dbURL')  
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {'pool_recycle': 299}
 
 # Initialize DB
 db = SQLAlchemy(app)
@@ -32,41 +27,30 @@ class Drink(db.Model):
     prep_time_min = db.Column(db.Float, nullable=False)
 
     def json(self):
-        # Ensure that the image is a valid string and handle cases where it's None
-        # image_url = self.image if isinstance(self.image, str) else "default_image_path.jpg"
         return {
             "drink_id": self.drink_id,
             "drink_name": self.drink_name,
             "description": self.description,
             "price": self.price,
-            "image": self.image,  # Ensure image is a valid string
+            "image": self.image,
             "prep_time_min": self.prep_time_min
         }
-
 
 @app.route('/')
 def home():
     return jsonify({"message": "Coffee Ordering System API is running!"}), 200
 
+@app.route('/drinks', methods=['GET'])
+@app.route('/drinks/<int:drink_id>', methods=['GET'])
+def get_drinks(drink_id=None):
+    if drink_id:
+        drink = Drink.query.get(drink_id)
+        if drink:
+            return jsonify(drink.json()), 200
+        return jsonify({"message": "Drink not found"}), 404
 
-# API Resources
-class DrinkResource(Resource):
-    def get(self, drink_id=None):
-        """Retrieve all drinks or a specific drink"""
-        if drink_id:
-            drink = Drink.query.get(drink_id)
-            if drink:
-                return jsonify(drink.json())
-            return jsonify({"message": "Drink not found"}), 404
+    drinks = Drink.query.all()
+    return jsonify([d.json() for d in drinks]), 200
 
-        drinks = Drink.query.all()
-        return jsonify([drink.json() for drink in drinks])
-
-
-# Register API Endpoints
-api.add_resource(DrinkResource, '/drinks', '/drinks/<int:drink_id>')
-
-
-# Run App
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5005, debug=True)

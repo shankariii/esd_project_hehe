@@ -146,21 +146,44 @@
       const auth = getAuth()
       
       const handleLogin = async () => {
-        try {
-          errorMessage.value = ''
-          await signInWithEmailAndPassword(auth, loginForm.email, loginForm.password)
-          // Redirect or handle successful login
-          
-          // console.log('Logged in successfully')
-          alert('You have been logged in successfully!')
-          localStorage.setItem("selectedOutletId",'something' )
-          
-          console.log(router)
-          router.push(`/findOutlet`)
-        } catch (error) {
-          errorMessage.value = getErrorMessage(error.code)
-        }
-      }
+  try {
+    errorMessage.value = '';
+
+    // Step 1: Log in to Firebase
+    await signInWithEmailAndPassword(auth, loginForm.email, loginForm.password);
+    const user = auth.currentUser;
+
+    if (!user || !user.email) {
+      throw new Error('No user info from Firebase');
+    }
+
+    // Step 2: Call your Flask backend to get userId
+    const response = await axios.post("http://localhost:5019/login", {
+      email: user.email,
+    });
+
+    console.log('✅ Backend response:', response.data);
+    
+    // Add this debug line
+    console.log('🔑 User ID from backend:', response.data.userId);
+
+    // Step 3: Store in localStorage
+    localStorage.setItem('userId', response.data.userId);
+    
+    // Add this debug line
+    console.log('💾 Stored in localStorage:', localStorage.getItem('userId'));
+    
+    localStorage.setItem('selectedOutletId', '1'); // or whichever outlet is selected
+
+    // Step 4: Redirect
+    alert('You have been logged in successfully!');
+    router.push('/findOutlet');
+  } catch (error) {
+    console.error('Login error:', error);
+    errorMessage.value = 'Login failed. Please try again.';
+  }
+};
+
       
       //new handleregister funtion 
       const handleRegister = async () => {
