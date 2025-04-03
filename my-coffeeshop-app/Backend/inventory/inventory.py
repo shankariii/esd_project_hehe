@@ -2,8 +2,9 @@ from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from os import environ
-from datetime import datetime
+from datetime import datetime, timedelta
 from flasgger import Swagger
+from sqlalchemy import desc
 
 app = Flask(__name__)
 CORS(app)
@@ -34,14 +35,23 @@ class Inventory(db.Model):
         self.change_in_quantity = change_in_quantity
 
     def json(self):
+          return {
+              "inventory_id": self.inventory_id,
+              "ingredient": self.ingredient,
+              "available_quantity": self.available_quantity,
+              "unit": self.unit,
+              "date_time": self.date_time.strftime('%Y-%m-%d %H:%M:%S'),
+              "change_in_quantity": self.change_in_quantity
+          }
+    
+    def json_change_only(self):
         return {
-            "inventory_id": self.inventory_id,
             "ingredient": self.ingredient,
-            "available_quantity": self.available_quantity,
-            "unit": self.unit,
+            "change_in_quantity": self.change_in_quantity,
             "date_time": self.date_time.strftime('%Y-%m-%d %H:%M:%S'),
-            "change_in_quantity": self.change_in_quantity
+            "unit": self.unit
         }
+
 
 @app.route("/inventory", methods=["GET"])
 def get_all_items():
@@ -87,7 +97,7 @@ def get_item_by_id(inventory_id):
     return jsonify({"code": 404, "message": "Inventory item not found."}), 404
 
 @app.route("/inventory/ingredient/<string:ingredient>", methods=["GET"])
-def get_item_by_ingredient(ingredient):
+def get_inventory_by_ingredient(ingredient):
     """
     Get an inventory item by ingredient name
     ---
@@ -99,14 +109,76 @@ def get_item_by_ingredient(ingredient):
           type: string
     responses:
       200:
-        description: Item found
+        description: A list of inventory records for the given ingredient
       404:
-        description: Inventory item with that ingredient not found
+        description: Inventory records for that ingredient not found
     """
-    item = db.session.scalar(db.select(Inventory).filter_by(ingredient=ingredient))
-    if item:
-        return jsonify({"code": 200, "data": item.json()})
-    return jsonify({"code": 404, "message": f"Inventory item with ingredient '{ingredient}' not found."}), 404
+    items = db.session.execute(db.select(Inventory).filter_by(ingredient=ingredient)).scalars().all()
+    if items:
+        inventory_list = [item.json() for item in items]
+        return jsonify({"code": 200, "data": {"inventory": inventory_list}})
+    return jsonify({"code": 404, "message": f"Inventory records for ingredient '{ingredient}' not found."}), 404
+
+@app.route("/inventory/ingredient/<string:ingredient>/available_quantity", methods=["GET"])
+def get_ingredient_available_quantity(ingredient):
+    """
+    Get the latest available quantity for a specific ingredient.
+    ---
+    parameters:
+      - in: path
+        name: ingredient
+        required: true
+        schema:
+          type: string
+    responses:
+      200:
+        description: The latest available quantity of the ingredient.
+      404:
+        description: No inventory records found for that ingredient.
+    """
+    latest_record = db.session.scalar(
+        db.select(Inventory)
+        .filter_by(ingredient=ingredient)
+        .order_by(desc(Inventory.date_time))
+    )
+
+    if latest_record:
+        return jsonify({
+            "code": 200,
+            "data": {
+                "ingredient": latest_record.ingredient,
+                "available_quantity": latest_record.available_quantity,
+                "unit": latest_record.unit,
+                "date_time": latest_record.date_time.strftime('%Y-%m-%d %H:%M:%S')
+            }
+        })
+    return jsonify({"code": 404, "message": f"No inventory records found for ingredient '{ingredient}'."}), 404
+
+@app.route("/inventory/ingredient/<string:ingredient>/change_in_quantity", methods=["GET"])
+def get_ingredient_changes(ingredient):
+    """
+    Get change in quantities for an ingredient for the past 7 days
+    ---
+    parameters:
+      - in: path
+        name: ingredient
+        required: true
+        schema:
+          type: string
+    responses:
+      200:
+        description: List of change in quantities
+      404:
+        description: Ingredient not found or no history
+    """
+    time_period = datetime.utcnow() - timedelta(days=7)
+    history = db.session.scalars(db.select(Inventory).filter_by(ingredient=ingredient).filter(Inventory.date_time >= time_period)).all()
+
+    if history:
+        history_list = [item.json_change_only() for item in history]
+        return jsonify({"code": 200, "data": history_list})
+    return jsonify({"code": 404, "message": f"No history found for ingredient '{ingredient}' in the past 7 days."}), 404
+
 
 @app.route("/inventory", methods=["POST"])
 def create_item():
@@ -161,60 +233,6 @@ def create_item():
         return jsonify({"code": 500, "message": "An error occurred creating the item.", "error": str(e)}), 500
 
     return jsonify({"code": 201, "data": item.json()}), 201
-
-@app.route("/inventory/<int:inventory_id>", methods=["PUT"])
-def update_item(inventory_id):
-    """
-    Update an inventory item
-    ---
-    parameters:
-      - in: path
-        name: inventory_id
-        required: true
-        schema:
-          type: integer
-    requestBody:
-      required: true
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              ingredient:
-                type: string
-              available_quantity:
-                type: number
-              unit:
-                type: string
-    responses:
-      200:
-        description: Item updated
-      404:
-        description: Item not found
-      500:
-        description: Server error
-    """
-    item = db.session.scalar(db.select(Inventory).filter_by(inventory_id=inventory_id))
-    if not item:
-        return jsonify({"code": 404, "message": "Item not found."}), 404
-
-    data = request.get_json()
-    try:
-        new_quantity = data.get("available_quantity", item.available_quantity)
-        change = new_quantity - item.available_quantity
-
-        item.ingredient = data.get("ingredient", item.ingredient)
-        item.available_quantity = new_quantity
-        item.unit = data.get("unit", item.unit)
-        item.date_time = datetime.utcnow()
-        item.change_in_quantity = change
-
-        db.session.commit()
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({"code": 500, "message": "An error occurred updating the item.", "error": str(e)}), 500
-
-    return jsonify({"code": 200, "data": item.json()})
 
 @app.route("/inventory/<int:inventory_id>", methods=["DELETE"])
 def delete_item(inventory_id):
