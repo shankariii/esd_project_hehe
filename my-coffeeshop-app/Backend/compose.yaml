@@ -9,23 +9,6 @@ networks:
 services:
 
   ###################################
-  # Drink: The Drink microservice (to be deleted)
-  ###################################
-  drink:
-    build:
-      context: ./drink
-      dockerfile: drink.Dockerfile
-    image: shashass/drink:esd
-    restart: always
-    environment:
-      dbURL: mysql+mysqlconnector://is213@host.docker.internal:3306/cart
-      PYTHONUNBUFFERED: 1
-    ports:
-      - "5002:5002"
-    networks:
-      - esd-net      
-
-  ###################################
   # Drink: The Drink Menu microservice
   ###################################
   drink_menu:
@@ -226,7 +209,6 @@ services:
       - cart
       - cart_items
       - cart_items_customisation
-      - drink
     environment:
       PYTHONUNBUFFERED: 1
     ports:
@@ -234,19 +216,15 @@ services:
     networks:
       - esd-net     
 
+ ###################################
+  # Payment Composite: The Payment composite microservice
   ###################################
-  # Add to Cart: The Add to Cart composite microservice (to be deleted)
-  ###################################
-  viewCart:
+  PaymentComposite:
     build:
-      context: ./viewCart
-      dockerfile: viewCart.Dockerfile
-    image: shashass/viewcart:esd
+      context: ./PaymentCompositeService
+      dockerfile: paymentComposite.Dockerfile
+    image: shashass/payment-composite:esd
     restart: always
-    depends_on:
-      - cart
-      - cart_items
-      - cart_items_customisation
     environment:
       PYTHONUNBUFFERED: 1
     ports:
@@ -254,3 +232,20 @@ services:
     networks:
       - esd-net  
 
+  ###################################
+  # Twilio: The Twilio microservice
+  ###################################
+  Twilio:
+    build:
+      context: ./Twilio
+      dockerfile: twilio.Dockerfile
+    image: shashass/twilio:esd
+    restart: always
+    env_file: 
+      - ./Twilio/.env  # Path to your .env file relative to the compose file
+    environment:
+      PYTHONUNBUFFERED: 1
+    ports:
+      - "6000:6000"
+    networks:
+      - esd-net
