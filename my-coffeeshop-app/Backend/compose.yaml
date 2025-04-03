@@ -1,5 +1,5 @@
 ## PLEASE CHANGE THE DOCKERID TO YOUR OWN!!!
-## REPLACE ALL THE SHASHASS WITH YOUR OWN DOCKERID:)
+## REPLACE ALL THE jiaxuanlai WITH YOUR OWN DOCKERID:)
 
 networks:
   esd-net:
@@ -120,7 +120,7 @@ services:
     build:
       context: ./Cart
       dockerfile: cart.Dockerfile
-    image: shashass/cart:esd
+    image: jiaxuanlai/cart:esd
     restart: always
     environment:
       dbURL: mysql+mysqlconnector://is213@host.docker.internal:3306/cart
@@ -138,7 +138,7 @@ services:
     build:
       context: ./Cart_items
       dockerfile: cart_items.Dockerfile
-    image: shashass/cart_items:esd
+    image: jiaxuanlai/cart_items:esd
     restart: always
     environment:
       dbURL: mysql+mysqlconnector://is213@host.docker.internal:3306/cart_items
@@ -155,7 +155,7 @@ services:
     build:
       context: ./Cart_Items_Customisation
       dockerfile: cart_items_customisation.Dockerfile
-    image: shashass/cart_items_customisation:esd
+    image: jiaxuanlai/cart_items_customisation:esd
     restart: always
     environment:
       dbURL: mysql+mysqlconnector://is213@host.docker.internal:3306/cart_items_customisation
@@ -172,7 +172,7 @@ services:
     build:
       context: ./Profile
       dockerfile: profile.Dockerfile
-    image: shashass/profile:esd
+    image: jiaxuanlai/profile:esd
     restart: always
     environment:
       dbURL: mysql+mysqlconnector://is213@host.docker.internal:3306/profile
@@ -189,7 +189,7 @@ services:
     build:
       context: ./StripePayment
       dockerfile: payment.Dockerfile
-    image: shashass/payment:esd
+    image: jiaxuanlai/payment:esd
     restart: always
     environment:
       PYTHONUNBUFFERED: 1
@@ -205,7 +205,7 @@ services:
     build:
       context: ./CartCompositeServie
       dockerfile: CartCompositeServie.Dockerfile
-    image: shashass/cartcompositeservie:esd
+    image: jiaxuanlai/cartcompositeservie:esd
     restart: always
     depends_on:
       - cart
@@ -225,7 +225,7 @@ services:
     build:
       context: ./PaymentCompositeService
       dockerfile: paymentComposite.Dockerfile
-    image: shashass/payment-composite:esd
+    image: jiaxuanlai/payment-composite:esd
     restart: always
     environment:
       PYTHONUNBUFFERED: 1
@@ -241,7 +241,7 @@ services:
     build:
       context: ./Twilio
       dockerfile: twilio.Dockerfile
-    image: shashass/twilio:esd
+    image: jiaxuanlai/twilio:esd
     restart: always
     env_file: 
       - ./Twilio/.env  # Path to your .env file relative to the compose file

@@ -16,6 +16,20 @@
 
                     <button class="pay-now-btn" @click="handlePayment">PAY NOW</button>
                 </div>
+
+                <!-- <div v-if="isProcessing" class="loading-container">
+                    <img src="../assets/lazy_loading.png" alt="Processing Payment..." />
+                    <p>Processing your payment, please wait...</p>
+                </div> -->
+
+                <div v-if="isProcessing" class="loading-container">
+                <div class="loading-box">
+                    <img src="../assets/lazy_loading.png" alt="Processing Payment..." />
+                    <p>Processing your payment, please wait...</p>
+                </div>
+                </div>
+                    
+                <p v-if="paymentStatus">{{ paymentStatus }}</p>
             </div>
 
             <div class="checkout-summary">
@@ -92,6 +106,8 @@ export default {
             cart: {},
             loading: true,
             isProcessing: false,
+            paymentDetails: '',
+            paymentStatus: '',
             paymentError: null,
             status: null,
             paymentId: '',
@@ -412,6 +428,17 @@ export default {
             }
         },
 
+        async processPayment() {
+        this.isProcessing = true;
+        this.paymentStatus = '';
+        
+        // Simulate payment processing delay
+        setTimeout(() => {
+            this.isProcessing = false;
+            this.paymentStatus = 'Payment successful!';
+        }, 3000);
+        },
+
         closeConfirmation() {
             this.showConfirmation = false;
             // Navigate back to home or wherever you want
@@ -729,6 +756,35 @@ export default {
     border-top: 1px solid #ddd;
     font-weight: 600;
     font-size: 1.2rem;
+}
+
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.loading-container img {
+  width: 20%; /* Adjust based on screen size */
+  max-width: 150px; /* Set a max limit */
+  height: auto; /* Maintain aspect ratio */
+}
+.loading-box {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+.loading-box img {
+  width: 150px;
+  height: auto;
 }
 
 @media (max-width: 768px) {
