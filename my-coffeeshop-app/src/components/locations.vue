@@ -5,20 +5,20 @@ import { ref } from 'vue'
 const locations = ref([
     {
         id: 1,
-        name: 'Downtown',
-        address: '123 Main Street, Beantown, CT',
+        name: 'Orchard Rd',
+        address: '2 Orchard Turn, #B2 - 09, Singapore 238801',
         hours: 'Open Daily: 6am - 8pm'
     },
     {
         id: 2,
-        name: 'Riverside',
-        address: '456 Water Lane, Beantown, CT',
+        name: 'SMU',
+        address: '70 Stamford Rd, #B1-25 Li Ka Shing Library, SMU 178901',
         hours: 'Open Daily: 7am - 7pm'
     },
     {
         id: 3,
-        name: 'University District',
-        address: '789 College Road, Beantown, CT',
+        name: 'Changi Airport',
+        address: '80 Airport Blvd, Singapore Changi Airport, Singapore 819642',
         hours: 'Open Daily: 6am - 10pm'
     }
 ]);
