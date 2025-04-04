@@ -91,11 +91,16 @@
 <script>
 import { loadStripe } from '@stripe/stripe-js';
 import axios from 'axios';
+import { useAuthStore } from '../authStore'; // Import the auth store
 import OrderConfirmation from '../components/orderConfirmation.vue';
 
 export default {
     components: {
         OrderConfirmation
+    },
+    setup() {
+        const authStore = useAuthStore();
+        return { authStore };
     },
     data() {
         return {
@@ -112,7 +117,7 @@ export default {
             status: null,
             paymentId: '',
             showConfirmation: false,
-            userId: 'test24', // Replace with dynamic user ID if needed
+            // userId: 'test24', // Replace with dynamic user ID if needed
             outletId: JSON.parse(localStorage.getItem('selectedOutletId')),   // Replace with dynamic outlet ID if needed
             apiConfig: {
                 cartService: {
@@ -136,6 +141,9 @@ export default {
     },
 
     computed: {
+        userId() {
+            return this.authStore.user?.uid || null; // Get user ID from auth store
+        },
         subtotal() {
             return this.cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
         },
@@ -148,6 +156,7 @@ export default {
     },
 
     async mounted() {
+        await this.authStore.init();
         await this.fetchCartDetails();
         await this.initializePayment();
         this.setupWebhookListener();
@@ -155,6 +164,12 @@ export default {
 
     methods: {
         async fetchCartDetails() {
+            // Only fetch if we have a user ID and outlet ID
+            if (!this.userId || !this.outletId) {
+                this.cartItems = [];
+                this.loading = false;
+                return;
+            }
             try {
                 this.loading = true;
                 console.log('Starting cart data fetch...');
@@ -162,7 +177,10 @@ export default {
                 // Create axios instances with different configurations
                 const cartClient = axios.create({
                     baseURL: this.apiConfig.cartService.baseURL,
-                    timeout: this.apiConfig.cartService.timeout
+                    timeout: this.apiConfig.cartService.timeout,
+                    // headers: this.userId ? { 
+                    //     Authorization: await this.authStore.user.getIdToken() 
+                    // } : {}
                 });
 
                 const drinkClient = axios.create({
@@ -444,7 +462,17 @@ export default {
             // Navigate back to home or wherever you want
             this.$router.push('/');
         }
+    },
+    watch: {
+        // Watch for changes in userId or outletId
+        userId() {
+            this.fetchCartDetails();
+        },
+        outletId() {
+            this.fetchCartDetails();
+        }
     }
+    
 };
 </script>
 

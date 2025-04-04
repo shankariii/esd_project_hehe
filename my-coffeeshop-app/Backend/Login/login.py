@@ -130,9 +130,10 @@ def login():
         if not profile:
             return jsonify({"error": "Profile not found in SQL"}), 404
 
+        print(profile)
         return jsonify({
             "message": "Login successful",
-            "user": profile.json()
+            "user": user.uid
         }), 200
 
     except Exception as e:

@@ -37,36 +37,41 @@ const router = createRouter({
     {
       path: '/drink/:id',
       name: 'drink',
-      component: DrinkCustomization
+      component: DrinkCustomization,
+      meta: { requiresAuth: true }
     },
     { 
       path: '/profile', 
       name: 'profile',
-      component: Profile 
+      component: Profile,
+      meta: { requiresAuth: true }
     },
     { 
       path: '/cart', 
       name: 'cart',
-      component: Cart 
+      component: Cart,
+      meta: { requiresAuth: true }
     },
     { 
       path: '/trackOrders', 
       name: 'trackOrders',
-      component: TrackOrders 
+      component: TrackOrders,
+      meta: { requiresAuth: true }
     },
-    { 
-      path: '/homepage/#about', 
-      name: 'about',
-    },
+    // { 
+    //   path: '/homepage/#about', 
+    //   name: 'about',
+    // },
     { 
       path: '/checkout', 
       name: 'checkout',
-      component: Checkout 
+      component: Checkout,
+      meta: { requiresAuth: true }
     },
     { 
       path: '/findOutlet', 
       name: 'findOutlet',
-      component: FindOutlet 
+      component: FindOutlet
     },
     { 
       path: '/random/:id', 
@@ -79,9 +84,16 @@ const router = createRouter({
       name: 'not-found',
       component: () => import('./views/404Error.vue') // Lazy loaded
     }
-  ]
+  ],
+  scrollBehavior(to, from, savedPosition) {
+    if (to.hash) {
+      return {
+        el: to.hash,
+        behavior: 'smooth',
+      }
+    }
+    return savedPosition || { top: 0 }
+  }
 })
-
-
 
 export default router

@@ -159,6 +159,7 @@
 
 <script>
 import { useRouter } from 'vue-router';
+import { useAuthStore } from '../authStore';  // Import the auth store
 import axios from 'axios';
 
 const router = useRouter();
@@ -169,7 +170,7 @@ export default {
       // shipping: 0,
       tax: 0,
       loading: true,
-      userId: 'test24', // Replace with dynamic user ID if needed
+      // userId: 'test24', // Replace with dynamic user ID if needed
       outletId: JSON.parse(localStorage.getItem('selectedOutletId')),   // Replace with dynamic outlet ID if needed
       cartId: 0,
       currentTotal: 0,
@@ -189,7 +190,15 @@ export default {
       }
     };
   },
+  setup() {
+    const authStore = useAuthStore();
+    const router = useRouter();
+    return { authStore, router };
+  },
   computed: {
+    userId() {
+      return this.authStore.user?.uid || null;  // Get user ID from auth store
+    },
     subtotal() {
       return this.cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
     },
@@ -206,7 +215,10 @@ export default {
         // Create axios instances with different configurations
         const cartClient = axios.create({
           baseURL: this.apiConfig.cartService.baseURL,
-          timeout: this.apiConfig.cartService.timeout
+          timeout: this.apiConfig.cartService.timeout,
+          // headers: this.userId ? { 
+          //   Authorization: await this.authStore.user.getIdToken() 
+          // } : {}
         });
 
         const drinkClient = axios.create({
@@ -382,8 +394,21 @@ export default {
       this.$router.push('/menu');
     }
   },
+  watch: {
+    // Watch for changes in userId or outletId
+    userId() {
+      this.fetchCartDetails();
+    },
+    outletId() {
+      this.fetchCartDetails();
+    }
+  },
   created() {
-    this.fetchCartDetails();
+    // this.fetchCartDetails();
+    // Initialize auth and then fetch cart
+    this.authStore.init().then(() => {
+      this.fetchCartDetails();
+    });
   }
 };
 </script>

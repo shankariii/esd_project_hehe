@@ -2,7 +2,7 @@
     <div class="error-page">
       <div class="error-container">
         <div class="coffee-cup">
-          <img src="../assets/drink_logo.png" alt="404 Error - Coffee Cup" />
+          <img src="../assets/Brew_Haven_Logo.png" alt="404 Error - Coffee Cup" />
         </div>
         <h1>Oops! Page Not Found</h1>
         <p>Looks like this brew went missing...</p>

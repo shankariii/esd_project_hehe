@@ -1,571 +1,466 @@
 <template>
-  <div class="drink-customization">
-    <div class="content-wrapper">
-      <!-- Main Content Column -->
-      <div class="main-content">
-        <!-- Drink Header Section -->
-        <div class="drink-header">
-          <div class="drink-image-container">
-            <img :src="drink.image" :alt="drink.drink_name" class="drink-image" />
-          </div>
-          <div class="drink-details">
-            <h2>{{ drink.drink_name }}</h2>
-            <p>{{ drink.description }}</p>
-            <p><strong>Price:</strong> ${{ drink.price.toFixed(2) }}</p>
-          </div>
-        </div>
-
-        <!-- Customization Options -->
-        <div class="customization-options">
-          <!-- Size Options -->
-          <div class="customization-section">
-            <h3>Size</h3>
-            <div class="options-container">
-              <div 
-                v-for="size in sizeOptions" 
-                :key="size.customisation_id" 
-                class="option-button"
-                :class="{ 'option-selected': selectedSize.customisation_id === size.customisation_id }"
-                @click="selectedSize = size"
-              >
-                {{ size.name }} (+${{ size.price_diff.toFixed(2) }})
-              </div>
-            </div>
-          </div>
-
-          <!-- Milk Options -->
-          <div class="customization-section">
-            <h3>Milk Options</h3>
-            <div class="options-container">
-              <div 
-                v-for="milk in milkOptions" 
-                :key="milk.customisation_id" 
-                class="option-button"
-                :class="{ 'option-selected': selectedMilk.customisation_id === milk.customisation_id }"
-                @click="selectedMilk = milk"
-              >
-                {{ milk.name }}
-                <span v-if="milk.price_diff > 0">(+${{ milk.price_diff.toFixed(2) }})</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Extra Shots -->
-          <div class="customization-section">
-            <h3>Quantity</h3>
-            <div class="counter-container">
-              <button 
-                class="counter-button" 
-                @click="decrementQuantity" 
-                :disabled="extraShots <= 0"
-              >-</button>
-              <span class="counter-value">{{ quantity }}</span>
-              <button 
-                class="counter-button" 
-                @click="incrementQuantity"
-              >+</button>
-            </div>
-          </div>
-
-          <!-- Add-ons / Extras -->
-          <div class="customization-section">
-            <h3>Extras</h3>
-            <div class="checkbox-options">
-              <div v-for="addon in addons" :key="addon.customisation_id" class="checkbox-option">
-                <input
-                  type="checkbox"
-                  :id="addon.name"
-                  :value="addon"
-                  v-model="selectedAddons"
-                />
-                <label :for="addon.name">{{ addon.name }} (+${{ addon.price_diff.toFixed(2) }})</label>
-              </div>
-            </div>
-          </div>
-
-          <!-- Special Instructions -->
-          <!-- <div class="customization-section">
-            <h3>Special Instructions</h3>
-            <textarea v-model="specialInstructions" placeholder="Any special requests?"></textarea>
-          </div> -->
-        </div>
+  <div class="login-container">
+    <div class="login-card">
+      <div class="brand">
+        <h1>Brew Heaven</h1>
+        <p class="tagline">Crafting Perfect Moments</p>
       </div>
-
-      <!-- Sidebar with Order Summary -->
-      <div class="order-summary-sidebar">
-        <div class="order-summary">
-          <h3>Order Summary</h3>
-          <div class="summary-content">
-            <div class="summary-item">
-              <span class="item-label">Drink:</span>
-              <span class="item-value">{{ drink.drink_name }}</span>
-            </div>
-            <div class="summary-item">
-              <span class="item-label">Size:</span>
-              <span class="item-value">{{ selectedSize.name }}</span>
-            </div>
-            <div class="summary-item">
-              <span class="item-label">Milk:</span>
-              <span class="item-value">{{ selectedMilk.name }}</span>
-            </div>
-            <div class="summary-item" v-if="extraShots > 0">
-              <span class="item-label">Extra Shots:</span>
-              <span class="item-value">{{ extraShots }}</span>
-            </div>
-            <div class="summary-item">
-              <span class="item-label">Add-ons:</span>
-              <span class="item-value">{{ selectedAddons.map(a => a.name).join(', ') || 'None' }}</span>
-            </div>
-            <!-- <div class="summary-item" v-if="specialInstructions">
-              <span class="item-label">Special Instructions:</span>
-              <span class="item-value instructions">{{ specialInstructions }}</span>
-            </div> -->
-            <div class="summary-divider"></div>
-            <div class="summary-item total">
-              <span class="item-label">Total Price:</span>
-              <span class="item-value">${{ totalPrice.toFixed(2) }}</span>
-            </div>
-          </div>
-
-          <!-- Navigation Buttons -->
-          <div class="navigation-buttons">
-            <button @click="goBack" class="back-btn">Back</button>
-            <button @click="addToCart" class="add-btn">Add to Cart</button>
-          </div>
-        </div>
+      
+      <div class="tabs">
+        <button 
+          :class="['tab-btn', { active: activeTab === 'login' }]" 
+          @click="activeTab = 'login'"
+        >
+          Login
+        </button>
+        <button 
+          :class="['tab-btn', { active: activeTab === 'register' }]" 
+          @click="activeTab = 'register'"
+        >
+          Create Account
+        </button>
       </div>
+      
+      <form v-if="activeTab === 'login'" @submit.prevent="handleLogin" class="login-form">
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input 
+            type="email" 
+            id="email" 
+            v-model="loginForm.email" 
+            placeholder="your@email.com" 
+            required
+          >
+        </div>
+        
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input 
+            type="password" 
+            id="password" 
+            v-model="loginForm.password" 
+            placeholder="Enter your password" 
+            required
+          >
+        </div>
+        
+        <button type="submit" class="submit-btn">Log In</button>
+        <a href="#" class="forgot-password" @click.prevent="handleForgotPassword">Forgot Password?</a>
+      </form>
+      
+      <form v-else @submit.prevent="handleRegister" class="login-form">
+        <div class="form-group">
+          <label for="reg-name">Full Name</label>
+          <input 
+            type="text" 
+            id="reg-name" 
+            v-model="registerForm.name" 
+            placeholder="Your name" 
+            required
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="reg-name">Phone Number</label>
+          <input 
+            type="number" 
+            id="reg-phone" 
+            v-model="registerForm.phone" 
+            placeholder="91239843" 
+            required
+          >
+        </div>
+        
+        <div class="form-group">
+          <label for="reg-email">Email</label>
+          <input 
+            type="email" 
+            id="reg-email" 
+            v-model="registerForm.email" 
+            placeholder="your@email.com" 
+            required
+          >
+        </div>
+        
+        <div class="form-group">
+          <label for="reg-password">Password</label>
+          <input 
+            type="password" 
+            id="reg-password" 
+            v-model="registerForm.password" 
+            placeholder="Create a password" 
+            required
+          >
+        </div>
+        
+        <button type="submit" class="submit-btn">Create Account</button>
+      </form>
+      
+      <div class="divider">
+        <span>or</span>
+      </div>
+      
+      <button @click="signInWithGoogle" class="google-btn">
+        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google logo">
+        Continue with Google
+      </button>
+      
+      <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
     </div>
   </div>
 </template>
 
+<script>
+import axios from 'axios'
+import { ref, reactive } from 'vue'
+import { 
+  getAuth, 
+  signInWithEmailAndPassword, 
+  createUserWithEmailAndPassword, 
+  GoogleAuthProvider, 
+  signInWithPopup,
+  sendPasswordResetEmail
+} from 'firebase/auth'
+import { useRouter } from 'vue-router';
+
+
+export default {
+  name: 'LoginComponent',
+  setup() {
+    const router = useRouter();
+    const activeTab = ref('login')
+    const errorMessage = ref('')
+    
+    const loginForm = reactive({
+      email: '',  
+      password: ''
+    })
+    
+    const registerForm = reactive({
+      name: '',
+      phone: '',
+      email: '',
+      password: ''
+    })
+    
+    const auth = getAuth()
+    
+    const handleLogin = async () => {
+try {
+  errorMessage.value = '';
+
+  // Step 1: Log in to Firebase
+  await signInWithEmailAndPassword(auth, loginForm.email, loginForm.password);
+  const user = auth.currentUser;
+
+  if (!user || !user.email) {
+    throw new Error('No user info from Firebase');
+  }
+
+  // Step 2: Call your Flask backend to get userId
+  const response = await axios.post("http://localhost:5019/login", {
+    email: user.email,
+  });
+
+  console.log('✅ Backend response:', response.data);
+  
+  // Add this debug line
+  console.log('🔑 User ID from backend:', response.data.user);
+
+  // Step 3: Store in localStorage
+  localStorage.setItem('userId', response.data.user);
+  
+  // Add this debug line
+  console.log('💾 Stored in localStorage:', localStorage.getItem('userId'));
+  
+  localStorage.setItem('selectedOutletId', '1'); // or whichever outlet is selected
+
+  // Step 4: Redirect
+  alert('You have been logged in successfully!');
+  router.push('/findOutlet');
+} catch (error) {
+  console.error('Login error:', error);
+  errorMessage.value = 'Login failed. Please try again.';
+}
+};
+
+    
+    //new handleregister funtion 
+    const handleRegister = async () => {
+    try {
+      errorMessage.value = '';
+
+      // Step 1: We create Firebase Auth account
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        registerForm.email,
+        registerForm.password
+      );
+
+      // Step 2: Send user data to Flask `/register` endpoint (login.py)
+      const response = await axios.post('http://localhost:5019/register', {
+        email: registerForm.email,
+        password: registerForm.password,
+        username: registerForm.name,
+        phoneNum: registerForm.phone
+      });
+
+      if (response.status === 201) {
+        console.log('Account registered and profile created!');
+        alert('Registration successful!');
+        router.push('/login');  // Or wherever you want to redirect
+      } else {
+        errorMessage.value = response.data.error || 'Something went wrong.';
+      }
+
+    } catch (error) {
+      if (error.response) {
+        // Error returned by Flask backend
+        errorMessage.value = error.response.data.details || 'Backend registration error.';
+      } else {
+        // Firebase error
+        errorMessage.value = getErrorMessage(error.code);
+      }
+    }
+  };
+
+    
+    const signInWithGoogle = async () => {
+      try {
+        errorMessage.value = ''
+        const provider = new GoogleAuthProvider()
+        await signInWithPopup(auth, provider)
+        // Redirect or handle successful login
+        console.log('Logged in with Google successfully')
+
+        alert('You have been logged in successfully!')
+        
+        console.log(router)
+        router.push(`/findOutlet`)
+      } catch (error) {
+        errorMessage.value = 'Google sign-in failed. Please try again.'
+      }
+    }
+    
+    const handleForgotPassword = async () => {
+      if (!loginForm.email) {
+        errorMessage.value = 'Please enter your email address'
+        return
+      }
+      
+      try {
+        await sendPasswordResetEmail(auth, loginForm.email)
+        errorMessage.value = 'Password reset email sent! Check your inbox.'
+      } catch (error) {
+        errorMessage.value = 'Failed to send reset email. Please try again.'
+      }
+    }
+    
+    const getErrorMessage = (errorCode) => {
+      switch (errorCode) {
+        case 'auth/invalid-email':
+          return 'Invalid email address.'
+        case 'auth/user-disabled':
+          return 'This account has been disabled.'
+        case 'auth/user-not-found':
+          return 'No account found with this email.'
+        case 'auth/wrong-password':
+          return 'Incorrect password.'
+        case 'auth/email-already-in-use':
+          return 'This email is already registered.'
+        case 'auth/weak-password':
+          return 'Password should be at least 6 characters.'
+        default:
+          return 'An error occurred. Please try again.'
+      }
+    }
+    
+    return {
+      activeTab,
+      loginForm,
+      registerForm,
+      errorMessage,
+      handleLogin,
+      handleRegister,
+      signInWithGoogle,
+      handleForgotPassword
+    }
+  }
+}
+</script>
+
 <style scoped>
-.drink-customization {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding-top: 6%;
+.login-container {
+  padding-top: 70px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
   background-color: var(--light);
+  background-image: linear-gradient(rgba(239, 235, 233, 0.8), rgba(239, 235, 233, 0.8)), 
+                    url('path-to-your-coffee-background.jpg');
+  background-size: cover;
+  background-position: center;
 }
 
-/* New side-by-side layout */
-.content-wrapper {
-  display: flex;
-  gap: 6rem;
-}
-
-.main-content {
-  flex: 1;
-  min-width: 0; /* Prevents flex items from overflowing */
-}
-
-.order-summary-sidebar {
-  width: 350px;
-  flex-shrink: 0;
-  align-self: flex-start;
-  position: sticky;
-  top: 6rem;
-}
-
-/* Drink Header */
-.drink-header {
-  display: flex;
-  gap: 2rem;
-  margin-bottom: 2rem;
-  align-items: flex-start;
-}
-
-.drink-image-container {
-  flex: 0 0 300px;
-}
-
-.drink-image {
+.login-card {
   width: 100%;
-  height: auto;
+  max-width: 450px;
+  background-color: white;
   border-radius: 10px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  padding: 2.5rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
 }
 
-.drink-details {
-  flex: 1;
-  text-align: left;
-}
-
-.drink-details h2 {
-  color: var(--primary);
-  margin-bottom: 0.75rem;
-  font-size: 2rem;
-}
-
-.drink-details p {
-  margin-bottom: 0.75rem;
-  line-height: 1.6;
-  color: var(--text);
-}
-
-.customization-options {
-  display: grid;
-  gap: 2rem;
-  border-radius: 12px;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+.brand {
+  text-align: center;
   margin-bottom: 2rem;
-  background-color: #f9f9f9;
 }
 
-.customization-section {
-  /* background-color: #f9f9f9; */
-  padding: 1.5rem;
-  /* border-radius: 10px; */
-  /* box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1); */
-
-}
-
-.customization-section h3 {
+.brand h1 {
   color: var(--primary);
-  margin-bottom: 1rem;
-  font-size: 1.5rem;
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
 }
 
-/* Style for option buttons (size, milk) */
-.options-container {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-}
-
-.option-button {
-  padding: 0.75rem 1.25rem;
-  background-color: var(--light);
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-weight: 500;
-}
-
-.option-button:hover {
-  background-color: #e9e3e0;
-}
-
-.option-selected {
-  background-color: var(--primary);
-  color: white;
-}
-
-/* Style for counter (extra shots) */
-.counter-container {
-  display: flex;
-  align-items: center;
-  width: fit-content;
-}
-
-.counter-button {
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: var(--light);
-  border: 1px solid #e0e0e0;
-  border-radius: 4px;
-  font-size: 1.5rem;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.counter-button:hover:not(:disabled) {
-  background-color: #e9e3e0;
-}
-
-.counter-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.counter-value {
-  min-width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.25rem;
-  font-weight: 500;
-  margin: 0 0.5rem;
-}
-
-/* Style for checkboxes (add-ons) */
-.checkbox-options {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 0.75rem;
-}
-
-.checkbox-option {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.checkbox-option input[type="checkbox"] {
-  width: 18px;
-  height: 18px;
-  cursor: pointer;
-}
-
-.checkbox-option label {
-  cursor: pointer;
-}
-
-/* Special instructions textarea */
-textarea {
-  width: 100%;
-  min-height: 80px;
-  padding: 0.75rem;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  resize: vertical;
-  font-family: inherit;
+.tagline {
+  color: var(--text-light);
   font-size: 1rem;
 }
 
-textarea:focus {
+.tabs {
+  display: flex;
+  border-bottom: 1px solid #eee;
+  margin-bottom: 1.5rem;
+}
+
+.tab-btn {
+  flex: 1;
+  background: none;
+  border: none;
+  padding: 1rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-light);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.tab-btn.active {
+  color: var(--primary);
+  border-bottom: 2px solid var(--primary);
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+label {
+  font-weight: 600;
+  color: var(--text);
+  font-size: 0.9rem;
+}
+
+input {
+  padding: 0.75rem 1rem;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-size: 1rem;
+  transition: border-color 0.3s;
+}
+
+input:focus {
   outline: none;
   border-color: var(--primary);
 }
 
-/* Order summary */
-.order-summary {
-  background-color: #f9f9f9;
-  padding: 1.5rem;
-  border-radius: 12px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-  border: 1px solid #eaeaea;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-}
-
-.order-summary h3 {
-  color: var(--primary);
-  margin-bottom: 1.25rem;
-  font-size: 1.5rem;
-  border-bottom: 2px solid var(--primary);
-  padding-bottom: 0.75rem;
-  position: relative;
-}
-
-.summary-content {
-  padding: 0.5rem;
-  flex: 1;
-}
-
-.summary-item {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 0.85rem;
-  align-items: flex-start;
-}
-
-.item-label {
-  font-weight: 600;
-  color: #555;
-  flex: 0 0 40%;
-}
-
-.item-value {
-  text-align: right;
-  color: #333;
-  flex: 0 0 60%;
-  word-break: break-word;
-}
-
-.instructions {
-  font-style: italic;
-  font-size: 0.95rem;
-}
-
-.summary-divider {
-  height: 1px;
-  background-color: #eaeaea;
-  margin: 1rem 0;
-}
-
-.summary-item.total {
-  margin-top: 0.5rem;
-  font-size: 1.25rem;
-}
-
-.summary-item.total .item-label {
-  color: var(--primary);
-}
-
-.summary-item.total .item-value {
-  font-weight: 700;
-  color: var(--primary);
-}
-
-/* Navigation buttons */
-.navigation-buttons {
-  display: flex;
-  justify-content: space-between;
-  margin-top: auto;
-  padding-top: 1.5rem;
-}
-
-.navigation-buttons button {
-  padding: 0.75rem 1.5rem;
+.submit-btn {
+  background-color: var(--primary);
+  color: white;
   border: none;
   border-radius: 5px;
-  font-weight: 500;
+  padding: 0.75rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  margin-top: 0.5rem;
+}
+
+.submit-btn:hover {
+  background-color: var(--dark);
+}
+
+.forgot-password {
+  text-align: center;
+  color: var(--primary);
+  text-decoration: none;
+  font-size: 0.9rem;
+  margin-top: 1rem;
+  display: block;
+}
+
+.divider {
+  position: relative;
+  text-align: center;
+  margin: 1.5rem 0;
+}
+
+.divider::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background-color: #eee;
+}
+
+.divider span {
+  position: relative;
+  background-color: white;
+  padding: 0 1rem;
+  color: var(--text-light);
+  font-size: 0.9rem;
+}
+
+.google-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  width: 100%;
+  background-color: white;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  padding: 0.75rem;
+  font-size: 1rem;
   cursor: pointer;
   transition: background-color 0.3s;
 }
 
-.back-btn {
-  background-color: #e0e0e0;
-  color: var(--text);
+.google-btn:hover {
+  background-color: #f5f5f5;
 }
 
-.back-btn:hover {
-  background-color: #d0d0d0;
+.google-btn img {
+  width: 18px;
+  height: 18px;
 }
 
-.add-btn {
-  background-color: var(--primary);
-  color: white;
-}
-
-.add-btn:hover {
-  background-color: var(--secondary);
-}
-
-@media (max-width: 1024px) {
-  .content-wrapper {
-    flex-direction: column;
-  }
-  
-  .order-summary-sidebar {
-    width: 100%;
-    position: static;
-  }
-}
-
-@media (max-width: 768px) {
-  .drink-header {
-    flex-direction: column;
-  }
-  
-  .drink-image-container {
-    flex: 0 0 auto;
-    width: 100%;
-    margin-bottom: 1rem;
-  }
-  
-  .options-container {
-    flex-direction: column;
-  }
-  
-  .option-button {
-    width: 100%;
-  }
-  
-  .checkbox-options {
-    grid-template-columns: 1fr;
-  }
-  
-  .summary-item {
-    flex-direction: column;
-    margin-bottom: 1rem;
-  }
-  
-  .item-label {
-    margin-bottom: 0.25rem;
-    flex: 0 0 100%;
-  }
-  
-  .item-value {
-    flex: 0 0 100%;
-    text-align: left;
-  }
+.error-message {
+  color: #d32f2f;
+  font-size: 0.9rem;
+  margin-top: 1rem;
+  text-align: center;
 }
 </style>
-
-
-<script>
-import axios from 'axios';
-
-export default {
-  data() {
-    return {
-      drink: {}, // Holds the drink details
-      sizeOptions: [], // Holds size customizations
-      milkOptions: [], // Holds milk customizations
-      addons: [], // Holds add-ons
-      selectedSize: {}, // Selected size
-      selectedMilk: {}, // Selected milk
-      selectedAddons: [], // Selected add-ons
-      quantity: 1, // Number of extra shots
-      specialInstructions: '', // Special instructions
-    };
-  },
-  computed: {
-    // Calculate the total price dynamically
-    totalPrice() {
-      let total = this.drink.price;
-      total += this.selectedSize.price_diff || 0;
-      total += this.selectedMilk.price_diff || 0;
-      total += this.selectedAddons.reduce((sum, addon) => sum + addon.price_diff, 0);
-      
-      // Add price for extra shots (assuming $0.75 per shot)
-      total = total * this.quantity;
-      
-      return total;
-    },
-  },
-  async created() {
-    // Fetch drink details
-    const drinkId = this.$route.params.id; // Assuming the drink ID is passed via route
-    const drinkResponse = await axios.get(`http://127.0.0.1:5002/drinks/${drinkId}`);
-    this.drink = drinkResponse.data;
-
-    // Fetch customization options
-    const sizeResponse = await axios.get('http://127.0.0.1:5002/customisations/type/S');
-    this.sizeOptions = sizeResponse.data;
-
-    const milkResponse = await axios.get('http://127.0.0.1:5002/customisations/type/M');
-    this.milkOptions = milkResponse.data;
-
-    const addonsResponse = await axios.get('http://127.0.0.1:5002/customisations/type/A');
-    this.addons = addonsResponse.data;
-
-    // Set default selections
-    this.selectedSize = this.sizeOptions[0];
-    this.selectedMilk = this.milkOptions[0];
-  },
-  methods: {
-    goBack() {
-      this.$router.go(-1); // Navigate back
-    },
-    addToCart() {
-      // Add the customized drink to the cart
-      const order = {
-        drink: this.drink,
-        size: this.selectedSize,
-        milk: this.selectedMilk,
-        extraShots: this.extraShots,
-        addons: this.selectedAddons,
-        specialInstructions: this.specialInstructions,
-        totalPrice: this.totalPrice,
-      };
-      console.log('Added to cart:', order);
-      // You can implement cart logic here
-    },
-    incrementQuantity() {
-      this.quantity += 1;
-    },
-    decrementQuantity() {
-      if (this.quantity > 1) {
-        this.quantity -= 1;
-      }
-    }
-  },
-};
-</script>

@@ -1,20 +1,28 @@
 <template>
-    <div class="menu-container section">
-      <div class="search-container">
-        <div class="search-box">
-          <input 
-            type="text" 
-            v-model="searchQuery" 
-            placeholder="Search drinks..." 
-            class="search-input"
-            @input="searchDrinks"
-          />
-          <button class="search-btn">
-            <i class="fa fa-search"></i>
-          </button>
-        </div>
+  <div class="menu-container section">
+    <div class="search-container">
+      <div class="search-box">
+        <input 
+          type="text" 
+          v-model="searchQuery" 
+          placeholder="Search drinks..." 
+          class="search-input"
+          @input="searchDrinks"
+        />
+        <button class="search-btn">
+          <i class="fa fa-search"></i>
+        </button>
       </div>
-  
+    </div>
+
+    <!-- Loading state -->
+    <div v-if="loading" class="loading" style="text-align: center; padding: 3rem 0;">
+      <i class="fas fa-spinner fa-spin" style="font-size: 3rem; color: var(--primary); margin-bottom: 1rem;"></i>
+      <h3 style="margin-bottom: 1rem; color: var(--dark);">Loading drinks...</h3>
+    </div>
+
+    <!-- Content when loaded -->
+    <div v-else>
       <div class="products-grid">
         <div 
           v-for="drink in filteredDrinks" 
@@ -22,7 +30,7 @@
           class="product-card"
           @click="navigateToDrinkDetail(drink.drink_id)"
         >
-          <img :src="drink.image"  :alt="drink.drink_name" class="product-img">
+          <img :src="drink.image" :alt="drink.drink_name" class="product-img">
           <div class="product-content">
             <h3 class="product-title">{{ drink.drink_name }}</h3>
             <p class="product-desc">{{ drink.description }}</p>
@@ -38,8 +46,8 @@
         </div>
       </div>
     </div>
-  </template>
-  
+  </div>
+</template>
   <script>
   import axios from 'axios';
   

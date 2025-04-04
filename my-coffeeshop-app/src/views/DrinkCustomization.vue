@@ -478,8 +478,13 @@ textarea:focus {
 
 <script>
 import axios from 'axios';
+import { useAuthStore } from '../authStore'; // Import the auth store
 
 export default {
+  setup() {
+    const authStore = useAuthStore();
+    return { authStore };
+  },
   data() {
     return {
       drink: {}, // Holds the drink details
@@ -495,6 +500,9 @@ export default {
     };
   },
   computed: {
+    userId() {
+      return this.authStore.user?.uid || null; // Get user ID from auth store
+    },
     // Calculate the total price dynamically
     totalPrice() {
       let total = this.drink.price;
@@ -509,6 +517,13 @@ export default {
     },
   },
   async created() {
+    await this.authStore.init(); // Initialize auth first
+    
+    // Only proceed if user is authenticated
+    if (!this.authStore.isAuthenticated) {
+      this.$router.push('/login');
+      return;
+    }
     // Fetch drink details
     this.drinkId = this.$route.params.id; // Assuming the drink ID is passed via route
     const drinkResponse = await axios.get(`http://127.0.0.1:5005/drinks/${this.drinkId}`);
@@ -533,37 +548,16 @@ export default {
     goBack() {
       this.$router.go(-1); // Navigate back
     },
-    // async addToCart() {
-    //   // Add the customized drink to the cart
-    //   const order = {
-    //     drink: this.drink,
-    //     size: this.selectedSize,
-    //     milk: this.selectedMilk,
-    //     extraShots: this.extraShots,
-    //     addons: this.selectedAddons,
-    //     specialInstructions: this.specialInstructions,
-    //     totalPrice: this.totalPrice,
-    //   };
 
-    //   const addtoCart = await axios.post('http://127.0.0.1:5013/create_cart'){};
-    //   console.log('Added to cart:', order);
-    //   // You can implement cart logic here
-    // },
 
     async addToCart() {
+      if (!this.userId) {
+        alert('Please login to add items to cart');
+        return;
+      }
       try {
-        // Collect all customization IDs
-        // const customisationIds = [
-        //   this.selectedSize.customisation_id,  // Size customization
-        //   this.selectedMilk.customisation_id ,  // Milk customization
-        //   // ...this.selectedAddons.map(addon => addon.customisation_id) 
-        // ];
-
-        // // Add all selected add-ons' customization IDs
-        // this.selectedAddons.forEach(addon => {
-        //   customisationIds.push(addon.customisation_id);
-        // });
-
+        // const idToken = await this.authStore.user.getIdToken();
+        
         const cartItemCustomisation = [
           ...this.selectedAddons.map(addon => ({ customisationId_fk: addon.customisation_id }))];
 
@@ -578,7 +572,7 @@ export default {
         // Create the payload with the correct structure
         const payload = {
           "cart": {
-            "user_id": "test24", // Replace with dynamic value if needed
+            "user_id": this.userId, // Replace with dynamic value if needed
             "outlet_id": JSON.parse(localStorage.getItem('selectedOutletId')), // Replace with dynamic value if needed
             "totalPrice": parseFloat(this.totalPrice)
           },
@@ -593,6 +587,12 @@ export default {
         console.log(payload)
 
         const response = await axios.post('http://127.0.0.1:5200/add_to_cart', payload);
+        //   headers: {Authorization: idToken}
+        // });
+
+        // const response = await axios.post('http://127.0.0.1:5200/add_to_cart', payload,{
+        //   headers: {Authorization: idToken}
+        // });
         console.log(response);
 
         if (response.data && response.data.data && response.data.data.cart_id) {

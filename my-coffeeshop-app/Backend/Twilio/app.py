@@ -23,6 +23,7 @@ app = Flask(__name__)
 @app.route('/send-sms', methods=['POST'])
 def send_sms():
     data = request.json
+    print(data)
     to_number = data.get('to', '+6590129471')  # Default fallback
     message = data.get('body', 'Hello from Dockerized Flask!')
     

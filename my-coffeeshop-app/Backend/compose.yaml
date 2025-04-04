@@ -1,6 +1,3 @@
-## PLEASE CHANGE THE DOCKERID TO YOUR OWN!!!
-## REPLACE ALL THE jiaxuanlai WITH YOUR OWN DOCKERID:)
-
 networks:
   esd-net:
     driver: bridge
@@ -197,6 +194,24 @@ services:
       - "5100:5100"
     networks:
       - esd-net
+
+  ###################################
+  # Payment_log: The Payment_log microservice
+  ###################################
+  payment_log:
+    build:
+      context: ./payment_log
+      dockerfile: payment_log.Dockerfile
+    image: shashass/payment_log:esd
+    restart: always
+    environment:
+      dbURL: mysql+mysqlconnector://is213@host.docker.internal:3306/payment_log
+      PYTHONUNBUFFERED: 1
+    ports:
+      - "5123:5123"
+    networks:
+      - esd-net
+
 
 ###################################
   # Add to Cart: The Add to Cart composite microservice

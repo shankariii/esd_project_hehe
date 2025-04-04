@@ -1,16 +1,28 @@
 <template>
     <div class="profile-container" style="max-width: 1200px; margin: 0 auto; padding: 5rem 2rem;">
-        <!-- Page Header -->
-        <div class="section-heading">
-            <h2>My Account</h2>
-            <p>Manage your orders and personal information</p>
+        <!-- Page Header with improved layout -->
+        <div class="header-section" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+            <div>
+                <!-- <div class="section-heading">
+                    <h2>My Account</h2>
+                    <p>Manage your orders and personal information</p>
+                </div> -->
+                
+                <!-- Back link -->
+                <a href="index.html"
+                    style="color: var(--primary); display: flex; align-items: center; text-decoration: none; font-weight: 500; margin-top: 0.5rem;">
+                    <i class="fas fa-arrow-left" style="margin-right: 0.5rem;"></i> Back to Home
+                </a>
+            </div>
+            
+            <!-- Moved logout button to top-right -->
+            <button @click="logout" style="background: none; border: 1px solid var(--primary); color: var(--primary); 
+                           padding: 0.5rem 1rem; border-radius: 5px; cursor: pointer;
+                           transition: all 0.3s; display: flex; align-items: center;">
+                <i class="fas fa-sign-out-alt" style="margin-right: 0.5rem;"></i>
+                Logout
+            </button>
         </div>
-
-        <!-- Back link -->
-        <a href="index.html"
-            style="color: var(--primary); display: flex; align-items: center; text-decoration: none; font-weight: 500; margin-bottom: 2rem;">
-            <i class="fas fa-arrow-left" style="margin-right: 0.5rem;"></i> Back to Home
-        </a>
 
         <!-- Profile Tabs -->
         <div class="profile-tabs" style="margin-bottom: 2rem;">
@@ -82,7 +94,8 @@
                         <div
                             style="padding: 1rem; border-top: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; background-color: var(--light);">
                             <div>
-                                <span style="font-weight: bold; color: var(--primary);">Total: ${{ order.total.toFixed(2) }}</span>
+                                <span style="font-weight: bold; color: var(--primary);">Total: ${{
+                                    order.total.toFixed(2) }}</span>
                             </div>
                             <div>
                                 <button
@@ -150,7 +163,8 @@
                         <div
                             style="padding: 1rem; border-top: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; background-color: var(--light);">
                             <div>
-                                <span style="font-weight: bold; color: var(--primary);">Total: ${{ order.total.toFixed(2) }}</span>
+                                <span style="font-weight: bold; color: var(--primary);">Total: ${{
+                                    order.total.toFixed(2) }}</span>
                             </div>
                             <div style="display: flex; gap: 1rem;">
                                 <button
@@ -183,7 +197,8 @@
                             style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
                             <div>
                                 <label for="firstName"
-                                    style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: var(--text);">First Name</label>
+                                    style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: var(--text);">First
+                                    Name</label>
                                 <input id="firstName" v-model="userProfile.firstName" type="text"
                                     style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 5px; outline: none; transition: border-color 0.3s;"
                                     required>
@@ -191,7 +206,8 @@
 
                             <div>
                                 <label for="lastName"
-                                    style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: var(--text);">Last Name</label>
+                                    style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: var(--text);">Last
+                                    Name</label>
                                 <input id="lastName" v-model="userProfile.lastName" type="text"
                                     style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 5px; outline: none; transition: border-color 0.3s;"
                                     required>
@@ -199,7 +215,8 @@
                         </div>
 
                         <div style="margin-bottom: 1rem;">
-                            <label for="email" style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: var(--text);">Email
+                            <label for="email"
+                                style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: var(--text);">Email
                                 Address</label>
                             <input id="email" v-model="userProfile.email" type="email"
                                 style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 5px; outline: none; transition: border-color 0.3s;"
@@ -207,57 +224,13 @@
                         </div>
 
                         <div>
-                            <label for="phone" style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: var(--text);">Phone
+                            <label for="phone"
+                                style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: var(--text);">Phone
                                 Number</label>
                             <input id="phone" v-model="userProfile.phone" type="tel"
                                 style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 5px; outline: none; transition: border-color 0.3s;">
                         </div>
                     </div>
-
-                    <!-- Address Section -->
-                    <!-- <div style="margin-bottom: 2rem;">
-                        <h4 style="margin-bottom: 1rem; color: var(--dark); font-size: 1.1rem;">Default Address</h4>
-
-                        <div style="margin-bottom: 1rem;">
-                            <label for="address1"
-                                style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: var(--text);">Address Line 1</label>
-                            <input id="address1" v-model="userProfile.address.line1" type="text"
-                                style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 5px; outline: none; transition: border-color 0.3s;">
-                        </div>
-
-                        <div style="margin-bottom: 1rem;">
-                            <label for="address2"
-                                style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: var(--text);">Address Line 2
-                                (Optional)</label>
-                            <input id="address2" v-model="userProfile.address.line2" type="text"
-                                style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 5px; outline: none; transition: border-color 0.3s;">
-                        </div>
-
-                        <div
-                            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
-                            <div>
-                                <label for="city"
-                                    style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: var(--text);">City</label>
-                                <input id="city" v-model="userProfile.address.city" type="text"
-                                    style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 5px; outline: none; transition: border-color 0.3s;">
-                            </div>
-
-                            <div>
-                                <label for="state"
-                                    style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: var(--text);">State/Province</label>
-                                <input id="state" v-model="userProfile.address.state" type="text"
-                                    style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 5px; outline: none; transition: border-color 0.3s;">
-                            </div>
-
-                            <div>
-                                <label for="zip"
-                                    style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: var(--text);">ZIP/Postal
-                                    Code</label>
-                                <input id="zip" v-model="userProfile.address.zip" type="text"
-                                    style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 5px; outline: none; transition: border-color 0.3s;">
-                            </div>
-                        </div>
-                    </div> -->
 
                     <!-- Password Section -->
                     <div style="margin-bottom: 2rem;">
@@ -283,36 +256,14 @@
 
                             <div>
                                 <label for="confirmPassword"
-                                    style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: var(--text);">Confirm New
+                                    style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: var(--text);">Confirm
+                                    New
                                     Password</label>
                                 <input id="confirmPassword" v-model="passwordChange.confirm" type="password"
                                     style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 5px; outline: none; transition: border-color 0.3s;">
                             </div>
                         </div>
                     </div>
-
-                    <!-- Preferences Section -->
-                    <!-- <div style="margin-bottom: 2rem;">
-                        <h4 style="margin-bottom: 1rem; color: var(--dark); font-size: 1.1rem;">Preferences</h4>
-
-                        <div style="margin-bottom: 1rem;">
-                            <label class="checkbox-container"
-                                style="display: flex; align-items: center; cursor: pointer;">
-                                <input type="checkbox" v-model="userProfile.preferences.newsletter"
-                                    style="margin-right: 0.5rem; width: 18px; height: 18px; accent-color: var(--accent);">
-                                <span style="color: var(--text);">Subscribe to newsletter for special offers and updates</span>
-                            </label>
-                        </div>
-
-                        <div>
-                            <label class="checkbox-container"
-                                style="display: flex; align-items: center; cursor: pointer;">
-                                <input type="checkbox" v-model="userProfile.preferences.textNotifications"
-                                    style="margin-right: 0.5rem; width: 18px; height: 18px; accent-color: var(--accent);">
-                                <span style="color: var(--text);">Receive text notifications for order updates</span>
-                            </label>
-                        </div>
-                    </div> -->
 
                     <!-- Submit Button -->
                     <div style="display: flex; justify-content: flex-end;">
@@ -328,175 +279,192 @@
 </template>
 
 <script>
+import { useAuthStore } from '../authStore';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import axios from 'axios';
 
 export default {
-  data() {
-    return {
-      activeTab: 'current-orders',
-      tabs: [
-        { id: 'current-orders', name: 'Current Orders', icon: 'fas fa-shopping-bag' },
-        { id: 'order-history', name: 'Order History', icon: 'fas fa-history' },
-        { id: 'account-settings', name: 'Account Settings', icon: 'fas fa-user-cog' }
-      ],
-      currentOrders: [/* your order data */],
-      pastOrders: [/* your past order data */],
-      expandedOrders: [],
-      userProfile: {
-        firstName: '',
-        lastName: '',
-        email: '',
-        phone: '',
-        address: {
-          line1: '',
-          line2: '',
-          city: '',
-          state: '',
-          zip: ''
-        },
-        preferences: {
-          newsletter: false,
-          textNotifications: false
-        }
-      },
-      passwordChange: {
-        current: '',
-        new: '',
-        confirm: ''
-      }
-    };
-  },
-
-  mounted() {
-    const auth = getAuth();
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        this.fetchUserProfile(user);
-      } else {
-        console.warn("User not logged in.");
-        this.$router.push('/login'); // optional redirect
-      }
-    });
-  },
-
-  methods: {
-    async fetchUserProfile(user) {
-      try {
-        const idToken = await user.getIdToken();
-        const res = await axios.get("http://localhost:5019/profile", {
-          headers: {
-            Authorization: idToken
-          }
-        });
-
-        const profile = res.data;
-        const [firstName, ...lastNameParts] = profile.userName.split(" ");
-        const lastName = lastNameParts.join(" ");
-
-        this.userProfile.firstName = firstName;
-        this.userProfile.lastName = lastName;
-        this.userProfile.email = profile.email;
-        this.userProfile.phone = profile.phoneNum;
-
-      } catch (error) {
-        console.error("Failed to fetch profile:", error);
-      }
+    setup() {
+        const authStore = useAuthStore();
+        return { authStore };
+    },
+    data() {
+        return {
+            activeTab: 'current-orders',
+            tabs: [
+                { id: 'current-orders', name: 'Current Orders', icon: 'fas fa-shopping-bag' },
+                { id: 'order-history', name: 'Order History', icon: 'fas fa-history' },
+                { id: 'account-settings', name: 'Account Settings', icon: 'fas fa-user-cog' }
+            ],
+            currentOrders: [/* your order data */],
+            pastOrders: [/* your past order data */],
+            expandedOrders: [],
+            userProfile: {
+                firstName: '',
+                lastName: '',
+                email: '',
+                phone: '',
+                address: {
+                    line1: '',
+                    line2: '',
+                    city: '',
+                    state: '',
+                    zip: ''
+                },
+                preferences: {
+                    newsletter: false,
+                    textNotifications: false
+                }
+            },
+            passwordChange: {
+                current: '',
+                new: '',
+                confirm: ''
+            }
+        };
     },
 
-    async updateProfile() {
-      try {
+    mounted() {
         const auth = getAuth();
-        const currentUser = auth.currentUser;
-
-        if (!currentUser) {
-          alert("User not logged in.");
-          return;
-        }
-
-        const idToken = await currentUser.getIdToken();
-        const userId = currentUser.uid;
-        const fullName = `${this.userProfile.firstName} ${this.userProfile.lastName}`;
-
-        await axios.put(`http://localhost:5018/update_profile/${userId}`, {
-          email: this.userProfile.email,
-          phoneNum: this.userProfile.phone,
-          userName: fullName
-        }, {
-          headers: {
-            Authorization: idToken
-          }
-        });
-
-        alert("Profile updated successfully!");
-
-      } catch (error) {
-        console.error("Profile update failed:", error);
-        alert("Failed to update profile. Please try again.");
-      }
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                this.fetchUserProfile(user);
+            } else {
+                console.warn("User not logged in.");
+                this.$router.push('/login'); // optional redirect
+            }
+        })
+        
+                
     },
 
-    async saveAccountSettings() {
-      if (this.passwordChange.current && this.passwordChange.new) {
-        if (this.passwordChange.new !== this.passwordChange.confirm) {
-          alert('New passwords do not match');
-          return;
-        }
+    methods: {
+        async fetchUserProfile(user) {
+            try {
+                const idToken = await user.getIdToken();
+                const res = await axios.get("http://localhost:5019/profile", {
+                    headers: {
+                        Authorization: idToken
+                    }
+                });
 
-        alert('Password updated successfully (mock)');
-        this.passwordChange.current = '';
-        this.passwordChange.new = '';
-        this.passwordChange.confirm = '';
-      }
+                const profile = res.data;
+                const [firstName, ...lastNameParts] = profile.userName.split(" ");
+                const lastName = lastNameParts.join(" ");
 
-      await this.updateProfile();
-    },
+                this.userProfile.firstName = firstName;
+                this.userProfile.lastName = lastName;
+                this.userProfile.email = profile.email;
+                this.userProfile.phone = profile.phoneNum;
 
-    getStatusStyle(status) {
-      switch (status) {
-        case 'Processing':
-          return 'background-color: #FFF3CD; color: #856404;';
-        case 'Preparing':
-          return 'background-color: #D1ECF1; color: #37546e;';
-        case 'Completed':
-          return 'background-color: #daf2ea; color: #657a62;';
-        case 'Collected':
-          return 'background-color: #D4EDDA; color: #155724;';
-        case 'Cancelled':
-          return 'background-color: #F8D7DA; color: #721C24;';
-        default:
-          return 'background-color: #E2E3E5; color: #383D41;';
-      }
-    },
+            } catch (error) {
+                console.error("Failed to fetch profile:", error);
+            }
+        },
 
-    toggleOrderDetails(orderId) {
-      if (this.expandedOrders.includes(orderId)) {
-        this.expandedOrders = this.expandedOrders.filter(id => id !== orderId);
-      } else {
-        this.expandedOrders.push(orderId);
-      }
-    },
+        async updateProfile() {
+            try {
+                const auth = getAuth();
+                const currentUser = auth.currentUser;
 
-    trackOrder(orderId) {
-      alert(`Tracking order #${orderId}`);
-    },
+                if (!currentUser) {
+                    alert("User not logged in.");
+                    return;
+                }
 
-    cancelOrder(orderId) {
-      if (confirm('Are you sure you want to cancel this order?')) {
-        alert(`Order #${orderId} has been cancelled`);
-        const orderIndex = this.currentOrders.findIndex(order => order.id === orderId);
-        if (orderIndex !== -1) {
-          this.currentOrders[orderIndex].status = 'Cancelled';
-          this.pastOrders.unshift(this.currentOrders[orderIndex]);
-          this.currentOrders.splice(orderIndex, 1);
-        }
-      }
-    },
+                const idToken = await currentUser.getIdToken();
+                const userId = currentUser.uid;
+                const fullName = `${this.userProfile.firstName} ${this.userProfile.lastName}`;
 
-    reorderItems(orderId) {
-      alert(`Adding items from order #${orderId} to your cart`);
+                await axios.put(`http://localhost:5018/update_profile/${userId}`, {
+                    email: this.userProfile.email,
+                    phoneNum: this.userProfile.phone,
+                    userName: fullName
+                }, {
+                    headers: {
+                        Authorization: idToken
+                    }
+                });
+
+                alert("Profile updated successfully!");
+
+            } catch (error) {
+                console.error("Profile update failed:", error);
+                alert("Failed to update profile. Please try again.");
+            }
+        },
+
+        async saveAccountSettings() {
+            if (this.passwordChange.current && this.passwordChange.new) {
+                if (this.passwordChange.new !== this.passwordChange.confirm) {
+                    alert('New passwords do not match');
+                    return;
+                }
+
+                alert('Password updated successfully (mock)');
+                this.passwordChange.current = '';
+                this.passwordChange.new = '';
+                this.passwordChange.confirm = '';
+            }
+
+            await this.updateProfile();
+        },
+
+        getStatusStyle(status) {
+            switch (status) {
+                case 'Processing':
+                    return 'background-color: #FFF3CD; color: #856404;';
+                case 'Preparing':
+                    return 'background-color: #D1ECF1; color: #37546e;';
+                case 'Completed':
+                    return 'background-color: #daf2ea; color: #657a62;';
+                case 'Collected':
+                    return 'background-color: #D4EDDA; color: #155724;';
+                case 'Cancelled':
+                    return 'background-color: #F8D7DA; color: #721C24;';
+                default:
+                    return 'background-color: #E2E3E5; color: #383D41;';
+            }
+        },
+
+        toggleOrderDetails(orderId) {
+            if (this.expandedOrders.includes(orderId)) {
+                this.expandedOrders = this.expandedOrders.filter(id => id !== orderId);
+            } else {
+                this.expandedOrders.push(orderId);
+            }
+        },
+
+        trackOrder(orderId) {
+            alert(`Tracking order #${orderId}`);
+        },
+
+        cancelOrder(orderId) {
+            if (confirm('Are you sure you want to cancel this order?')) {
+                alert(`Order #${orderId} has been cancelled`);
+                const orderIndex = this.currentOrders.findIndex(order => order.id === orderId);
+                if (orderIndex !== -1) {
+                    this.currentOrders[orderIndex].status = 'Cancelled';
+                    this.pastOrders.unshift(this.currentOrders[orderIndex]);
+                    this.currentOrders.splice(orderIndex, 1);
+                }
+            }
+        },
+
+        reorderItems(orderId) {
+            alert(`Adding items from order #${orderId} to your cart`);
+        },
+
+        async logout() {
+            try {
+                await this.authStore.logout();
+                this.$router.push('/login'); // Redirect to login page after logout
+            } catch (error) {
+                console.error('Logout failed:', error);
+                alert('Failed to logout. Please try again.');
+            }
+        },
     }
-  }
 };
 </script>
 
@@ -523,6 +491,11 @@ button[type="submit"]:hover {
     color: var(--accent) !important;
 }
 
+/* Logout button hover effect */
+button[type="submit"]:hover, button[type="button"]:hover {
+    transform: translateY(-2px);
+}
+
 /* Mobile-specific CSS */
 @media (max-width: 768px) {
     .profile-tabs {
@@ -547,9 +520,20 @@ button[type="submit"]:hover {
     .section-heading h2 {
         font-size: 1.8rem;
     }
-    
+
     .profile-container {
         padding: 4rem 1rem 2rem;
+    }
+    
+    /* Responsive header for mobile */
+    .header-section {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .header-section button {
+        margin-top: 1rem;
+        align-self: flex-start;
     }
 }
 </style>

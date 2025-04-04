@@ -1,5 +1,8 @@
 <template>
   <div class="app-container">
+    <!-- <div v-if="authStore.isLoading" class="loading-overlay">
+      <div class="loading-spinner"></div>
+    </div> -->
     <nav class="navbar">
       <a href="/" class="logo">☕ <span>Brew Haven</span></a>
       <button class="mobile-menu-btn" @click="toggleMenu">☰</button>
@@ -79,6 +82,7 @@
 </template>
 
 <script>
+import { useAuthStore } from '../src/authStore';
 import axios from 'axios';
 
 export default {
@@ -86,10 +90,21 @@ export default {
   data() {
     return {
       mobileMenuOpen: false,
-      isLoggedIn: false, // Set this based on your auth logic
-      cartItemCount: 0, // Initialize to 0
-      user_id: "test24",
-      outletId: JSON.parse(localStorage.getItem('selectedOutletId'))
+      cartItemCount: 0,
+      outletId: JSON.parse(localStorage.getItem('selectedOutletId')),
+      polling: null
+    }
+  },
+  setup() {
+    const authStore = useAuthStore();
+    return { authStore };
+  },
+  computed: {
+    isLoggedIn() {
+      return this.authStore.isAuthenticated;
+    },
+    userId() {
+      return this.authStore.user?.uid || null;
     }
   },
   methods: {
@@ -97,11 +112,16 @@ export default {
       this.mobileMenuOpen = !this.mobileMenuOpen;
     },
     async fetchCartItemCount() {
-      try {
-        // Replace 'test24/24' with your actual user ID or dynamic values
-        const response = await axios.get(`http://localhost:5200/get_cart_item_count/${this.user_id}/${this.outletId}`);
-        // const cartResponse = await cartClient.get(`/get_cart_details/${this.userId}/${this.outletId}`);
+      // Only fetch cart count if user is logged in and outlet is selected
+      if (!this.userId || !this.outletId) {
+        this.cartItemCount = 0;
+        return;
+      }
 
+      try {
+        const response = await axios.get(
+          `http://localhost:5200/get_cart_item_count/${this.userId}/${this.outletId}`
+        );
         
         if (response.data.code === 200) {
           this.cartItemCount = response.data.data.item_count;
@@ -114,15 +134,27 @@ export default {
     }
   },
   created() {
-    // Fetch cart count when component is created
-    this.fetchCartItemCount();
-    
-    // Optional: Set up polling to keep cart count updated
-    // this.polling = setInterval(this.fetchCartItemCount, 30000); // Update every 30 seconds
+    // Initialize auth store
+    this.authStore.init().then(() => {
+      // Fetch cart count after auth is initialized
+      this.fetchCartItemCount();
+      
+      // Set up polling to keep cart count updated
+      this.polling = setInterval(this.fetchCartItemCount, 30000); // Update every 30 seconds
+    });
   },
   beforeUnmount() {
-    // Clean up polling if used
-    // if (this.polling) clearInterval(this.polling);
+    // Clean up polling
+    if (this.polling) clearInterval(this.polling);
+  },
+  watch: {
+    // Watch for changes in userId or outletId
+    userId() {
+      this.fetchCartItemCount();
+    },
+    outletId() {
+      this.fetchCartItemCount();
+    }
   }
 }
 </script>
@@ -148,5 +180,31 @@ export default {
   align-items: center;
   justify-content: center;
   font-weight: bold;
+}
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(255, 255, 255, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.loading-spinner {
+  border: 4px solid rgba(0, 0, 0, 0.1);
+  border-radius: 50%;
+  border-top: 4px solid var(--primary);
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 </style>
