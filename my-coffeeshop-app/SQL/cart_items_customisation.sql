@@ -31,7 +31,7 @@ USE `cart_items_customisation`;
 
 DROP TABLE IF EXISTS `cart_items_customisation`;
 CREATE TABLE IF NOT EXISTS `cart_items_customisation` (
-  `cic_id` int NOT NULL,
+  `cic_id` int NOT NULL AUTO_INCREMENT,
   `cart_item_id_fk` int NOT NULL,
   `customisationId_fk` int NOT NULL,
   PRIMARY KEY (`cic_id`)
