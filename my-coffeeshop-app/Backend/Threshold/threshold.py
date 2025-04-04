@@ -18,7 +18,7 @@ class Threshold(db.Model):
     __tablename__ = 'threshold'
 
     threshold_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    ingredient = db.Column(db.String(255), nullable=False)
+    ingredient = db.Column(db.String(255), nullable=False, unique = True)
     threshold = db.Column(db.DECIMAL(10, 2), nullable=False)
     created_at = db.Column(db.TIMESTAMP, default=datetime.utcnow)
     updated_at = db.Column(db.TIMESTAMP, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -78,16 +78,14 @@ def find_threshold_by_id(threshold_id):
 # GET threshold by ingredient
 @app.route("/threshold/ingredient/<string:ingredient>", methods=['GET'])
 def find_thresholds_by_ingredient(ingredient):
-    thresholds = db.session.scalars(
+    threshold = db.session.scalar(
         db.select(Threshold).filter_by(ingredient=ingredient)
-    ).all()
+    )
 
-    if thresholds:
+    if threshold:
         return jsonify({
             "code": 200,
-            "data": {
-                "thresholds": [threshold.json() for threshold in thresholds]
-            }
+            "data":  threshold.json()
         })
 
     return jsonify({
@@ -158,8 +156,6 @@ def update_threshold(threshold_id):
     # Update fields if they exist in the request
     if 'threshold' in data:
         threshold.threshold = data['threshold']
-    if 'ingredient' in data:
-        threshold.ingredient = data['ingredient']
 
     try:
         db.session.commit()
