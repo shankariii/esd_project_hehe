@@ -9,7 +9,7 @@
                 </div> -->
                 
                 <!-- Back link -->
-                <a href="index.html"
+                <a href="http://localhost:5173/"
                     style="color: var(--primary); display: flex; align-items: center; text-decoration: none; font-weight: 500; margin-top: 0.5rem;">
                     <i class="fas fa-arrow-left" style="margin-right: 0.5rem;"></i> Back to Home
                 </a>
@@ -458,7 +458,7 @@ export default {
         async logout() {
             try {
                 await this.authStore.logout();
-                this.$router.push('/login'); // Redirect to login page after logout
+                this.$router.push('/'); // Redirect to login page after logout
             } catch (error) {
                 console.error('Logout failed:', error);
                 alert('Failed to logout. Please try again.');

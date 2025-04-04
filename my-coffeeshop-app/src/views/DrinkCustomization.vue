@@ -1,6 +1,14 @@
 <template>
   <div class="drink-customization">
-    <div class="content-wrapper">
+
+     <!-- Loading state -->
+     <div v-if="loading" class="loading" style="text-align: center; padding: 3rem 0;">
+      <i class="fas fa-spinner fa-spin" style="font-size: 3rem; color: var(--primary); margin-bottom: 1rem;"></i>
+      <h3 style="margin-bottom: 1rem; color: var(--dark);">Loading drink options...</h3>
+    </div>
+
+    <div v-else>
+      <div class="content-wrapper">
       <!-- Main Content Column -->
       <div class="main-content">
         <!-- Drink Header Section -->
@@ -120,6 +128,8 @@
         </div>
       </div>
     </div>
+    </div>
+    
   </div>
 </template>
 
@@ -497,6 +507,8 @@ export default {
       selectedAddons: [], // Selected add-ons
       quantity: 1, // Number of extra shots
       specialInstructions: '', // Special instructions
+      loading: true, // Loading state
+      error: null // Error state
     };
   },
   computed: {
@@ -517,32 +529,41 @@ export default {
     },
   },
   async created() {
-    await this.authStore.init(); // Initialize auth first
-    
-    // Only proceed if user is authenticated
-    if (!this.authStore.isAuthenticated) {
-      this.$router.push('/login');
-      return;
+    try {
+      this.loading = true;
+      await this.authStore.init(); // Initialize auth first
+      
+      // Only proceed if user is authenticated
+      if (!this.authStore.isAuthenticated) {
+        this.$router.push('/login');
+        return;
+      }
+
+      // Fetch drink details
+      this.drinkId = this.$route.params.id;
+      const drinkResponse = await axios.get(`http://127.0.0.1:5005/drinks/${this.drinkId}`);
+      this.drink = drinkResponse.data;
+
+      // Fetch all customization options in parallel
+      const [sizeResponse, milkResponse, addonsResponse] = await Promise.all([
+        axios.get('http://127.0.0.1:5007/customisations/type/S'),
+        axios.get('http://127.0.0.1:5007/customisations/type/M'),
+        axios.get('http://127.0.0.1:5007/customisations/type/A')
+      ]);
+
+      this.sizeOptions = sizeResponse.data;
+      this.milkOptions = milkResponse.data;
+      this.addons = addonsResponse.data;
+
+      // Set default selections
+      this.selectedSize = this.sizeOptions[0];
+      this.selectedMilk = this.milkOptions[0];
+    } catch (error) {
+      console.error('Error loading drink customization:', error);
+      this.error = 'Failed to load drink options. Please try again later.';
+    } finally {
+      this.loading = false;
     }
-    // Fetch drink details
-    this.drinkId = this.$route.params.id; // Assuming the drink ID is passed via route
-    const drinkResponse = await axios.get(`http://127.0.0.1:5005/drinks/${this.drinkId}`);
-    this.drink = drinkResponse.data;
-    console.log(this.drink)
-
-    // Fetch customization options
-    const sizeResponse = await axios.get('http://127.0.0.1:5007/customisations/type/S');
-    this.sizeOptions = sizeResponse.data;
-
-    const milkResponse = await axios.get('http://127.0.0.1:5007/customisations/type/M');
-    this.milkOptions = milkResponse.data;
-
-    const addonsResponse = await axios.get('http://127.0.0.1:5007/customisations/type/A');
-    this.addons = addonsResponse.data;
-
-    // Set default selections
-    this.selectedSize = this.sizeOptions[0];
-    this.selectedMilk = this.milkOptions[0];
   },
   methods: {
     goBack() {

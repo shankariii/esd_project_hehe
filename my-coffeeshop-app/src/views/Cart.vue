@@ -9,7 +9,7 @@
 
       <!-- Back to menu link -->
       <div class="cart-container" style="max-width: 1200px; margin: 0 auto; padding: 0 1rem;">
-        <a href="products.html"
+        <a href="http://localhost:5173/menu"
           style="color: var(--primary); display: flex; align-items: center; text-decoration: none; font-weight: 500; margin-bottom: 2rem;">
           <i class="fas fa-arrow-left" style="margin-right: 0.5rem;"></i> Back to Menu
         </a>
