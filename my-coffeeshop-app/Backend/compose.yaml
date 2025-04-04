@@ -93,7 +93,7 @@ services:
       - esd-net
 
 ###################################
-  # Login: The Login microservice
+  # Login: The Login microservice (to be deleted)
   ###################################
   login:
     build:
@@ -163,7 +163,7 @@ services:
       - esd-net     
 
   ###################################
-  # Profile: The Profile microservice
+  # Profile: The Profile microservice (to be deleted)
   ###################################
   profile:
     build:

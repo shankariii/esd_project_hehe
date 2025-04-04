@@ -1,466 +1,539 @@
 <template>
-  <div class="login-container">
-    <div class="login-card">
-      <div class="brand">
-        <h1>Brew Heaven</h1>
-        <p class="tagline">Crafting Perfect Moments</p>
+  <div class="profile-container" style="max-width: 1200px; margin: 0 auto; padding: 5rem 2rem;">
+      <!-- Page Header with improved layout -->
+      <div class="header-section" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+          <div>
+              <!-- <div class="section-heading">
+                  <h2>My Account</h2>
+                  <p>Manage your orders and personal information</p>
+              </div> -->
+              
+              <!-- Back link -->
+              <a href="http://localhost:5173/"
+                  style="color: var(--primary); display: flex; align-items: center; text-decoration: none; font-weight: 500; margin-top: 0.5rem;">
+                  <i class="fas fa-arrow-left" style="margin-right: 0.5rem;"></i> Back to Home
+              </a>
+          </div>
+          
+          <!-- Moved logout button to top-right -->
+          <button @click="logout" style="background: none; border: 1px solid var(--primary); color: var(--primary); 
+                         padding: 0.5rem 1rem; border-radius: 5px; cursor: pointer;
+                         transition: all 0.3s; display: flex; align-items: center;">
+              <i class="fas fa-sign-out-alt" style="margin-right: 0.5rem;"></i>
+              Logout
+          </button>
       </div>
-      
-      <div class="tabs">
-        <button 
-          :class="['tab-btn', { active: activeTab === 'login' }]" 
-          @click="activeTab = 'login'"
-        >
-          Login
-        </button>
-        <button 
-          :class="['tab-btn', { active: activeTab === 'register' }]" 
-          @click="activeTab = 'register'"
-        >
-          Create Account
-        </button>
-      </div>
-      
-      <form v-if="activeTab === 'login'" @submit.prevent="handleLogin" class="login-form">
-        <div class="form-group">
-          <label for="email">Email</label>
-          <input 
-            type="email" 
-            id="email" 
-            v-model="loginForm.email" 
-            placeholder="your@email.com" 
-            required
-          >
-        </div>
-        
-        <div class="form-group">
-          <label for="password">Password</label>
-          <input 
-            type="password" 
-            id="password" 
-            v-model="loginForm.password" 
-            placeholder="Enter your password" 
-            required
-          >
-        </div>
-        
-        <button type="submit" class="submit-btn">Log In</button>
-        <a href="#" class="forgot-password" @click.prevent="handleForgotPassword">Forgot Password?</a>
-      </form>
-      
-      <form v-else @submit.prevent="handleRegister" class="login-form">
-        <div class="form-group">
-          <label for="reg-name">Full Name</label>
-          <input 
-            type="text" 
-            id="reg-name" 
-            v-model="registerForm.name" 
-            placeholder="Your name" 
-            required
-          >
-        </div>
 
-        <div class="form-group">
-          <label for="reg-name">Phone Number</label>
-          <input 
-            type="number" 
-            id="reg-phone" 
-            v-model="registerForm.phone" 
-            placeholder="91239843" 
-            required
-          >
-        </div>
-        
-        <div class="form-group">
-          <label for="reg-email">Email</label>
-          <input 
-            type="email" 
-            id="reg-email" 
-            v-model="registerForm.email" 
-            placeholder="your@email.com" 
-            required
-          >
-        </div>
-        
-        <div class="form-group">
-          <label for="reg-password">Password</label>
-          <input 
-            type="password" 
-            id="reg-password" 
-            v-model="registerForm.password" 
-            placeholder="Create a password" 
-            required
-          >
-        </div>
-        
-        <button type="submit" class="submit-btn">Create Account</button>
-      </form>
-      
-      <div class="divider">
-        <span>or</span>
+      <!-- Profile Tabs -->
+      <div class="profile-tabs" style="margin-bottom: 2rem;">
+          <button v-for="tab in tabs" :key="tab.id" @click="activeTab = tab.id"
+              :class="{ active: activeTab === tab.id }"
+              style="padding: 1rem 1.5rem; background: none; border: none; border-bottom: 3px solid transparent; margin-right: 1rem; font-weight: 500; cursor: pointer; position: relative; transition: color 0.3s, border-bottom-color 0.3s;"
+              :style="activeTab === tab.id ? 'border-bottom-color: var(--accent); color: var(--dark);' : 'color: var(--text-light);'">
+              <i :class="tab.icon" style="margin-right: 0.5rem;"></i>
+              {{ tab.name }}
+
+              <!-- Notification badge for current orders -->
+              <span v-if="tab.id === 'current-orders' && currentOrders.length > 0"
+                  style="position: absolute; top: 0.5rem; right: 0.3rem; background-color: var(--accent); color: var(--dark); border-radius: 50%; width: 20px; height: 20px; font-size: 0.7rem; display: flex; align-items: center; justify-content: center; font-weight: bold;">
+                  {{ currentOrders.length }}
+              </span>
+          </button>
       </div>
-      
-      <button @click="signInWithGoogle" class="google-btn">
-        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google logo">
-        Continue with Google
-      </button>
-      
-      <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
-    </div>
+
+      <!-- Tab Content -->
+      <div class="tab-content"
+          style="background-color: white; border-radius: 10px; padding: 2rem; box-shadow: 0 3px 10px rgba(0,0,0,0.1);">
+          <!-- Current Orders Tab -->
+          <div v-if="activeTab === 'current-orders'">
+              <h3 style="margin-bottom: 1.5rem; color: var(--primary); font-size: 1.5rem;">Current Orders</h3>
+
+              <div v-if="currentOrders.length === 0" style="text-align: center; padding: 2rem 0;">
+                  <i class="fas fa-shopping-bag"
+                      style="font-size: 2.5rem; color: var(--secondary); margin-bottom: 1rem;"></i>
+                  <p style="color: var(--text-light);">You don't have any ongoing orders</p>
+              </div>
+
+              <div v-else class="orders-list">
+                  <div v-for="(order, index) in currentOrders" :key="order.id" class="order-card"
+                      style="border: 1px solid #eee; border-radius: 8px; margin-bottom: 1.5rem; overflow: hidden; transition: transform 0.3s, box-shadow 0.3s;">
+                      <!-- Order header -->
+                      <div
+                          style="padding: 1rem; background-color: var(--light); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+                          <div>
+                              <span style="font-weight: bold; color: var(--dark);">Order #{{ order.orderNumber
+                              }}</span>
+                              <span style="margin-left: 1rem; font-size: 0.9rem; color: var(--text-light);">{{
+                                  order.date }}</span>
+                          </div>
+                          <div>
+                              <span
+                                  style="padding: 0.4rem 0.8rem; border-radius: 20px; font-size: 0.8rem; font-weight: 500;"
+                                  :style="getStatusStyle(order.status)">
+                                  {{ order.status }}
+                              </span>
+                          </div>
+                      </div>
+
+                      <!-- Order content -->
+                      <div style="padding: 1rem;">
+                          <div v-for="item in order.items" :key="item.id"
+                              style="display: flex; margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid #eee;">
+                              <img :src="item.image" :alt="item.name"
+                                  style="width: 60px; height: 60px; object-fit: cover; border-radius: 5px; margin-right: 1rem;">
+                              <div style="flex-grow: 1;">
+                                  <h4 style="margin-bottom: 0.3rem; color: var(--dark);">{{ item.name }}</h4>
+                                  <p style="font-size: 0.9rem; color: var(--text-light); margin-bottom: 0.5rem;">Qty:
+                                      {{ item.quantity }}</p>
+                                  <p style="font-weight: 500; color: var(--primary);">${{ item.price.toFixed(2) }}</p>
+                              </div>
+                          </div>
+                      </div>
+
+                      <!-- Order footer -->
+                      <div
+                          style="padding: 1rem; border-top: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; background-color: var(--light);">
+                          <div>
+                              <span style="font-weight: bold; color: var(--primary);">Total: ${{
+                                  order.total.toFixed(2) }}</span>
+                          </div>
+                          <div>
+                              <button
+                                  style="background: none; border: none; color: var(--primary); font-weight: 500; cursor: pointer; transition: color 0.3s;"
+                                  @click="trackOrder(order.id)">
+                                  Track Order
+                              </button>
+                              <button v-if="order.status === 'Processing' || order.status === 'Preparing'"
+                                  style="background: none; border: none; color: var(--text-light); margin-left: 1rem; font-weight: 500; cursor: pointer; transition: color 0.3s;"
+                                  @click="cancelOrder(order.id)">
+                                  Cancel
+                              </button>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+          </div>
+
+          <!-- Order History Tab -->
+          <div v-if="activeTab === 'order-history'">
+              <h3 style="margin-bottom: 1.5rem; color: var(--primary); font-size: 1.5rem;">Order History</h3>
+
+              <div v-if="pastOrders.length === 0" style="text-align: center; padding: 2rem 0;">
+                  <i class="fas fa-history"
+                      style="font-size: 2.5rem; color: var(--secondary); margin-bottom: 1rem;"></i>
+                  <p style="color: var(--text-light);">You don't have any past orders</p>
+              </div>
+
+              <div v-else class="orders-list">
+                  <div v-for="(order, index) in pastOrders" :key="order.id" class="order-card"
+                      style="border: 1px solid #eee; border-radius: 8px; margin-bottom: 1.5rem; overflow: hidden; transition: transform 0.3s, box-shadow 0.3s;">
+                      <!-- Order header -->
+                      <div
+                          style="padding: 1rem; background-color: var(--light); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+                          <div>
+                              <span style="font-weight: bold; color: var(--dark);">Order #{{ order.orderNumber
+                              }}</span>
+                              <span style="margin-left: 1rem; font-size: 0.9rem; color: var(--text-light);">{{
+                                  order.date }}</span>
+                          </div>
+                          <div>
+                              <span
+                                  style="padding: 0.4rem 0.8rem; border-radius: 20px; font-size: 0.8rem; font-weight: 500; background-color: #E0E0E0; color: var(--text);">
+                                  {{ order.status }}
+                              </span>
+                          </div>
+                      </div>
+
+                      <!-- Order content (collapsed by default) -->
+                      <div v-if="expandedOrders.includes(order.id)" style="padding: 1rem;">
+                          <div v-for="item in order.items" :key="item.id"
+                              style="display: flex; margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid #eee;">
+                              <img :src="item.image" :alt="item.name"
+                                  style="width: 60px; height: 60px; object-fit: cover; border-radius: 5px; margin-right: 1rem;">
+                              <div style="flex-grow: 1;">
+                                  <h4 style="margin-bottom: 0.3rem; color: var(--dark);">{{ item.name }}</h4>
+                                  <p style="font-size: 0.9rem; color: var(--text-light); margin-bottom: 0.5rem;">Qty:
+                                      {{ item.quantity }}</p>
+                                  <p style="font-weight: 500; color: var(--primary);">${{ item.price.toFixed(2) }}</p>
+                              </div>
+                          </div>
+                      </div>
+
+                      <!-- Order footer -->
+                      <div
+                          style="padding: 1rem; border-top: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; background-color: var(--light);">
+                          <div>
+                              <span style="font-weight: bold; color: var(--primary);">Total: ${{
+                                  order.total.toFixed(2) }}</span>
+                          </div>
+                          <div style="display: flex; gap: 1rem;">
+                              <button
+                                  style="background: none; border: none; color: var(--primary); font-weight: 500; cursor: pointer; transition: color 0.3s;"
+                                  @click="toggleOrderDetails(order.id)">
+                                  {{ expandedOrders.includes(order.id) ? 'Hide Details' : 'View Details' }}
+                              </button>
+                              <button
+                                  style="background: none; border: none; color: var(--primary); font-weight: 500; cursor: pointer; transition: color 0.3s;"
+                                  @click="reorderItems(order.id)">
+                                  Reorder
+                              </button>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+          </div>
+
+          <!-- Account Settings Tab -->
+          <div v-if="activeTab === 'account-settings'">
+              <h3 style="margin-bottom: 1.5rem; color: var(--primary); font-size: 1.5rem;">Account Settings</h3>
+
+              <form @submit.prevent="saveAccountSettings">
+                  <!-- Personal Information Section -->
+                  <div style="margin-bottom: 2rem;">
+                      <h4 style="margin-bottom: 1rem; color: var(--dark); font-size: 1.1rem;">Personal Information
+                      </h4>
+
+                      <div
+                          style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+                          <div>
+                              <label for="firstName"
+                                  style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: var(--text);">First
+                                  Name</label>
+                              <input id="firstName" v-model="userProfile.firstName" type="text"
+                                  style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 5px; outline: none; transition: border-color 0.3s;"
+                                  required>
+                          </div>
+
+                          <div>
+                              <label for="lastName"
+                                  style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: var(--text);">Last
+                                  Name</label>
+                              <input id="lastName" v-model="userProfile.lastName" type="text"
+                                  style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 5px; outline: none; transition: border-color 0.3s;"
+                                  required>
+                          </div>
+                      </div>
+
+                      <div style="margin-bottom: 1rem;">
+                          <label for="email"
+                              style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: var(--text);">Email
+                              Address</label>
+                          <input id="email" v-model="userProfile.email" type="email"
+                              style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 5px; outline: none; transition: border-color 0.3s;"
+                              required>
+                      </div>
+
+                      <div>
+                          <label for="phone"
+                              style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: var(--text);">Phone
+                              Number</label>
+                          <input id="phone" v-model="userProfile.phone" type="tel"
+                              style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 5px; outline: none; transition: border-color 0.3s;">
+                      </div>
+                  </div>
+
+                  <!-- Password Section -->
+                  <div style="margin-bottom: 2rem;">
+                      <h4 style="margin-bottom: 1rem; color: var(--dark); font-size: 1.1rem;">Change Password</h4>
+
+                      <div style="margin-bottom: 1rem;">
+                          <label for="currentPassword"
+                              style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: var(--text);">Current
+                              Password</label>
+                          <input id="currentPassword" v-model="passwordChange.current" type="password"
+                              style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 5px; outline: none; transition: border-color 0.3s;">
+                      </div>
+
+                      <div
+                          style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem;">
+                          <div>
+                              <label for="newPassword"
+                                  style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: var(--text);">New
+                                  Password</label>
+                              <input id="newPassword" v-model="passwordChange.new" type="password"
+                                  style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 5px; outline: none; transition: border-color 0.3s;">
+                          </div>
+
+                          <div>
+                              <label for="confirmPassword"
+                                  style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: var(--text);">Confirm
+                                  New
+                                  Password</label>
+                              <input id="confirmPassword" v-model="passwordChange.confirm" type="password"
+                                  style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 5px; outline: none; transition: border-color 0.3s;">
+                          </div>
+                      </div>
+                  </div>
+
+                  <!-- Submit Button -->
+                  <div style="display: flex; justify-content: flex-end;">
+                      <button type="submit"
+                          style="background-color: var(--accent); color: var(--dark); border: none; padding: 0.8rem 2rem; border-radius: 5px; font-weight: bold; cursor: pointer; transition: background-color 0.3s, transform 0.2s;">
+                          Save Changes
+                      </button>
+                  </div>
+              </form>
+          </div>
+      </div>
   </div>
 </template>
 
 <script>
-import axios from 'axios'
-import { ref, reactive } from 'vue'
-import { 
-  getAuth, 
-  signInWithEmailAndPassword, 
-  createUserWithEmailAndPassword, 
-  GoogleAuthProvider, 
-  signInWithPopup,
-  sendPasswordResetEmail
-} from 'firebase/auth'
-import { useRouter } from 'vue-router';
-
+import { useAuthStore } from '../authStore';
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import axios from 'axios';
 
 export default {
-  name: 'LoginComponent',
   setup() {
-    const router = useRouter();
-    const activeTab = ref('login')
-    const errorMessage = ref('')
-    
-    const loginForm = reactive({
-      email: '',  
-      password: ''
-    })
-    
-    const registerForm = reactive({
-      name: '',
-      phone: '',
-      email: '',
-      password: ''
-    })
-    
-    const auth = getAuth()
-    
-    const handleLogin = async () => {
-try {
-  errorMessage.value = '';
+      const authStore = useAuthStore();
+      return { authStore };
+  },
+  data() {
+      return {
+          activeTab: 'current-orders',
+          tabs: [
+              { id: 'current-orders', name: 'Current Orders', icon: 'fas fa-shopping-bag' },
+              { id: 'order-history', name: 'Order History', icon: 'fas fa-history' },
+              { id: 'account-settings', name: 'Account Settings', icon: 'fas fa-user-cog' }
+          ],
+          currentOrders: [/* your order data */],
+          pastOrders: [/* your past order data */],
+          expandedOrders: [],
+          userProfile: {
+              firstName: '',
+              lastName: '',
+              email: '',
+              phone: '',
+              address: {
+                  line1: '',
+                  line2: '',
+                  city: '',
+                  state: '',
+                  zip: ''
+              },
+              preferences: {
+                  newsletter: false,
+                  textNotifications: false
+              }
+          },
+          passwordChange: {
+              current: '',
+              new: '',
+              confirm: ''
+          }
+      };
+  },
 
-  // Step 1: Log in to Firebase
-  await signInWithEmailAndPassword(auth, loginForm.email, loginForm.password);
-  const user = auth.currentUser;
-
-  if (!user || !user.email) {
-    throw new Error('No user info from Firebase');
-  }
-
-  // Step 2: Call your Flask backend to get userId
-  const response = await axios.post("http://localhost:5019/login", {
-    email: user.email,
-  });
-
-  console.log('✅ Backend response:', response.data);
-  
-  // Add this debug line
-  console.log('🔑 User ID from backend:', response.data.user);
-
-  // Step 3: Store in localStorage
-  localStorage.setItem('userId', response.data.user);
-  
-  // Add this debug line
-  console.log('💾 Stored in localStorage:', localStorage.getItem('userId'));
-  
-  localStorage.setItem('selectedOutletId', '1'); // or whichever outlet is selected
-
-  // Step 4: Redirect
-  alert('You have been logged in successfully!');
-  router.push('/findOutlet');
-} catch (error) {
-  console.error('Login error:', error);
-  errorMessage.value = 'Login failed. Please try again.';
-}
-};
-
-    
-    //new handleregister funtion 
-    const handleRegister = async () => {
-    try {
-      errorMessage.value = '';
-
-      // Step 1: We create Firebase Auth account
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        registerForm.email,
-        registerForm.password
-      );
-
-      // Step 2: Send user data to Flask `/register` endpoint (login.py)
-      const response = await axios.post('http://localhost:5019/register', {
-        email: registerForm.email,
-        password: registerForm.password,
-        username: registerForm.name,
-        phoneNum: registerForm.phone
-      });
-
-      if (response.status === 201) {
-        console.log('Account registered and profile created!');
-        alert('Registration successful!');
-        router.push('/login');  // Or wherever you want to redirect
-      } else {
-        errorMessage.value = response.data.error || 'Something went wrong.';
-      }
-
-    } catch (error) {
-      if (error.response) {
-        // Error returned by Flask backend
-        errorMessage.value = error.response.data.details || 'Backend registration error.';
-      } else {
-        // Firebase error
-        errorMessage.value = getErrorMessage(error.code);
-      }
-    }
-  };
-
-    
-    const signInWithGoogle = async () => {
-      try {
-        errorMessage.value = ''
-        const provider = new GoogleAuthProvider()
-        await signInWithPopup(auth, provider)
-        // Redirect or handle successful login
-        console.log('Logged in with Google successfully')
-
-        alert('You have been logged in successfully!')
-        
-        console.log(router)
-        router.push(`/findOutlet`)
-      } catch (error) {
-        errorMessage.value = 'Google sign-in failed. Please try again.'
-      }
-    }
-    
-    const handleForgotPassword = async () => {
-      if (!loginForm.email) {
-        errorMessage.value = 'Please enter your email address'
-        return
-      }
+  mounted() {
+      const auth = getAuth();
+      onAuthStateChanged(auth, (user) => {
+          if (user) {
+              this.fetchUserProfile(user);
+          } else {
+              console.warn("User not logged in.");
+              this.$router.push('/login'); // optional redirect
+          }
+      })
       
-      try {
-        await sendPasswordResetEmail(auth, loginForm.email)
-        errorMessage.value = 'Password reset email sent! Check your inbox.'
-      } catch (error) {
-        errorMessage.value = 'Failed to send reset email. Please try again.'
-      }
-    }
-    
-    const getErrorMessage = (errorCode) => {
-      switch (errorCode) {
-        case 'auth/invalid-email':
-          return 'Invalid email address.'
-        case 'auth/user-disabled':
-          return 'This account has been disabled.'
-        case 'auth/user-not-found':
-          return 'No account found with this email.'
-        case 'auth/wrong-password':
-          return 'Incorrect password.'
-        case 'auth/email-already-in-use':
-          return 'This email is already registered.'
-        case 'auth/weak-password':
-          return 'Password should be at least 6 characters.'
-        default:
-          return 'An error occurred. Please try again.'
-      }
-    }
-    
-    return {
-      activeTab,
-      loginForm,
-      registerForm,
-      errorMessage,
-      handleLogin,
-      handleRegister,
-      signInWithGoogle,
-      handleForgotPassword
-    }
+              
+  },
+
+  methods: {
+      async fetchUserProfile(user) {
+          try {
+              const idToken = await user.getIdToken();
+              const res = await axios.get("http://localhost:5019/profile", {
+                  headers: {
+                      Authorization: idToken
+                  }
+              });
+
+              const profile = res.data;
+              const [firstName, ...lastNameParts] = profile.userName.split(" ");
+              const lastName = lastNameParts.join(" ");
+
+              this.userProfile.firstName = firstName;
+              this.userProfile.lastName = lastName;
+              this.userProfile.email = profile.email;
+              this.userProfile.phone = profile.phoneNum;
+
+          } catch (error) {
+              console.error("Failed to fetch profile:", error);
+          }
+      },
+
+      async updateProfile() {
+          try {
+              const auth = getAuth();
+              const currentUser = auth.currentUser;
+
+              if (!currentUser) {
+                  alert("User not logged in.");
+                  return;
+              }
+
+              const idToken = await currentUser.getIdToken();
+              const userId = currentUser.uid;
+              const fullName = `${this.userProfile.firstName} ${this.userProfile.lastName}`;
+
+              await axios.put(`http://localhost:5018/update_profile/${userId}`, {
+                  email: this.userProfile.email,
+                  phoneNum: this.userProfile.phone,
+                  userName: fullName
+              }, {
+                  headers: {
+                      Authorization: idToken
+                  }
+              });
+
+              alert("Profile updated successfully!");
+
+          } catch (error) {
+              console.error("Profile update failed:", error);
+              alert("Failed to update profile. Please try again.");
+          }
+      },
+
+      async saveAccountSettings() {
+          if (this.passwordChange.current && this.passwordChange.new) {
+              if (this.passwordChange.new !== this.passwordChange.confirm) {
+                  alert('New passwords do not match');
+                  return;
+              }
+
+              alert('Password updated successfully (mock)');
+              this.passwordChange.current = '';
+              this.passwordChange.new = '';
+              this.passwordChange.confirm = '';
+          }
+
+          await this.updateProfile();
+      },
+
+      getStatusStyle(status) {
+          switch (status) {
+              case 'Processing':
+                  return 'background-color: #FFF3CD; color: #856404;';
+              case 'Preparing':
+                  return 'background-color: #D1ECF1; color: #37546e;';
+              case 'Completed':
+                  return 'background-color: #daf2ea; color: #657a62;';
+              case 'Collected':
+                  return 'background-color: #D4EDDA; color: #155724;';
+              case 'Cancelled':
+                  return 'background-color: #F8D7DA; color: #721C24;';
+              default:
+                  return 'background-color: #E2E3E5; color: #383D41;';
+          }
+      },
+
+      toggleOrderDetails(orderId) {
+          if (this.expandedOrders.includes(orderId)) {
+              this.expandedOrders = this.expandedOrders.filter(id => id !== orderId);
+          } else {
+              this.expandedOrders.push(orderId);
+          }
+      },
+
+      trackOrder(orderId) {
+          alert(`Tracking order #${orderId}`);
+      },
+
+      cancelOrder(orderId) {
+          if (confirm('Are you sure you want to cancel this order?')) {
+              alert(`Order #${orderId} has been cancelled`);
+              const orderIndex = this.currentOrders.findIndex(order => order.id === orderId);
+              if (orderIndex !== -1) {
+                  this.currentOrders[orderIndex].status = 'Cancelled';
+                  this.pastOrders.unshift(this.currentOrders[orderIndex]);
+                  this.currentOrders.splice(orderIndex, 1);
+              }
+          }
+      },
+
+      reorderItems(orderId) {
+          alert(`Adding items from order #${orderId} to your cart`);
+      },
+
+      async logout() {
+          try {
+              await this.authStore.logout();
+              this.$router.push('/'); // Redirect to login page after logout
+          } catch (error) {
+              console.error('Logout failed:', error);
+              alert('Failed to logout. Please try again.');
+          }
+      },
   }
-}
+};
 </script>
 
-<style scoped>
-.login-container {
-  padding-top: 70px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-  background-color: var(--light);
-  background-image: linear-gradient(rgba(239, 235, 233, 0.8), rgba(239, 235, 233, 0.8)), 
-                    url('path-to-your-coffee-background.jpg');
-  background-size: cover;
-  background-position: center;
+<style>
+/* Order card hover effect */
+.order-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
 }
 
-.login-card {
-  width: 100%;
-  max-width: 450px;
-  background-color: white;
-  border-radius: 10px;
-  padding: 2.5rem;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-}
-
-.brand {
-  text-align: center;
-  margin-bottom: 2rem;
-}
-
-.brand h1 {
-  color: var(--primary);
-  font-size: 2rem;
-  font-weight: 700;
-  margin-bottom: 0.25rem;
-}
-
-.tagline {
-  color: var(--text-light);
-  font-size: 1rem;
-}
-
-.tabs {
-  display: flex;
-  border-bottom: 1px solid #eee;
-  margin-bottom: 1.5rem;
-}
-
-.tab-btn {
-  flex: 1;
-  background: none;
-  border: none;
-  padding: 1rem;
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--text-light);
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.tab-btn.active {
-  color: var(--primary);
-  border-bottom: 2px solid var(--primary);
-}
-
-.login-form {
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-label {
-  font-weight: 600;
-  color: var(--text);
-  font-size: 0.9rem;
-}
-
-input {
-  padding: 0.75rem 1rem;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  font-size: 1rem;
-  transition: border-color 0.3s;
-}
-
+/* Input focus styles */
 input:focus {
-  outline: none;
-  border-color: var(--primary);
+  border-color: var(--primary) !important;
+  box-shadow: 0 0 0 2px rgba(93, 64, 55, 0.1);
 }
 
-.submit-btn {
-  background-color: var(--primary);
-  color: white;
-  border: none;
-  border-radius: 5px;
-  padding: 0.75rem;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.3s;
-  margin-top: 0.5rem;
+/* Button hover effects */
+button[type="submit"]:hover {
+  background-color: #FFD54F;
+  transform: translateY(-2px);
 }
 
-.submit-btn:hover {
-  background-color: var(--dark);
+.tab-content button:hover {
+  color: var(--accent) !important;
 }
 
-.forgot-password {
-  text-align: center;
-  color: var(--primary);
-  text-decoration: none;
-  font-size: 0.9rem;
-  margin-top: 1rem;
-  display: block;
+/* Logout button hover effect */
+button[type="submit"]:hover, button[type="button"]:hover {
+  transform: translateY(-2px);
 }
 
-.divider {
-  position: relative;
-  text-align: center;
-  margin: 1.5rem 0;
-}
+/* Mobile-specific CSS */
+@media (max-width: 768px) {
+  .profile-tabs {
+      display: flex;
+      overflow-x: auto;
+      padding-bottom: 0.5rem;
+      margin-bottom: 1.5rem;
+  }
 
-.divider::before {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background-color: #eee;
-}
+  .profile-tabs button {
+      flex: 0 0 auto;
+      white-space: nowrap;
+      padding: 0.8rem 1rem;
+      margin-right: 0.5rem;
+      font-size: 0.9rem;
+  }
 
-.divider span {
-  position: relative;
-  background-color: white;
-  padding: 0 1rem;
-  color: var(--text-light);
-  font-size: 0.9rem;
-}
+  .tab-content {
+      padding: 1.5rem;
+  }
 
-.google-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.75rem;
-  width: 100%;
-  background-color: white;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  padding: 0.75rem;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
+  .section-heading h2 {
+      font-size: 1.8rem;
+  }
 
-.google-btn:hover {
-  background-color: #f5f5f5;
-}
-
-.google-btn img {
-  width: 18px;
-  height: 18px;
-}
-
-.error-message {
-  color: #d32f2f;
-  font-size: 0.9rem;
-  margin-top: 1rem;
-  text-align: center;
+  .profile-container {
+      padding: 4rem 1rem 2rem;
+  }
+  
+  /* Responsive header for mobile */
+  .header-section {
+      flex-direction: column;
+      align-items: flex-start;
+  }
+  
+  .header-section button {
+      margin-top: 1rem;
+      align-self: flex-start;
+  }
 }
 </style>

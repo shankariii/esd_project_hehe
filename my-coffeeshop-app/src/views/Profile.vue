@@ -1,539 +1,600 @@
 <template>
-    <div class="profile-container" style="max-width: 1200px; margin: 0 auto; padding: 5rem 2rem;">
-        <!-- Page Header with improved layout -->
-        <div class="header-section" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-            <div>
-                <!-- <div class="section-heading">
-                    <h2>My Account</h2>
-                    <p>Manage your orders and personal information</p>
-                </div> -->
-                
-                <!-- Back link -->
-                <a href="http://localhost:5173/"
-                    style="color: var(--primary); display: flex; align-items: center; text-decoration: none; font-weight: 500; margin-top: 0.5rem;">
-                    <i class="fas fa-arrow-left" style="margin-right: 0.5rem;"></i> Back to Home
-                </a>
-            </div>
-            
-            <!-- Moved logout button to top-right -->
-            <button @click="logout" style="background: none; border: 1px solid var(--primary); color: var(--primary); 
-                           padding: 0.5rem 1rem; border-radius: 5px; cursor: pointer;
-                           transition: all 0.3s; display: flex; align-items: center;">
-                <i class="fas fa-sign-out-alt" style="margin-right: 0.5rem;"></i>
-                Logout
-            </button>
+    <div class="profile-container">
+        <!-- Loading state -->
+        <div v-if="authStore.isLoading" class="loading-state">
+            Loading profile...
         </div>
 
-        <!-- Profile Tabs -->
-        <div class="profile-tabs" style="margin-bottom: 2rem;">
-            <button v-for="tab in tabs" :key="tab.id" @click="activeTab = tab.id"
-                :class="{ active: activeTab === tab.id }"
-                style="padding: 1rem 1.5rem; background: none; border: none; border-bottom: 3px solid transparent; margin-right: 1rem; font-weight: 500; cursor: pointer; position: relative; transition: color 0.3s, border-bottom-color 0.3s;"
-                :style="activeTab === tab.id ? 'border-bottom-color: var(--accent); color: var(--dark);' : 'color: var(--text-light);'">
-                <i :class="tab.icon" style="margin-right: 0.5rem;"></i>
-                {{ tab.name }}
-
-                <!-- Notification badge for current orders -->
-                <span v-if="tab.id === 'current-orders' && currentOrders.length > 0"
-                    style="position: absolute; top: 0.5rem; right: 0.3rem; background-color: var(--accent); color: var(--dark); border-radius: 50%; width: 20px; height: 20px; font-size: 0.7rem; display: flex; align-items: center; justify-content: center; font-weight: bold;">
-                    {{ currentOrders.length }}
-                </span>
-            </button>
+        <!-- Error state -->
+        <div v-else-if="authStore.error" class="error-state">
+            Error: {{ authStore.error }}
         </div>
 
-        <!-- Tab Content -->
-        <div class="tab-content"
-            style="background-color: white; border-radius: 10px; padding: 2rem; box-shadow: 0 3px 10px rgba(0,0,0,0.1);">
-            <!-- Current Orders Tab -->
-            <div v-if="activeTab === 'current-orders'">
-                <h3 style="margin-bottom: 1.5rem; color: var(--primary); font-size: 1.5rem;">Current Orders</h3>
-
-                <div v-if="currentOrders.length === 0" style="text-align: center; padding: 2rem 0;">
-                    <i class="fas fa-shopping-bag"
-                        style="font-size: 2.5rem; color: var(--secondary); margin-bottom: 1rem;"></i>
-                    <p style="color: var(--text-light);">You don't have any ongoing orders</p>
+        <!-- Main content when data is loaded -->
+        <template v-else>
+            <!-- Profile Sidebar -->
+            <div class="profile-sidebar">
+                <div class="profile-photo">
+                    <span>{{ getUserInitials() }}</span>
                 </div>
+                <h2 class="profile-name">{{ authStore.userFullName }}</h2>
+                <p class="profile-email">{{ authStore.user?.email }}</p>
 
-                <div v-else class="orders-list">
-                    <div v-for="(order, index) in currentOrders" :key="order.id" class="order-card"
-                        style="border: 1px solid #eee; border-radius: 8px; margin-bottom: 1.5rem; overflow: hidden; transition: transform 0.3s, box-shadow 0.3s;">
-                        <!-- Order header -->
-                        <div
-                            style="padding: 1rem; background-color: var(--light); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
-                            <div>
-                                <span style="font-weight: bold; color: var(--dark);">Order #{{ order.orderNumber
-                                }}</span>
-                                <span style="margin-left: 1rem; font-size: 0.9rem; color: var(--text-light);">{{
-                                    order.date }}</span>
-                            </div>
-                            <div>
-                                <span
-                                    style="padding: 0.4rem 0.8rem; border-radius: 20px; font-size: 0.8rem; font-weight: 500;"
-                                    :style="getStatusStyle(order.status)">
-                                    {{ order.status }}
-                                </span>
-                            </div>
-                        </div>
+                <ul class="sidebar-menu">
+                    <li v-for="tab in tabs" :key="tab.id">
+                        <a href="#" :class="{ active: activeTab === tab.id }" @click.prevent="setActiveTab(tab.id)">
+                            {{ tab.label }}
+                        </a>
+                    </li>
+                </ul>
 
-                        <!-- Order content -->
-                        <div style="padding: 1rem;">
-                            <div v-for="item in order.items" :key="item.id"
-                                style="display: flex; margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid #eee;">
-                                <img :src="item.image" :alt="item.name"
-                                    style="width: 60px; height: 60px; object-fit: cover; border-radius: 5px; margin-right: 1rem;">
-                                <div style="flex-grow: 1;">
-                                    <h4 style="margin-bottom: 0.3rem; color: var(--dark);">{{ item.name }}</h4>
-                                    <p style="font-size: 0.9rem; color: var(--text-light); margin-bottom: 0.5rem;">Qty:
-                                        {{ item.quantity }}</p>
-                                    <p style="font-weight: 500; color: var(--primary);">${{ item.price.toFixed(2) }}</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Order footer -->
-                        <div
-                            style="padding: 1rem; border-top: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; background-color: var(--light);">
-                            <div>
-                                <span style="font-weight: bold; color: var(--primary);">Total: ${{
-                                    order.total.toFixed(2) }}</span>
-                            </div>
-                            <div>
-                                <button
-                                    style="background: none; border: none; color: var(--primary); font-weight: 500; cursor: pointer; transition: color 0.3s;"
-                                    @click="trackOrder(order.id)">
-                                    Track Order
-                                </button>
-                                <button v-if="order.status === 'Processing' || order.status === 'Preparing'"
-                                    style="background: none; border: none; color: var(--text-light); margin-left: 1rem; font-weight: 500; cursor: pointer; transition: color 0.3s;"
-                                    @click="cancelOrder(order.id)">
-                                    Cancel
-                                </button>
-                            </div>
-                        </div>
-                    </div>
+                <!-- Logout Button -->
+                <div class="logout-container">
+                    <button class="btn-logout" @click="logout">
+                        Logout
+                    </button>
                 </div>
             </div>
 
-            <!-- Order History Tab -->
-            <div v-if="activeTab === 'order-history'">
-                <h3 style="margin-bottom: 1.5rem; color: var(--primary); font-size: 1.5rem;">Order History</h3>
-
-                <div v-if="pastOrders.length === 0" style="text-align: center; padding: 2rem 0;">
-                    <i class="fas fa-history"
-                        style="font-size: 2.5rem; color: var(--secondary); margin-bottom: 1rem;"></i>
-                    <p style="color: var(--text-light);">You don't have any past orders</p>
-                </div>
-
-                <div v-else class="orders-list">
-                    <div v-for="(order, index) in pastOrders" :key="order.id" class="order-card"
-                        style="border: 1px solid #eee; border-radius: 8px; margin-bottom: 1.5rem; overflow: hidden; transition: transform 0.3s, box-shadow 0.3s;">
-                        <!-- Order header -->
-                        <div
-                            style="padding: 1rem; background-color: var(--light); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
-                            <div>
-                                <span style="font-weight: bold; color: var(--dark);">Order #{{ order.orderNumber
-                                }}</span>
-                                <span style="margin-left: 1rem; font-size: 0.9rem; color: var(--text-light);">{{
-                                    order.date }}</span>
-                            </div>
-                            <div>
-                                <span
-                                    style="padding: 0.4rem 0.8rem; border-radius: 20px; font-size: 0.8rem; font-weight: 500; background-color: #E0E0E0; color: var(--text);">
-                                    {{ order.status }}
-                                </span>
-                            </div>
-                        </div>
-
-                        <!-- Order content (collapsed by default) -->
-                        <div v-if="expandedOrders.includes(order.id)" style="padding: 1rem;">
-                            <div v-for="item in order.items" :key="item.id"
-                                style="display: flex; margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid #eee;">
-                                <img :src="item.image" :alt="item.name"
-                                    style="width: 60px; height: 60px; object-fit: cover; border-radius: 5px; margin-right: 1rem;">
-                                <div style="flex-grow: 1;">
-                                    <h4 style="margin-bottom: 0.3rem; color: var(--dark);">{{ item.name }}</h4>
-                                    <p style="font-size: 0.9rem; color: var(--text-light); margin-bottom: 0.5rem;">Qty:
-                                        {{ item.quantity }}</p>
-                                    <p style="font-weight: 500; color: var(--primary);">${{ item.price.toFixed(2) }}</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Order footer -->
-                        <div
-                            style="padding: 1rem; border-top: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; background-color: var(--light);">
-                            <div>
-                                <span style="font-weight: bold; color: var(--primary);">Total: ${{
-                                    order.total.toFixed(2) }}</span>
-                            </div>
-                            <div style="display: flex; gap: 1rem;">
-                                <button
-                                    style="background: none; border: none; color: var(--primary); font-weight: 500; cursor: pointer; transition: color 0.3s;"
-                                    @click="toggleOrderDetails(order.id)">
-                                    {{ expandedOrders.includes(order.id) ? 'Hide Details' : 'View Details' }}
-                                </button>
-                                <button
-                                    style="background: none; border: none; color: var(--primary); font-weight: 500; cursor: pointer; transition: color 0.3s;"
-                                    @click="reorderItems(order.id)">
-                                    Reorder
-                                </button>
-                            </div>
-                        </div>
+            <!-- Content Area -->
+            <div class="content-area">
+                <!-- Profile Tab -->
+                <div v-if="activeTab === 'profile'" class="content-tab">
+                    <div class="content-header">
+                        <h2 class="content-title">Profile Information</h2>
                     </div>
-                </div>
-            </div>
 
-            <!-- Account Settings Tab -->
-            <div v-if="activeTab === 'account-settings'">
-                <h3 style="margin-bottom: 1.5rem; color: var(--primary); font-size: 1.5rem;">Account Settings</h3>
-
-                <form @submit.prevent="saveAccountSettings">
-                    <!-- Personal Information Section -->
-                    <div style="margin-bottom: 2rem;">
-                        <h4 style="margin-bottom: 1rem; color: var(--dark); font-size: 1.1rem;">Personal Information
-                        </h4>
-
-                        <div
-                            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
-                            <div>
-                                <label for="firstName"
-                                    style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: var(--text);">First
-                                    Name</label>
-                                <input id="firstName" v-model="userProfile.firstName" type="text"
-                                    style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 5px; outline: none; transition: border-color 0.3s;"
-                                    required>
-                            </div>
-
-                            <div>
-                                <label for="lastName"
-                                    style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: var(--text);">Last
-                                    Name</label>
-                                <input id="lastName" v-model="userProfile.lastName" type="text"
-                                    style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 5px; outline: none; transition: border-color 0.3s;"
-                                    required>
-                            </div>
-                        </div>
-
-                        <div style="margin-bottom: 1rem;">
-                            <label for="email"
-                                style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: var(--text);">Email
-                                Address</label>
-                            <input id="email" v-model="userProfile.email" type="email"
-                                style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 5px; outline: none; transition: border-color 0.3s;"
-                                required>
-                        </div>
-
+                    <div class="profile-info">
                         <div>
-                            <label for="phone"
-                                style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: var(--text);">Phone
-                                Number</label>
-                            <input id="phone" v-model="userProfile.phone" type="tel"
-                                style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 5px; outline: none; transition: border-color 0.3s;">
-                        </div>
-                    </div>
-
-                    <!-- Password Section -->
-                    <div style="margin-bottom: 2rem;">
-                        <h4 style="margin-bottom: 1rem; color: var(--dark); font-size: 1.1rem;">Change Password</h4>
-
-                        <div style="margin-bottom: 1rem;">
-                            <label for="currentPassword"
-                                style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: var(--text);">Current
-                                Password</label>
-                            <input id="currentPassword" v-model="passwordChange.current" type="password"
-                                style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 5px; outline: none; transition: border-color 0.3s;">
-                        </div>
-
-                        <div
-                            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem;">
-                            <div>
-                                <label for="newPassword"
-                                    style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: var(--text);">New
-                                    Password</label>
-                                <input id="newPassword" v-model="passwordChange.new" type="password"
-                                    style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 5px; outline: none; transition: border-color 0.3s;">
+                            <div class="info-item">
+                                <div class="info-label">First Name</div>
+                                <div class="info-value">{{ authStore.userProfile?.firstName }}</div>
                             </div>
-
-                            <div>
-                                <label for="confirmPassword"
-                                    style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: var(--text);">Confirm
-                                    New
-                                    Password</label>
-                                <input id="confirmPassword" v-model="passwordChange.confirm" type="password"
-                                    style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 5px; outline: none; transition: border-color 0.3s;">
+                            <div class="info-item">
+                                <div class="info-label">Last Name</div>
+                                <div class="info-value">{{ authStore.userProfile?.lastName }}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">Email</div>
+                                <div class="info-value">{{ authStore.user?.email }}</div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="info-item">
+                                <div class="info-label">Phone Number</div>
+                                <div class="info-value">{{ authStore.userProfile?.phoneNumber }}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">Auth Provider</div>
+                                <div class="info-value">{{ authStore.userProfile?.authProvider }}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">Account Created</div>
+                                <div class="info-value">{{ formatDate(authStore.userProfile?.createdAt) }}</div>
                             </div>
                         </div>
                     </div>
+                </div>
 
-                    <!-- Submit Button -->
-                    <div style="display: flex; justify-content: flex-end;">
-                        <button type="submit"
-                            style="background-color: var(--accent); color: var(--dark); border: none; padding: 0.8rem 2rem; border-radius: 5px; font-weight: bold; cursor: pointer; transition: background-color 0.3s, transform 0.2s;">
-                            Save Changes
-                        </button>
+                <!-- Ongoing Orders Tab -->
+                <div v-if="activeTab === 'ongoing'" class="content-tab">
+                    <div class="content-header">
+                        <h2 class="content-title">Ongoing Orders</h2>
                     </div>
-                </form>
+
+                    <div v-if="ongoingOrders.length === 0" class="empty-state">
+                        <p>You don't have any ongoing orders at the moment.</p>
+                    </div>
+
+                    <div v-else class="order-list">
+                        <div v-for="order in ongoingOrders" :key="order.id" class="order-card">
+                            <div class="order-header">
+                                <span class="order-id">Order #{{ order.id }}</span>
+                                <span class="order-date">{{ formatDate(order.date) }}</span>
+                            </div>
+                            <div class="order-status status-processing">{{ order.status }}</div>
+                            <div class="order-items">
+                                <p v-for="(item, index) in order.items" :key="index">
+                                    {{ item.quantity }}x {{ item.name }} - ${{ item.price }} each
+                                </p>
+                            </div>
+                            <div class="order-footer">
+                                <div class="order-total">Total: ${{ order.total.toFixed(2) }}</div>
+                                <button class="btn btn-secondary" @click="trackOrder(order.id)">Track Order</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Past Orders Tab -->
+                <div v-if="activeTab === 'past'" class="content-tab">
+                    <div class="content-header">
+                        <h2 class="content-title">Past Orders</h2>
+                    </div>
+
+                    <div v-if="pastOrders.length === 0" class="empty-state">
+                        <p>You don't have any past orders yet.</p>
+                    </div>
+
+                    <div v-else class="order-list">
+                        <div v-for="order in pastOrders" :key="order.id" class="order-card">
+                            <div class="order-header">
+                                <span class="order-id">Order #{{ order.id }}</span>
+                                <span class="order-date">{{ formatDate(order.date) }}</span>
+                            </div>
+                            <div class="order-status status-completed">{{ order.status }}</div>
+                            <div class="order-items">
+                                <p v-for="(item, index) in order.items" :key="index">
+                                    {{ item.quantity }}x {{ item.name }} - ${{ item.price }} each
+                                </p>
+                            </div>
+                            <div class="order-footer">
+                                <div class="order-total">Total: ${{ order.total.toFixed(2) }}</div>
+                                <button class="btn btn-secondary" @click="viewOrderDetails(order.id)">View
+                                    Details</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Edit Profile Tab -->
+                <div v-if="activeTab === 'edit'" class="content-tab">
+                    <div class="content-header">
+                        <h2 class="content-title">Edit Profile</h2>
+                    </div>
+
+                    <form @submit.prevent="updateProfile">
+                        <div class="form-group">
+                            <label class="form-label" for="firstName">First Name</label>
+                            <input type="text" id="firstName" class="form-control" v-model="formData.firstName">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="lastName">Last Name</label>
+                            <input type="text" id="lastName" class="form-control" v-model="formData.lastName">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="email">Email</label>
+                            <input type="email" id="email" class="form-control" v-model="formData.email" readonly>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="phone">Phone Number</label>
+                            <input type="tel" id="phone" class="form-control" v-model="formData.phoneNumber">
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="button" class="btn btn-secondary" @click="cancelEdit">Cancel</button>
+                            <button type="submit" class="btn">Save Changes</button>
+                        </div>
+                    </form>
+                </div>
             </div>
-        </div>
+        </template>
     </div>
 </template>
 
 <script>
 import { useAuthStore } from '../authStore';
-import { getAuth, onAuthStateChanged } from 'firebase/auth';
-import axios from 'axios';
+import { ref, onMounted } from 'vue';
+import { getFirestore, doc, updateDoc } from 'firebase/firestore';
+import { useRouter } from 'vue-router';
 
 export default {
+    name: 'UserProfile',
     setup() {
         const authStore = useAuthStore();
-        return { authStore };
-    },
-    data() {
-        return {
-            activeTab: 'current-orders',
-            tabs: [
-                { id: 'current-orders', name: 'Current Orders', icon: 'fas fa-shopping-bag' },
-                { id: 'order-history', name: 'Order History', icon: 'fas fa-history' },
-                { id: 'account-settings', name: 'Account Settings', icon: 'fas fa-user-cog' }
-            ],
-            currentOrders: [/* your order data */],
-            pastOrders: [/* your past order data */],
-            expandedOrders: [],
-            userProfile: {
-                firstName: '',
-                lastName: '',
-                email: '',
-                phone: '',
-                address: {
-                    line1: '',
-                    line2: '',
-                    city: '',
-                    state: '',
-                    zip: ''
-                },
-                preferences: {
-                    newsletter: false,
-                    textNotifications: false
-                }
-            },
-            passwordChange: {
-                current: '',
-                new: '',
-                confirm: ''
+        const router = useRouter();
+        const activeTab = ref('profile');
+        const formData = ref({
+            firstName: '',
+            lastName: '',
+            email: '',
+            phoneNumber: ''
+        });
+
+        // For demo purposes - replace with real Firestore data
+        const ongoingOrders = ref([
+            {
+                id: '1234',
+                date: '2025-04-02T15:30:00Z',
+                status: 'Processing',
+                items: [
+                    { name: 'Product Name', price: 24.99, quantity: 2 },
+                    { name: 'Another Product', price: 15.99, quantity: 1 }
+                ],
+                total: 65.97
+            }
+        ]);
+
+        const pastOrders = ref([
+            {
+                id: '1185',
+                date: '2025-03-25T09:45:00Z',
+                status: 'Completed',
+                items: [
+                    { name: 'Product Name', price: 24.99, quantity: 3 },
+                    { name: 'Another Product', price: 15.99, quantity: 2 }
+                ],
+                total: 106.95
+            }
+        ]);
+
+        const tabs = [
+            { id: 'profile', label: 'Profile' },
+            { id: 'ongoing', label: 'Ongoing Orders' },
+            { id: 'past', label: 'Past Orders' },
+            { id: 'edit', label: 'Edit Profile' }
+        ];
+
+        const resetFormData = () => {
+            formData.value = {
+                firstName: authStore.userProfile?.firstName || '',
+                lastName: authStore.userProfile?.lastName || '',
+                email: authStore.user?.email || '',
+                phoneNumber: authStore.userProfile?.phoneNumber || ''
+            };
+        };
+
+        onMounted(() => {
+            authStore.init().then(() => {
+                resetFormData();
+            });
+        });
+
+        const getUserInitials = () => {
+            if (!authStore.userProfile) return '';
+            return `${authStore.userProfile.firstName?.charAt(0) || ''}${authStore.userProfile.lastName?.charAt(0) || ''}`;
+        };
+
+        const formatDate = (dateString) => {
+            if (!dateString) return '';
+            const date = new Date(dateString);
+            return new Intl.DateTimeFormat('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            }).format(date);
+        };
+
+        const updateProfile = async () => {
+            try {
+                const db = getFirestore();
+                await updateDoc(doc(db, 'users', authStore.user.uid), {
+                    firstName: formData.value.firstName,
+                    lastName: formData.value.lastName,
+                    phoneNumber: formData.value.phoneNumber
+                });
+
+                await authStore.init();
+                activeTab.value = 'profile';
+                alert('Profile updated successfully!');
+            } catch (error) {
+                console.error('Error updating profile:', error);
+                alert('Failed to update profile');
             }
         };
-    },
 
-    mounted() {
-        const auth = getAuth();
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                this.fetchUserProfile(user);
-            } else {
-                console.warn("User not logged in.");
-                this.$router.push('/login'); // optional redirect
-            }
-        })
-        
-                
-    },
-
-    methods: {
-        async fetchUserProfile(user) {
+        const logout = async () => {
             try {
-                const idToken = await user.getIdToken();
-                const res = await axios.get("http://localhost:5019/profile", {
-                    headers: {
-                        Authorization: idToken
-                    }
-                });
-
-                const profile = res.data;
-                const [firstName, ...lastNameParts] = profile.userName.split(" ");
-                const lastName = lastNameParts.join(" ");
-
-                this.userProfile.firstName = firstName;
-                this.userProfile.lastName = lastName;
-                this.userProfile.email = profile.email;
-                this.userProfile.phone = profile.phoneNum;
-
+                await authStore.logout();
+                router.push('/'); // Redirect to homepage after successful logout
             } catch (error) {
-                console.error("Failed to fetch profile:", error);
+                console.error('Logout error:', error);
             }
-        },
+        };
 
-        async updateProfile() {
-            try {
-                const auth = getAuth();
-                const currentUser = auth.currentUser;
-
-                if (!currentUser) {
-                    alert("User not logged in.");
-                    return;
-                }
-
-                const idToken = await currentUser.getIdToken();
-                const userId = currentUser.uid;
-                const fullName = `${this.userProfile.firstName} ${this.userProfile.lastName}`;
-
-                await axios.put(`http://localhost:5018/update_profile/${userId}`, {
-                    email: this.userProfile.email,
-                    phoneNum: this.userProfile.phone,
-                    userName: fullName
-                }, {
-                    headers: {
-                        Authorization: idToken
-                    }
-                });
-
-                alert("Profile updated successfully!");
-
-            } catch (error) {
-                console.error("Profile update failed:", error);
-                alert("Failed to update profile. Please try again.");
+        return {
+            authStore,
+            activeTab,
+            tabs,
+            formData,
+            ongoingOrders,
+            pastOrders,
+            getUserInitials,
+            formatDate,
+            resetFormData,
+            updateProfile,
+            logout,
+            setActiveTab: (tabId) => { activeTab.value = tabId; },
+            cancelEdit: () => {
+                resetFormData();
+                activeTab.value = 'profile';
+            },
+            trackOrder: (orderId) => {
+                console.log(`Tracking order: ${orderId}`);
+            },
+            viewOrderDetails: (orderId) => {
+                console.log(`Viewing details for order: ${orderId}`);
             }
-        },
-
-        async saveAccountSettings() {
-            if (this.passwordChange.current && this.passwordChange.new) {
-                if (this.passwordChange.new !== this.passwordChange.confirm) {
-                    alert('New passwords do not match');
-                    return;
-                }
-
-                alert('Password updated successfully (mock)');
-                this.passwordChange.current = '';
-                this.passwordChange.new = '';
-                this.passwordChange.confirm = '';
-            }
-
-            await this.updateProfile();
-        },
-
-        getStatusStyle(status) {
-            switch (status) {
-                case 'Processing':
-                    return 'background-color: #FFF3CD; color: #856404;';
-                case 'Preparing':
-                    return 'background-color: #D1ECF1; color: #37546e;';
-                case 'Completed':
-                    return 'background-color: #daf2ea; color: #657a62;';
-                case 'Collected':
-                    return 'background-color: #D4EDDA; color: #155724;';
-                case 'Cancelled':
-                    return 'background-color: #F8D7DA; color: #721C24;';
-                default:
-                    return 'background-color: #E2E3E5; color: #383D41;';
-            }
-        },
-
-        toggleOrderDetails(orderId) {
-            if (this.expandedOrders.includes(orderId)) {
-                this.expandedOrders = this.expandedOrders.filter(id => id !== orderId);
-            } else {
-                this.expandedOrders.push(orderId);
-            }
-        },
-
-        trackOrder(orderId) {
-            alert(`Tracking order #${orderId}`);
-        },
-
-        cancelOrder(orderId) {
-            if (confirm('Are you sure you want to cancel this order?')) {
-                alert(`Order #${orderId} has been cancelled`);
-                const orderIndex = this.currentOrders.findIndex(order => order.id === orderId);
-                if (orderIndex !== -1) {
-                    this.currentOrders[orderIndex].status = 'Cancelled';
-                    this.pastOrders.unshift(this.currentOrders[orderIndex]);
-                    this.currentOrders.splice(orderIndex, 1);
-                }
-            }
-        },
-
-        reorderItems(orderId) {
-            alert(`Adding items from order #${orderId} to your cart`);
-        },
-
-        async logout() {
-            try {
-                await this.authStore.logout();
-                this.$router.push('/'); // Redirect to login page after logout
-            } catch (error) {
-                console.error('Logout failed:', error);
-                alert('Failed to logout. Please try again.');
-            }
-        },
+        };
     }
 };
 </script>
 
-<style>
-/* Order card hover effect */
+<style scoped>
+.profile-container {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    gap: 30px;
+    max-width: 1200px;
+    margin: 10rem auto;
+    padding: 0 2rem;
+}
+
+.profile-sidebar {
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+    padding: 2rem;
+    height: fit-content;
+    display: flex;
+    flex-direction: column;
+}
+
+.profile-photo {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background-color: var(--primary);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0 auto 1.5rem;
+    font-size: 2.5rem;
+    color: white;
+}
+
+.profile-name {
+    text-align: center;
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+    color: var(--dark);
+}
+
+.profile-email {
+    text-align: center;
+    color: var(--text-light);
+    margin-bottom: 2rem;
+}
+
+.sidebar-menu {
+    list-style: none;
+}
+
+.sidebar-menu li {
+    margin-bottom: 0.8rem;
+}
+
+.sidebar-menu a {
+    display: block;
+    padding: 0.8rem 1rem;
+    text-decoration: none;
+    color: var(--text);
+    border-radius: 5px;
+    transition: background-color 0.3s;
+}
+
+.sidebar-menu a:hover,
+.sidebar-menu a.active {
+    background-color: var(--light);
+}
+
+.sidebar-menu a.active {
+    font-weight: bold;
+    color: var(--primary);
+}
+
+/* Logout Button Styles */
+.logout-container {
+    margin-top: auto;
+    padding-top: 2rem;
+    border-top: 1px solid var(--light);
+    margin-top: 2rem;
+}
+
+.btn-logout {
+    width: 100%;
+    padding: 0.8rem;
+    background-color: var(--primary);
+    color: var(--light);
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: background-color 0.3s;
+}
+
+.btn-logout:hover {
+    background-color: var(--secondary);
+}
+
+.content-area {
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+    padding: 2rem;
+}
+
+.content-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.content-title {
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: var(--primary);
+}
+
+.profile-info {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+.info-item {
+    margin-bottom: 1.5rem;
+}
+
+.info-label {
+    font-size: 0.9rem;
+    color: var(--text-light);
+    margin-bottom: 0.3rem;
+}
+
+.info-value {
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: var(--text);
+}
+
+.order-list {
+    margin-top: 1.5rem;
+}
+
+.order-card {
+    border: 1px solid var(--light);
+    border-radius: 8px;
+    padding: 1.2rem;
+    margin-bottom: 1rem;
+    transition: box-shadow 0.3s;
+}
+
 .order-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
 }
 
-/* Input focus styles */
-input:focus {
-    border-color: var(--primary) !important;
-    box-shadow: 0 0 0 2px rgba(93, 64, 55, 0.1);
+.order-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.8rem;
 }
 
-/* Button hover effects */
-button[type="submit"]:hover {
-    background-color: #FFD54F;
-    transform: translateY(-2px);
+.order-id {
+    font-weight: bold;
+    color: var(--dark);
 }
 
-.tab-content button:hover {
-    color: var(--accent) !important;
+.order-date {
+    color: var(--text-light);
 }
 
-/* Logout button hover effect */
-button[type="submit"]:hover, button[type="button"]:hover {
-    transform: translateY(-2px);
+.order-status {
+    display: inline-block;
+    padding: 0.3rem 0.8rem;
+    border-radius: 50px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    text-transform: uppercase;
 }
 
-/* Mobile-specific CSS */
+.status-completed {
+    background-color: #e6f4ea;
+    color: #34a853;
+}
+
+.status-processing {
+    background-color: #fef7e0;
+    color: var(--accent);
+}
+
+.order-items {
+    margin: 1rem 0;
+    color: var(--text-light);
+}
+
+.order-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid var(--light);
+    padding-top: 1rem;
+}
+
+.order-total {
+    font-weight: bold;
+    font-size: 1.2rem;
+    color: var(--primary);
+}
+
+.btn {
+    padding: 0.7rem 1.2rem;
+    background-color: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: background-color 0.3s;
+}
+
+.btn:hover {
+    background-color: var(--dark);
+}
+
+.btn-secondary {
+    background-color: var(--light);
+    color: var(--text);
+    border: 1px solid var(--secondary);
+}
+
+.btn-secondary:hover {
+    background-color: var(--secondary);
+    color: white;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: var(--dark);
+}
+
+.form-control {
+    width: 100%;
+    padding: 0.8rem 1rem;
+    border: 1px solid var(--light);
+    border-radius: 5px;
+    font-size: 1rem;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: var(--primary);
+}
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 3rem 0;
+    color: var(--text-light);
+}
+
 @media (max-width: 768px) {
-    .profile-tabs {
-        display: flex;
-        overflow-x: auto;
-        padding-bottom: 0.5rem;
-        margin-bottom: 1.5rem;
-    }
-
-    .profile-tabs button {
-        flex: 0 0 auto;
-        white-space: nowrap;
-        padding: 0.8rem 1rem;
-        margin-right: 0.5rem;
-        font-size: 0.9rem;
-    }
-
-    .tab-content {
-        padding: 1.5rem;
-    }
-
-    .section-heading h2 {
-        font-size: 1.8rem;
-    }
-
     .profile-container {
-        padding: 4rem 1rem 2rem;
+        grid-template-columns: 1fr;
     }
-    
-    /* Responsive header for mobile */
-    .header-section {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-    
-    .header-section button {
-        margin-top: 1rem;
-        align-self: flex-start;
+
+    .profile-info {
+        grid-template-columns: 1fr;
     }
 }
 </style>

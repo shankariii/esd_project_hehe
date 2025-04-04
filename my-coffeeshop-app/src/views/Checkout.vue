@@ -23,12 +23,12 @@
                 </div> -->
 
                 <div v-if="isProcessing" class="loading-container">
-                <div class="loading-box">
-                    <img src="../assets/lazy_loading.png" alt="Processing Payment..." />
-                    <p>Processing your payment, please wait...</p>
+                    <div class="loading-box">
+                        <img src="../assets/lazy_loading.png" alt="Processing Payment..." />
+                        <p>Processing your payment, please wait...</p>
+                    </div>
                 </div>
-                </div>
-                    
+
                 <p v-if="paymentStatus">{{ paymentStatus }}</p>
             </div>
 
@@ -85,6 +85,10 @@
         <!-- Order Confirmation Modal -->
         <OrderConfirmation :show="showConfirmation" :payment-id="paymentId" :items="cartItems" :subtotal="subtotal"
             :tax="tax" :total="total" @close="closeConfirmation" />
+
+        <!-- Order Failure Modal -->
+        <OrderFailure :show="showFailure" :payment-id="paymentId" :items="cartItems" :subtotal="subtotal" :tax="tax"
+            :total="total" :error-message="errorMessage" @close="closeFailure" @try-again="handleTryAgain" />
     </div>
 </template>
 
@@ -93,10 +97,12 @@ import { loadStripe } from '@stripe/stripe-js';
 import axios from 'axios';
 import { useAuthStore } from '../authStore'; // Import the auth store
 import OrderConfirmation from '../components/orderConfirmation.vue';
+import OrderFailure from '../components/OrderFailure.vue';
 
 export default {
     components: {
-        OrderConfirmation
+        OrderConfirmation,
+        OrderFailure
     },
     setup() {
         const authStore = useAuthStore();
@@ -117,6 +123,8 @@ export default {
             status: null,
             paymentId: '',
             showConfirmation: false,
+            showFailure: false,
+            errorMessage: '',
             // userId: 'test24', // Replace with dynamic user ID if needed
             outletId: JSON.parse(localStorage.getItem('selectedOutletId')),   // Replace with dynamic outlet ID if needed
             apiConfig: {
@@ -365,23 +373,33 @@ export default {
                     try {
                         const response = await axios.post('http://localhost:5300/process_payment', paymentData);
                         console.log('Payment processing result:', response.data);
+                        const successCode = response.data.code
+                        console.log('Payment processing result Code:', successCode);
+
+                        // Show confirmation
+                        if (successCode == 201) {
+                            this.showConfirmation = true;
+                            // console.log("cart")
+                        }
+                        else {
+                            this.errorMessage = response.data.message || "An error occurred processing your order";
+                            this.showFailure = true;
+                            console.log("An error has occured, payment did go through")
+                        }
                     } catch (error) {
+                        // console.error('Error processing payment:', error);
                         console.error('Error processing payment:', error);
+                        this.errorMessage = "Failed to connect to the order processing system";
+                        this.showFailure = true;
                     }
 
-                    // Show confirmation
-                    if (this.status == "succeeded") {
-                        this.showConfirmation = true;
-                        // console.log("cart")
-                    }
-                    else {
-                        alert("An error has occured, payment did go through")
-                    }
+
 
                 }
             } catch (error) {
                 console.error("Error handling payment:", error);
                 this.paymentError = "An unexpected error occurred. Please try again.";
+                this.isProcessing = false;
             } finally {
                 this.isProcessing = false;
             }
@@ -447,21 +465,30 @@ export default {
         },
 
         async processPayment() {
-        this.isProcessing = true;
-        this.paymentStatus = '';
-        
-        // Simulate payment processing delay
-        setTimeout(() => {
-            this.isProcessing = false;
-            this.paymentStatus = 'Payment successful!';
-        }, 3000);
+            this.isProcessing = true;
+            this.paymentStatus = '';
+
+            // Simulate payment processing delay
+            setTimeout(() => {
+                this.isProcessing = false;
+                this.paymentStatus = 'Payment successful!';
+            }, 3000);
         },
 
         closeConfirmation() {
             this.showConfirmation = false;
             // Navigate back to home or wherever you want
             this.$router.push('/');
-        }
+        },
+        closeFailure() {
+            this.showFailure = false;
+        },
+
+        handleTryAgain() {
+            this.showFailure = false;
+            // Maybe reset some values or directly retry the payment
+            this.handlePayment();
+        },
     },
     watch: {
         // Watch for changes in userId or outletId
@@ -472,7 +499,7 @@ export default {
             this.fetchCartDetails();
         }
     }
-    
+
 };
 </script>
 
@@ -788,31 +815,36 @@ export default {
 
 
 .loading-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
 }
 
 .loading-container img {
-  width: 20%; /* Adjust based on screen size */
-  max-width: 150px; /* Set a max limit */
-  height: auto; /* Maintain aspect ratio */
+    width: 20%;
+    /* Adjust based on screen size */
+    max-width: 150px;
+    /* Set a max limit */
+    height: auto;
+    /* Maintain aspect ratio */
 }
+
 .loading-box {
-  background: white;
-  padding: 20px;
-  border-radius: 10px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  text-align: center;
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    text-align: center;
 }
+
 .loading-box img {
-  width: 150px;
-  height: auto;
+    width: 150px;
+    height: auto;
 }
 
 @media (max-width: 768px) {
