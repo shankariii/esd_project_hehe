@@ -304,6 +304,7 @@ export default {
             },
             trackOrder: (orderId) => {
                 console.log(`Tracking order: ${orderId}`);
+                router.push(`/trackOrders/${orderId}`);
             },
             viewOrderDetails: (orderId) => {
                 console.log(`Viewing details for order: ${orderId}`);

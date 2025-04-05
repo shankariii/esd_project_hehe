@@ -53,7 +53,7 @@ const router = createRouter({
       meta: { requiresAuth: true }
     },
     { 
-      path: '/trackOrders', 
+      path: '/trackOrders/:id', 
       name: 'trackOrders',
       component: TrackOrders,
       meta: { requiresAuth: true }
