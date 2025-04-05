@@ -92,6 +92,7 @@
                                 <span class="order-id">Order #{{ order.id }}</span>
                                 <span class="order-date">{{ formatDate(order.date) }}</span>
                             </div>
+                            <div class="order-outlet">{{ order.outletName }}</div>
                             <div class="order-status status-processing">{{ order.status }}</div>
                             <div class="order-items">
                                 <p v-for="(item, index) in order.items" :key="index">
@@ -122,6 +123,7 @@
                                 <span class="order-id">Order #{{ order.id }}</span>
                                 <span class="order-date">{{ formatDate(order.date) }}</span>
                             </div>
+                            <div class="order-outlet">{{ order.outletName }}</div>
                             <div class="order-status status-completed">{{ order.status }}</div>
                             <div class="order-items">
                                 <p v-for="(item, index) in order.items" :key="index">
@@ -156,7 +158,7 @@
 
                         <div class="form-group">
                             <label class="form-label" for="email">Email</label>
-                            <input type="email" id="email" class="form-control" v-model="formData.email" readonly>
+                            <input type="email" id="email" class="form-control" v-model="formData.email" disabled>
                         </div>
 
                         <div class="form-group">
@@ -200,6 +202,7 @@ export default {
                 id: '1234',
                 date: '2025-04-02T15:30:00Z',
                 status: 'Processing',
+                outletName: 'Downtown Cafe',
                 items: [
                     { name: 'Product Name', price: 24.99, quantity: 2 },
                     { name: 'Another Product', price: 15.99, quantity: 1 }
@@ -213,6 +216,7 @@ export default {
                 id: '1185',
                 date: '2025-03-25T09:45:00Z',
                 status: 'Completed',
+                outletName: 'Riverside Restaurant',
                 items: [
                     { name: 'Product Name', price: 24.99, quantity: 3 },
                     { name: 'Another Product', price: 15.99, quantity: 2 }
@@ -487,6 +491,13 @@ export default {
     color: var(--text-light);
 }
 
+.order-outlet {
+    font-weight: 500;
+    color: var(--primary);
+    margin-bottom: 0.7rem;
+    font-size: 1.05rem;
+}
+
 .order-status {
     display: inline-block;
     padding: 0.3rem 0.8rem;
@@ -494,6 +505,7 @@ export default {
     font-size: 0.8rem;
     font-weight: 500;
     text-transform: uppercase;
+    margin-bottom: 0.5rem;
 }
 
 .status-completed {

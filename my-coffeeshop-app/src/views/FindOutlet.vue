@@ -220,6 +220,7 @@ export default {
     chooseOutlet(outlet) {
       this.showNotification(`${outlet.name} has been selected`, 'success');
       localStorage.setItem("selectedOutletId", outlet.id);
+      localStorage.setItem("selectedOutletName", outlet.name);
       this.$router.push('/');
     },
 

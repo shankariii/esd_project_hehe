@@ -35,6 +35,14 @@
             <div class="checkout-summary">
                 <h2 class="summary-title">Order Summary</h2>
 
+                <!-- Outlet information -->
+                <div class="outlet-info"
+                    style="margin-bottom: 1.5rem; padding: 1rem; background-color: var(--light); border-radius: 8px;">
+                    <p style="font-size: 0.9rem; color: var(--text-light); margin-bottom: 0.25rem;">Ordering from:
+                        <span style="font-size: 1.1rem; color: var(--dark); font-weight: bold;">{{ outletName }}</span>
+                    </p>
+                </div>
+
                 <div class="order-items">
                     <div class="order-item" v-for="(item, index) in cartItems" :key="index">
                         <div class="item-image">
@@ -84,7 +92,7 @@
 
         <!-- Order Confirmation Modal -->
         <OrderConfirmation :show="showConfirmation" :payment-id="paymentId" :items="cartItems" :subtotal="subtotal"
-            :tax="tax" :total="total" @close="closeConfirmation" />
+            :tax="tax" :total="total" :outlet-name="outletName" @close="closeConfirmation" />
 
         <!-- Order Failure Modal -->
         <OrderFailure :show="showFailure" :payment-id="paymentId" :items="cartItems" :subtotal="subtotal" :tax="tax"
@@ -110,6 +118,7 @@ export default {
     },
     data() {
         return {
+            outletName: localStorage.getItem('selectedOutletName'),
             stripe: null,
             elements: null,
             clientSecret: null,

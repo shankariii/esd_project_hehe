@@ -14,6 +14,22 @@
           <i class="fas fa-arrow-left" style="margin-right: 0.5rem;"></i> Back to Menu
         </a>
 
+        <!-- Outlet information section -->
+        <div class="outlet-info"
+          style="margin-bottom: 1.5rem; padding: 1rem; background-color: var(--light); border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <p style="font-size: 0.9rem; color: var(--text-light); margin-bottom: 0.25rem;">Ordering from:
+              <span style="font-size: 1.1rem; color: var(--dark); font-weight: bold;">
+               {{ outletName || 'Select an outlet' }}
+              </span>
+              <button @click="changeOutlet"
+            style="background: none; border: 1px solid var(--primary); color: var(--primary); padding: 0.5rem 1rem; border-radius: 5px; cursor: pointer; font-size: 10px; margin-left: 10px;">
+            Change
+          </button>
+            </p>
+          </div>
+        </div>
+
         <!-- Empty cart message -->
         <div v-if="cartItems.length === 0 && !loading" class="empty-cart" style="text-align: center; padding: 3rem 0;">
           <i class="fas fa-shopping-cart" style="font-size: 3rem; color: var(--secondary); margin-bottom: 1rem;"></i>
@@ -172,6 +188,7 @@ export default {
       loading: true,
       // userId: 'test24', // Replace with dynamic user ID if needed
       outletId: JSON.parse(localStorage.getItem('selectedOutletId')),   // Replace with dynamic outlet ID if needed
+      outletName: localStorage.getItem('selectedOutletName'),   // Replace with dynamic outlet ID if needed
       cartId: 0,
       currentTotal: 0,
       apiConfig: {
@@ -392,7 +409,11 @@ export default {
 
       console.log("Proceeding to Menu!");
       this.$router.push('/menu');
-    }
+    },
+
+    changeOutlet() {
+      this.$router.push('/findOutlet');
+    },
   },
   watch: {
     // Watch for changes in userId or outletId

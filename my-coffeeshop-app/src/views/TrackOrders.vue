@@ -2,347 +2,266 @@
     <div class="track-order-container">
         <!-- Loading state -->
         <div v-if="isLoading" class="loading-state">
-            <div class="loading-spinner"></div>
-            <p>Loading your order details...</p>
+            Loading order details...
         </div>
 
         <!-- Error state -->
         <div v-else-if="error" class="error-state">
-            <p>Error: {{ error }}</p>
-            <button class="btn" @click="goBack">Go Back</button>
+            Error: {{ error }}
         </div>
 
-        <!-- Order Status Container -->
-        <div v-else class="order-details-container">
+        <!-- Main content -->
+        <div v-else class="order-details">
+
+            <router-link to="/profile" class="back-link">
+                &larr; Back to Profile
+            </router-link>
             <div class="order-header">
-                <h1>Track Your Order</h1>
-                <div class="order-id">Order #{{ orderId }}</div>
-                <div class="order-date">{{ formatDate(order.date) }}</div>
-                <div class="estimated-time">
-                    Estimated delivery: {{ formatTime(estimatedDeliveryTime) }}
-                </div>
+                <h1 style="margin-top: 20px;">Track Your Order</h1>
             </div>
 
-            <!-- Order Status -->
-            <div class="status-container">
-                <div class="status-title">Order Status</div>
-
-                <div class="status-timeline">
-                    <div class="status-step" :class="{ 'completed': statusSteps.orderPlaced.completed }">
-                        <div class="step-icon">
-                            <span v-if="statusSteps.orderPlaced.completed">✓</span>
-                            <span v-else>1</span>
+            <!-- Horizontal Status Timeline at the top -->
+            <div class="horizontal-timeline">
+                <div class="timeline-container">
+                    <div v-for="(step, index) in statusSteps" :key="index" class="timeline-step"
+                        :class="{ 'active': step.active, 'completed': step.completed }">
+                        <div class="timeline-marker">
+                            <span v-if="step.completed" class="checkmark">✓</span>
                         </div>
-                        <div class="step-details">
-                            <div class="step-name">Order Placed</div>
-                            <div class="step-time" v-if="statusSteps.orderPlaced.timestamp">
-                                {{ formatTime(statusSteps.orderPlaced.timestamp) }}
-                            </div>
+                        <div class="timeline-content">
+                            <div class="timeline-title">{{ step.title }}</div>
+                            <div class="timeline-time" v-if="step.time">{{ step.time }}</div>
                         </div>
-                    </div>
-
-                    <div class="status-step" :class="{ 'completed': statusSteps.preparing.completed }">
-                        <div class="step-icon">
-                            <span v-if="statusSteps.preparing.completed">✓</span>
-                            <span v-else>2</span>
-                        </div>
-                        <div class="step-details">
-                            <div class="step-name">Preparing</div>
-                            <div class="step-time" v-if="statusSteps.preparing.timestamp">
-                                {{ formatTime(statusSteps.preparing.timestamp) }}
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="status-step" :class="{ 'completed': statusSteps.readyForPickup.completed }">
-                        <div class="step-icon">
-                            <span v-if="statusSteps.readyForPickup.completed">✓</span>
-                            <span v-else>3</span>
-                        </div>
-                        <div class="step-details">
-                            <div class="step-name">Ready for Pickup</div>
-                            <div class="step-time" v-if="statusSteps.readyForPickup.timestamp">
-                                {{ formatTime(statusSteps.readyForPickup.timestamp) }}
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="status-step" :class="{ 'completed': statusSteps.completed.completed }">
-                        <div class="step-icon">
-                            <span v-if="statusSteps.completed.completed">✓</span>
-                            <span v-else>4</span>
-                        </div>
-                        <div class="step-details">
-                            <div class="step-name">Completed</div>
-                            <div class="step-time" v-if="statusSteps.completed.timestamp">
-                                {{ formatTime(statusSteps.completed.timestamp) }}
-                            </div>
-                        </div>
+                        <div v-if="index < statusSteps.length - 1" class="timeline-connector"></div>
                     </div>
                 </div>
             </div>
 
-            <!-- Order Items -->
-            <div class="order-items-container">
-                <div class="section-title">Order Details</div>
-                <div class="order-items">
-                    <div v-for="(item, index) in order.items" :key="index" class="order-item">
-                        <div class="item-quantity">{{ item.quantity }}x</div>
-                        <div class="item-name">{{ item.name }}</div>
-                        <div class="item-price">${{ (item.price * item.quantity).toFixed(2) }}</div>
+            <div class="order-info">
+                <div class="order-summary">
+                    <h2>Order #{{ order.id }}</h2>
+                    <div class="status-badge" :class="statusClass">
+                        {{ order.status }}
+                    </div>
+
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <span class="label">Order Date:</span>
+                            <span class="value">{{ formatDate(order.date) }}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label">Outlet:</span>
+                            <span class="value">{{ order.outletName }}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label">Outlet Address:</span>
+                            <span class="value">{{ order.outletAddress }}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label">Estimated Delivery:</span>
+                            <span class="value">{{ estimatedDelivery }}</span>
+                        </div>
+                    </div>
+
+                    <div class="order-items">
+                        <h3>Your Items</h3>
+                        <div v-for="(item, index) in order.items" :key="index" class="item">
+                            <span class="quantity">{{ item.quantity }}x</span>
+                            <span class="name">{{ item.name }}</span>
+                            <span class="price">${{ item.price.toFixed(2) }}</span>
+                        </div>
+                        <div class="total">
+                            <span>Total:</span>
+                            <span>${{ order.total.toFixed(2) }}</span>
+                        </div>
                     </div>
                 </div>
-                <div class="order-total">
-                    <span>Total:</span>
-                    <span>${{ order.total.toFixed(2) }}</span>
+
+                <div class="map-container">
+                    <div class="map" ref="map"></div>
+                    <div class="directions-panel" ref="directionsPanel"></div>
                 </div>
-            </div>
-
-            <!-- Map Section -->
-            <div class="map-container">
-                <div class="section-title">Outlet Location</div>
-                <div class="map" ref="mapContainer" style="height: 400px; width: 100%;"></div>
-
-                <div class="outlet-info">
-                    <div class="outlet-name">{{ outlet.name }}</div>
-                    <div class="outlet-address">{{ outlet.address }}</div>
-                    <div class="outlet-contact">
-                        <a :href="`tel:${outlet.phone}`">{{ outlet.phone }}</a>
-                    </div>
-                </div>
-
-                <button class="btn" @click="getDirections">Get Directions</button>
-            </div>
-
-            <div class="actions">
-                <button class="btn btn-secondary" @click="goBack">Back to Profile</button>
-                <button class="btn" @click="contactSupport">Contact Support</button>
             </div>
         </div>
     </div>
 </template>
 
 <script>
-import { ref, onMounted, onUnmounted } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+import { ref, onMounted, computed } from 'vue';
+import { useRoute } from 'vue-router';
 
 export default {
     name: 'TrackOrder',
     setup() {
         const route = useRoute();
-        const router = useRouter();
-        const orderId = ref(route.params.orderId);
+        const orderId = route.params.orderId;
+        const map = ref(null);
+        const directionsPanel = ref(null);
         const isLoading = ref(true);
         const error = ref(null);
-        const mapContainer = ref(null);
-        const map = ref(null);
-        const mapInitialized = ref(false);
-        const directionsService = ref(null);
-        const directionsRenderer = ref(null);
 
-        // Order data (replace with real API call)
+        // For demo purposes - replace with real data from your backend
         const order = ref({
-            id: orderId.value,
+            id: orderId,
             date: '2025-04-02T15:30:00Z',
-            status: 'Preparing',
+            status: 'Processing',
+            outletName: 'Downtown Cafe',
+            outletAddress: '81 Victoria St, Singapore 188065',
+            outletLat: 1.297106,
+            outletLng: 103.8498,
             items: [
-                { name: 'Cappuccino (Large)', price: 4.99, quantity: 2 },
-                { name: 'Chocolate Croissant', price: 3.50, quantity: 1 }
+                { name: 'Product Name', price: 24.99, quantity: 2 },
+                { name: 'Another Product', price: 15.99, quantity: 1 }
             ],
-            total: 13.48
+            total: 65.97,
+            statusHistory: [
+                { status: 'Order Placed', time: '2025-04-02T15:30:00Z' },
+                { status: 'Preparing', time: '2025-04-02T15:45:00Z' },
+                { status: 'Ready for Pickup', time: null },
+                { status: 'Completed', time: null }
+            ]
         });
 
-        // Outlet data (replace with real data)
-        const outlet = ref({
-            name: 'Coffee Break Downtown',
-            address: '123 Main Street, New York, NY 10001',
-            phone: '(555) 123-4567',
-            location: { lat: 40.712776, lng: -74.005974 } // NYC coordinates
+        const statusClass = computed(() => {
+            return {
+                'processing': order.value.status === 'Processing',
+                'preparing': order.value.status === 'Preparing',
+                'ready': order.value.status === 'Ready for Pickup',
+                'completed': order.value.status === 'Completed'
+            };
         });
 
-        // Status steps with timestamps
-        const statusSteps = ref({
-            orderPlaced: {
-                completed: true,
-                timestamp: new Date('2025-04-02T15:30:00Z')
-            },
-            preparing: {
-                completed: true,
-                timestamp: new Date('2025-04-02T15:35:00Z')
-            },
-            readyForPickup: {
-                completed: false,
-                timestamp: null
-            },
-            completed: {
-                completed: false,
-                timestamp: null
-            }
+        const estimatedDelivery = computed(() => {
+            const date = new Date(order.value.date);
+            date.setMinutes(date.getMinutes() + 45); // Add 45 minutes for demo
+            return formatTime(date);
         });
 
-        // Estimated delivery time (10 minutes from now)
-        const estimatedDeliveryTime = ref(new Date(new Date().getTime() + 10 * 60000));
+        const statusSteps = computed(() => {
+            return order.value.statusHistory.map(step => ({
+                title: step.status,
+                time: step.time ? formatTime(new Date(step.time)) : null,
+                active: order.value.status === step.status,
+                completed: step.time !== null
+            }));
+        });
 
-        // Format date for display
         const formatDate = (dateString) => {
             if (!dateString) return '';
             const date = new Date(dateString);
             return new Intl.DateTimeFormat('en-US', {
                 year: 'numeric',
                 month: 'long',
-                day: 'numeric'
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
             }).format(date);
         };
 
-        // Format time for display
-        const formatTime = (dateString) => {
-            if (!dateString) return '';
-            const date = new Date(dateString);
+        const formatTime = (date) => {
             return new Intl.DateTimeFormat('en-US', {
-                hour: 'numeric',
-                minute: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
                 hour12: true
             }).format(date);
         };
 
-        // Initialize Google Maps
-        const initializeMap = () => {
-            if (!window.google || mapInitialized.value) return;
-
-            if (!mapContainer.value) {
-                console.error('Map container element not found');
-                error.value = 'Could not load the map';
-                return;
-            }
-
-            try {
-                // Create map
-                map.value = new window.google.maps.Map(mapContainer.value, {
-                    center: outlet.value.location,
-                    zoom: 15,
-                    mapTypeControl: false
-                });
-
-                // Add marker for outlet
-                new window.google.maps.Marker({
-                    position: outlet.value.location,
-                    map: map.value,
-                    title: outlet.value.name
-                });
-
-                // Initialize directions services
-                directionsService.value = new window.google.maps.DirectionsService();
-                directionsRenderer.value = new window.google.maps.DirectionsRenderer({
-                    map: map.value,
-                    suppressMarkers: false
-                });
-
-                mapInitialized.value = true;
-            } catch (e) {
-                console.error('Error initializing map:', e);
-                error.value = 'Could not load the map';
-            }
-        };
-
-        // Load Google Maps API
-        const loadGoogleMapsAPI = () => {
-            if (window.google && window.google.maps) {
-                initializeMap();
-                return;
-            }
-
+        const initMap = () => {
+            // Load Google Maps API script
             const script = document.createElement('script');
-            script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyDyzGN00mpIu7qElBpIFwiPjWyQlkIfHHM&callback=initMap`;
+            script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyDyzGN00mpIu7qElBpIFwiPjWyQlkIfHHM&libraries=places,geometry,directions`;
             script.async = true;
             script.defer = true;
-
-            window.initMap = () => {
-                initializeMap();
+            script.onload = () => {
+                renderMap();
             };
-
             document.head.appendChild(script);
         };
 
-        // Get directions to the outlet
-        const getDirections = () => {
-            if (!mapInitialized.value || !directionsService.value) {
-                alert('Map is not initialized yet. Please try again in a moment.');
-                return;
-            }
+        const renderMap = () => {
+            // For demo, we'll use San Francisco as user location
+            // In a real app, you would get this from geolocation API
+            const userLocation = { lat: 1.28136, lng: 103.8352 };
+            const outletLocation = {
+                lat: order.value.outletLat,
+                lng: order.value.outletLng
+            };
 
-            // Try to get user's location
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(
-                    (position) => {
-                        const origin = {
-                            lat: position.coords.latitude,
-                            lng: position.coords.longitude
-                        };
-
-                        directionsService.value.route(
-                            {
-                                origin: origin,
-                                destination: outlet.value.location,
-                                travelMode: 'DRIVING'
-                            },
-                            (response, status) => {
-                                if (status === 'OK') {
-                                    directionsRenderer.value.setDirections(response);
-                                } else {
-                                    alert('Could not calculate directions: ' + status);
-                                }
-                            }
-                        );
-                    },
-                    () => {
-                        alert('Unable to get your location. Please enable location services.');
+            // Create map
+            const mapInstance = new google.maps.Map(map.value, {
+                center: userLocation,
+                zoom: 13,
+                styles: [
+                    {
+                        featureType: "poi",
+                        elementType: "labels",
+                        stylers: [{ visibility: "off" }]
                     }
-                );
-            } else {
-                alert('Geolocation is not supported by your browser.');
-            }
-        };
+                ]
+            });
 
-        // Simulated data loading
-        const loadOrderData = () => {
-            isLoading.value = true;
+            // Add markers
+            new google.maps.Marker({
+                position: userLocation,
+                map: mapInstance,
+                title: "Your location",
+                icon: {
+                    url: "https://maps.google.com/mapfiles/ms/icons/blue-dot.png"
+                }
+            });
 
-            // Simulate API call with timeout
-            setTimeout(() => {
-                // Data would normally come from an API
-                isLoading.value = false;
-            }, 1500);
-        };
+            new google.maps.Marker({
+                position: outletLocation,
+                map: mapInstance,
+                title: order.value.outletName,
+                icon: {
+                    url: "https://maps.google.com/mapfiles/ms/icons/red-dot.png"
+                }
+            });
 
-        // Navigation functions
-        const goBack = () => {
-            router.push('/profile');
-        };
+            // Calculate and display route
+            const directionsService = new google.maps.DirectionsService();
+            const directionsRenderer = new google.maps.DirectionsRenderer({
+                map: mapInstance,
+                panel: directionsPanel.value,
+                suppressMarkers: true
+            });
 
-        const contactSupport = () => {
-            alert('Support contact feature will be implemented soon.');
+            directionsService.route(
+                {
+                    origin: userLocation,
+                    destination: outletLocation,
+                    travelMode: google.maps.TravelMode.WALKING
+                },
+                (response, status) => {
+                    if (status === "OK") {
+                        directionsRenderer.setDirections(response);
+                    } else {
+                        console.error("Directions request failed due to " + status);
+                    }
+                }
+            );
         };
 
         onMounted(() => {
-            loadOrderData();
-            loadGoogleMapsAPI();
-            
+            // In a real app, you would fetch order details here
+            setTimeout(() => {
+                isLoading.value = false;
+                initMap();
+            }, 1000);
         });
 
         return {
-            orderId,
             isLoading,
             error,
             order,
-            outlet,
-            mapContainer,
+            statusClass,
+            estimatedDelivery,
             statusSteps,
-            estimatedDeliveryTime,
             formatDate,
             formatTime,
-            getDirections,
-            goBack,
-            contactSupport
+            map,
+            directionsPanel
         };
     }
 };
@@ -350,307 +269,311 @@ export default {
 
 <style scoped>
 .track-order-container {
-    max-width: 1000px;
+    max-width: 1200px;
     margin: 6rem auto;
-    padding: 0 1.5rem;
+    padding: 0 2rem;
 }
 
-/* Loading State */
-.loading-state {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-height: 400px;
-}
-
-.loading-spinner {
-    width: 40px;
-    height: 40px;
-    border: 4px solid rgba(0, 0, 0, 0.1);
-    border-left-color: var(--primary);
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-    margin-bottom: 1rem;
-}
-
-@keyframes spin {
-    0% {
-        transform: rotate(0deg);
-    }
-
-    100% {
-        transform: rotate(360deg);
-    }
-}
-
-/* Error State */
+.loading-state,
 .error-state {
     text-align: center;
     padding: 3rem;
-    background-color: #fff;
-    border-radius: 10px;
-    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+    font-size: 1.2rem;
 }
 
-/* Order Details Container */
-.order-details-container {
-    background-color: white;
-    border-radius: 10px;
-    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
-    padding: 2rem;
+.error-state {
+    color: #d32f2f;
 }
 
 .order-header {
-    text-align: center;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     margin-bottom: 2rem;
-    padding-bottom: 1.5rem;
-    border-bottom: 1px solid var(--light);
 }
 
 .order-header h1 {
     font-size: 2rem;
     color: var(--primary);
-    margin-bottom: 0.5rem;
 }
 
-.order-id {
-    font-size: 1.2rem;
-    font-weight: bold;
-    margin-bottom: 0.5rem;
-}
-
-.order-date {
-    color: var(--text-light);
-    margin-bottom: 0.5rem;
-}
-
-.estimated-time {
-    font-weight: bold;
+.back-link {
     color: var(--primary);
-    font-size: 1.1rem;
+    text-decoration: none;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
 }
 
-/* Status Section */
-.status-container {
-    margin-bottom: 2rem;
+.back-link:hover {
+    text-decoration: underline;
 }
 
-.status-title,
-.section-title {
+.order-info {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin-bottom: 3rem;
+}
+
+.order-summary {
+    background: white;
+    border-radius: 8px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.order-summary h2 {
     font-size: 1.5rem;
-    font-weight: bold;
-    margin-bottom: 1.5rem;
+    margin-bottom: 1rem;
     color: var(--dark);
 }
 
-.status-timeline {
-    display: flex;
-    justify-content: space-between;
-    position: relative;
+.status-badge {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    border-radius: 50px;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+}
+
+.status-badge.processing {
+    background-color: #fef7e0;
+    color: var(--accent);
+}
+
+.status-badge.preparing {
+    background-color: #e8f0fe;
+    color: #1a73e8;
+}
+
+.status-badge.ready {
+    background-color: #e6f4ea;
+    color: #34a853;
+}
+
+.status-badge.completed {
+    background-color: #f6f6f6;
+    color: #5f6368;
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
     margin-bottom: 2rem;
 }
 
-.status-timeline::before {
-    content: '';
-    position: absolute;
-    height: 4px;
-    background-color: var(--light);
-    top: 25px;
-    left: 40px;
-    right: 40px;
-    z-index: 1;
+.info-item {
+    display: flex;
+    flex-direction: column;
 }
 
-.status-step {
+.label {
+    font-size: 0.9rem;
+    color: var(--text-light);
+    margin-bottom: 0.3rem;
+}
+
+.value {
+    font-weight: 500;
+    color: var(--text);
+}
+
+.order-items {
+    border-top: 1px solid var(--light);
+    padding-top: 1.5rem;
+}
+
+.order-items h3 {
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+    color: var(--dark);
+}
+
+.item {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.8rem;
+    padding-bottom: 0.8rem;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.quantity {
+    font-weight: 500;
+    color: var(--primary);
+    min-width: 30px;
+}
+
+.name {
+    flex-grow: 1;
+    margin: 0 1rem;
+}
+
+.price {
+    font-weight: 500;
+    color: var(--text);
+}
+
+.total {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 1rem;
+    font-weight: bold;
+    font-size: 1.1rem;
+    color: var(--primary);
+}
+
+.map-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.map {
+    height: 400px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    margin-bottom: 1rem;
+}
+
+.directions-panel {
+    background: white;
+    border-radius: 8px;
+    padding: 1rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+/* Horizontal Timeline Styles */
+.horizontal-timeline {
+    background: white;
+    border-radius: 8px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    margin-bottom: 2rem;
+}
+
+.timeline-container {
+    display: flex;
+    justify-content: space-between;
     position: relative;
-    z-index: 2;
+    padding: 0 1rem;
+}
+
+.timeline-step {
     display: flex;
     flex-direction: column;
     align-items: center;
-    width: 25%;
+    position: relative;
+    flex: 1;
+    z-index: 1;
 }
 
-.step-icon {
-    width: 50px;
-    height: 50px;
+.timeline-marker {
+    width: 2rem;
+    height: 2rem;
     border-radius: 50%;
-    background-color: white;
-    border: 3px solid var(--light);
+    background: #e0e0e0;
     display: flex;
-    justify-content: center;
     align-items: center;
+    justify-content: center;
     margin-bottom: 0.5rem;
-    font-size: 1.2rem;
-    font-weight: bold;
-    color: var(--text-light);
+    position: relative;
+    border: 2px solid white;
 }
 
-.status-step.completed .step-icon {
-    background-color: var(--primary);
-    border-color: var(--primary);
+.timeline-step.completed .timeline-marker {
+    background: var(--primary);
     color: white;
 }
 
-.step-details {
+.timeline-step.active .timeline-marker {
+    background: var(--primary);
+    color: white;
+    box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.2);
+}
+
+.timeline-content {
     text-align: center;
+    max-width: 100px;
 }
 
-.step-name {
-    font-weight: bold;
-    margin-bottom: 0.2rem;
+.timeline-title {
+    font-weight: 500;
+    font-size: 0.9rem;
+    margin-bottom: 0.3rem;
+    word-break: break-word;
 }
 
-.step-time {
+.timeline-step.completed .timeline-title {
+    color: var(--text);
+}
+
+.timeline-step.active .timeline-title {
+    color: var(--primary);
+    font-weight: 600;
+}
+
+.timeline-time {
     font-size: 0.8rem;
     color: var(--text-light);
 }
 
-/* Order Items */
-.order-items-container {
-    margin-bottom: 2rem;
-    padding-bottom: 1.5rem;
-    border-bottom: 1px solid var(--light);
+.timeline-connector {
+    position: absolute;
+    top: 1rem;
+    left: 50%;
+    right: -50%;
+    height: 2px;
+    background: #e0e0e0;
+    z-index: -1;
 }
 
-.order-items {
-    margin-bottom: 1rem;
+.timeline-step.completed .timeline-connector {
+    background: var(--primary);
 }
 
-.order-item {
-    display: flex;
-    margin-bottom: 0.8rem;
-    padding-bottom: 0.8rem;
-    border-bottom: 1px solid var(--light);
-}
-
-.item-quantity {
-    width: 40px;
-    font-weight: bold;
-}
-
-.item-name {
-    flex: 1;
-}
-
-.item-price {
-    font-weight: bold;
-    color: var(--dark);
-}
-
-.order-total {
-    display: flex;
-    justify-content: space-between;
-    font-size: 1.2rem;
-    font-weight: bold;
-    color: var(--primary);
-    padding-top: 1rem;
-}
-
-/* Map Container */
-.map-container {
-    margin-bottom: 2rem;
-}
-
-.map {
-    border-radius: 10px;
-    overflow: hidden;
-    margin-bottom: 1.5rem;
-}
-
-.outlet-info {
-    background-color: var(--light);
-    padding: 1rem;
-    border-radius: 8px;
-    margin-bottom: 1rem;
-}
-
-.outlet-name {
-    font-weight: bold;
-    font-size: 1.1rem;
-    margin-bottom: 0.3rem;
-}
-
-.outlet-address {
-    margin-bottom: 0.3rem;
-    color: var(--text);
-}
-
-.outlet-contact a {
-    color: var(--primary);
-    text-decoration: none;
-}
-
-/* Action Buttons */
-.actions {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 2rem;
-}
-
-.btn {
-    padding: 0.8rem 1.5rem;
-    background-color: var(--primary);
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 1rem;
-    font-weight: 500;
-    transition: background-color 0.3s;
-}
-
-.btn:hover {
-    background-color: var(--dark);
-}
-
-.btn-secondary {
-    background-color: var(--light);
-    color: var(--text);
-    border: 1px solid var(--secondary);
-}
-
-.btn-secondary:hover {
-    background-color: var(--secondary);
-    color: white;
+.checkmark {
+    font-size: 0.9rem;
 }
 
 @media (max-width: 768px) {
-    .status-timeline {
-        flex-direction: column;
+    .order-info {
+        grid-template-columns: 1fr;
     }
 
-    .status-timeline::before {
-        height: calc(100% - 80px);
-        width: 4px;
-        top: 25px;
-        left: 23px;
-        right: auto;
+    .order-summary {
+        order: 2;
     }
 
-    .status-step {
-        flex-direction: row;
-        width: 100%;
-        margin-bottom: 1.5rem;
-        align-items: flex-start;
+    .map-container {
+        order: 1;
     }
 
-    .step-icon {
-        margin-right: 1rem;
-        margin-bottom: 0;
-    }
-
-    .step-details {
-        text-align: left;
-    }
-
-    .actions {
-        flex-direction: column;
+    .timeline-container {
+        flex-wrap: wrap;
+        justify-content: flex-start;
         gap: 1rem;
     }
 
-    .btn {
-        width: 100%;
+    .timeline-step {
+        flex: 0 0 calc(50% - 0.5rem);
+        align-items: flex-start;
+        margin-bottom: 1rem;
+    }
+
+    .timeline-content {
+        text-align: left;
+        max-width: none;
+        margin-left: 0.5rem;
+    }
+
+    .timeline-connector {
+        display: none;
     }
 }
 </style>
