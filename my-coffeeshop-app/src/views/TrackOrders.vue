@@ -75,6 +75,14 @@
                             <span>${{ order.total.toFixed(2) }}</span>
                         </div>
                     </div>
+
+                    <!-- Add this inside the order-summary div, just before or after the order-items section -->
+                    <div v-if="order.status === 'Ready for Pickup'" class="confirm-pickup">
+                        <p>Your order is ready! Please confirm when you've collected it.</p>
+                        <button @click="confirmPickup" class="confirm-button">
+                            Confirm Collection
+                        </button>
+                    </div>
                 </div>
 
                 <div class="map-container">
@@ -88,7 +96,7 @@
 
 <script>
 import { ref, onMounted, computed } from 'vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 
 export default {
     name: 'TrackOrder',
@@ -99,6 +107,30 @@ export default {
         const directionsPanel = ref(null);
         const isLoading = ref(true);
         const error = ref(null);
+        const router = useRouter();
+
+
+        const confirmPickup = () => {
+            // Update order status to "Completed"
+            order.value.status = 'Completed';
+
+            // Update the status history
+            order.value.statusHistory.forEach(step => {
+                if (step.status === 'Ready for Pickup' && !step.time) {
+                    step.time = new Date().toISOString();
+                }
+                if (step.status === 'Completed') {
+                    step.time = new Date().toISOString();
+                }
+            });
+
+            // In a real app, you would send this update to your backend
+            console.log('Order pickup confirmed');
+
+            // Optional: Show a confirmation message
+            alert('Thank you for confirming your order pickup!');
+            router.push("/")
+        };
 
         // For demo purposes - replace with real data from your backend
         const order = ref({
@@ -231,7 +263,7 @@ export default {
                 {
                     origin: userLocation,
                     destination: outletLocation,
-                    travelMode: google.maps.TravelMode.WALKING
+                    travelMode: google.maps.TravelMode.TRANSIT
                 },
                 (response, status) => {
                     if (status === "OK") {
@@ -251,7 +283,10 @@ export default {
             }, 1000);
         });
 
+
+
         return {
+            router,
             isLoading,
             error,
             order,
@@ -261,7 +296,8 @@ export default {
             formatDate,
             formatTime,
             map,
-            directionsPanel
+            directionsPanel,
+            confirmPickup
         };
     }
 };
@@ -575,5 +611,29 @@ export default {
     .timeline-connector {
         display: none;
     }
+}
+
+.confirm-pickup {
+    margin-top: 1.5rem;
+    padding: 1rem;
+    background-color: #e6f4ea;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.confirm-button {
+    background-color: var(--primary);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 4px;
+    font-weight: 500;
+    cursor: pointer;
+    margin-top: 0.5rem;
+    transition: background-color 0.2s;
+}
+
+.confirm-button:hover {
+    background-color: var(--primary-dark, #0056b3);
 }
 </style>

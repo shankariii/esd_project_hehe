@@ -263,6 +263,22 @@ services:
     ports:
       - "5500:5500"
     networks:
+      - esd-net 
+
+ ###################################
+  # Order Log Composite: The Order Log composite microservice
+  ###################################
+  OrderLogComposite:
+    build:
+      context: ./OrderLogsCompositeService
+      dockerfile: OrderLogsCompositeService.Dockerfile
+    image: shashass/order-log-composite:esd
+    restart: always
+    environment:
+      PYTHONUNBUFFERED: 1
+    ports:
+      - "5550:5550"
+    networks:
       - esd-net  
 
   ###################################

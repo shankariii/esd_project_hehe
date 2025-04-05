@@ -7,122 +7,18 @@ app = Flask(__name__)
 CORS(app)
 
 # URLs of individual microservices
-order_service_url = "https://personal-9fpjlj95.outsystemscloud.com/WorkerUI/rest/GetByOrderID/GetOrder"
-order_items_service_url = "https://personal-9fpjlj95.outsystemscloud.com/WorkerUI/rest/GetByOrderID/GetOrderItemCustomisation"
-Order_customisation_service_url = "https://personal-9fpjlj95.outsystemscloud.com/WorkerUI/rest/GetByOrderID/GetOrderItems"
-drink_service_url = "http://localhost:5005/drinks"
+orderLog_service_url = "https://personal-9fpjlj95.outsystemscloud.com/WorkerUI/rest/GetByOrderID/GetOrder"
+orderLog_items_service_url = "https://personal-9fpjlj95.outsystemscloud.com/WorkerUI/rest/GetByOrderID/GetOrderItemCustomisation"
+OrderLog_customisation_service_url = "https://personal-9fpjlj95.outsystemscloud.com/WorkerUI/rest/GetByOrderID/GetOrderItems"
+# drink_service_url = "http://localhost:5005/drinks"
 outlet_service_url = "http://localhost:5001/outlets"
 drink_customization_url = "http://127.0.0.1:5017/cic"
 
-@app.route('/orders/count', methods=['GET'])
-def get_order_count_by_outlet():
-    # Get outlet_id from query parameters
-    outlet_id = request.args.get('outlet_id')
-    
-    if not outlet_id:
-        return jsonify({'error': 'outlet_id parameter is required'}), 400
-    
-    try:
-        # Make request to the external API
-        response = requests.get(
-            order_service_url
-        )
-        response.raise_for_status()
-        
-        # Parse the JSON response
-        orders_data = response.json()
-        
-        # Filter orders by outlet_id and count
-        try:
-            outlet_id_int = int(outlet_id)
-            filtered_orders = [
-                item['OrderDetails'] for item in orders_data 
-                if item.get('OrderDetails', {}).get('outlet_id') == outlet_id_int
-            ]
-            count = len(filtered_orders)
-            
-            return jsonify({
-                'outlet_id': outlet_id,
-                'total_orders': count,
-                # 'orders': filtered_orders
-            })
-        except ValueError:
-            return jsonify({'error': 'outlet_id must be an integer'}), 400
-        
-    except requests.exceptions.RequestException as e:
-        return jsonify({'error': f'API request failed: {str(e)}'}), 500
-    except json.JSONDecodeError:
-        return jsonify({'error': 'Invalid JSON response from API'}), 500
-    
-@app.route('/get_wait_time/<int:outlet_id>', methods=['GET'])
-def get_wait_time(outlet_id):
-    try:
-        # Step 1: Get all orders for this outlet
-        orders_url = f"{order_service_url}/outlet/{outlet_id}"
-        orders_response = invoke_http(orders_url, method="GET")
-        
-        if orders_response["code"] != 200:
-            return jsonify({
-                "code": orders_response["code"],
-                "message": f"Failed to fetch orders: {orders_response['message']}"
-            }), orders_response["code"]
-        
-        orders = orders_response.get("data", [])
-        if not orders:
-            return jsonify({
-                "code": 200,
-                "data": {
-                    "outlet_id": outlet_id,
-                    "total_wait_time": 0,
-                    "message": "No orders found for this outlet"
-                }
-            }), 200
-        
-        total_wait_time = 0
-        
-        # Step 2: For each order, get the outlet items
-        for order in orders:
-            order_id = order["order_id"]
-            outlet_items_url = f"{order_items_service_url}/order/{order_id}"
-            outlet_items_response = invoke_http(outlet_items_url, method="GET")
-            
-            if outlet_items_response["code"] != 200:
-                # Skip this order if we can't get items
-                continue
-            
-            outlet_items = outlet_items_response.get("data", [])
-            
-            # Step 3: For each outlet item, get the drink preparation time
-            for item in outlet_items:
-                drink_id = item["drink_id"]
-                drink_url = f"{drink_service_url}/{drink_id}"
-                drink_response = invoke_http(drink_url, method="GET")
-                
-                if drink_response["code"] == 200:
-                    preparation_time = drink_response["data"].get("prep_time_min", 0)
-                    total_wait_time += preparation_time * item.get("quantity", 1)
-        
-        # Step 4: Return the total wait time
-        return jsonify({
-            "code": 200,
-            "data": {
-                "outlet_id": outlet_id,
-                "total_wait_time": total_wait_time,
-                "unit": "minutes"  # Assuming preparation_time is in minutes
-            }
-        }), 200
-    
-    except Exception as e:
-        return jsonify({
-            "code": 500,
-            "message": f"Internal server error: {str(e)}"
-        }), 500
-
 @app.route('/get_user_orders/<user_id>', methods=['GET'])
-def get_user_orders(user_id):
+def get_user_ordersLog(user_id):
     try:
         # Step 1: Get all orders for this user
-        orders_url = f"{order_service_url}?user_id={user_id}"  # Adjust based on actual API
+        orders_url = f"{orderLog_service_url}?user_id={user_id}"  # Adjust based on actual API
         orders_response = invoke_http(orders_url, method="GET")
         
         if orders_response.get("code", 200) != 200:
@@ -164,7 +60,7 @@ def get_user_orders(user_id):
                 outlet_name = outlet_data.get("name", "Unknown Outlet")
             
             # Step 2b: Get all items for this order
-            order_items_url = f"{order_items_service_url}?order_id={order_id}"  # Adjust based on actual API
+            order_items_url = f"{orderLog_items_service_url}?order_id={order_id}"  # Adjust based on actual API
             items_response = invoke_http(order_items_url, method="GET")
             
             items = []
@@ -182,7 +78,7 @@ def get_user_orders(user_id):
                     item_id = item.get("order_item_id")
                     
                     # Step 2c: Get customizations for this item
-                    customizations_url = f"{Order_customisation_service_url}?order_item_id={item_id}"  # Adjust based on actual API
+                    customizations_url = f"{OrderLog_customisation_service_url}?order_item_id={item_id}"  # Adjust based on actual API
                     customizations_response = invoke_http(customizations_url, method="GET")
                     
                     customizations = []
@@ -247,10 +143,10 @@ def get_user_orders(user_id):
         }), 500
 
 @app.route('/get_order_details/<int:order_id>', methods=['GET'])
-def get_order_details(order_id):
+def get_orderLog_details(order_id):
     try:
         # Step 1: Get the order details
-        order_url = f"{order_service_url}/{order_id}"
+        order_url = f"{orderLog_service_url}/{order_id}"
         order_response = invoke_http(order_url, method="GET")
         
         if order_response.get("code", 200) != 200:
@@ -291,7 +187,7 @@ def get_order_details(order_id):
             })
         
         # Step 3: Get all items for this order
-        order_items_url = f"{order_items_service_url}/order/{order_id}"
+        order_items_url = f"{orderLog_items_service_url}/order/{order_id}"
         items_response = invoke_http(order_items_url, method="GET")
         
         items = []
@@ -310,7 +206,7 @@ def get_order_details(order_id):
                 item_id = item.get("order_item_id")
                 
                 # Step 4: Get customizations for this item
-                customizations_url = f"{Order_customisation_service_url}/item/{item_id}"
+                customizations_url = f"{OrderLog_customisation_service_url}/item/{item_id}"
                 customizations_response = invoke_http(customizations_url, method="GET")
                 
                 customizations = []
@@ -373,4 +269,4 @@ def get_order_details(order_id):
         }), 500
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5500, debug=True)
+    app.run(host="0.0.0.0", port=5550, debug=True)
