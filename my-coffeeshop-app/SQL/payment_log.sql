@@ -20,6 +20,8 @@ SET time_zone = "+00:00";
 --
 -- Database: `payment_log`
 --
+CREATE DATABASE IF NOT EXISTS `payment_log` DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;
+USE `payment_log`;
 
 -- --------------------------------------------------------
 

@@ -266,3 +266,20 @@ services:
       - "6000:6000"
     networks:
       - esd-net
+
+  ###################################
+  # Threshold: The Threshold microservice
+  ###################################
+  threshold:
+    build:
+      context: ./Threshold
+      dockerfile: threshold.Dockerfile
+    image: amritad/threshold:esd
+    restart: always
+    environment:
+      dbURL: mysql+mysqlconnector://is213@host.docker.internal:3306/threshold
+      PYTHONUNBUFFERED: 1
+    ports:
+      - "8100:8100"
+    networks:
+      - esd-net
