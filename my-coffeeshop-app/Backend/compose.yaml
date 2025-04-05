@@ -249,6 +249,22 @@ services:
     networks:
       - esd-net  
 
+ ###################################
+  # Order Composite: The Order composite microservice
+  ###################################
+  OrderComposite:
+    build:
+      context: ./OrderCompositeService
+      dockerfile: OrderCompositeService.Dockerfile
+    image: shashass/order-composite:esd
+    restart: always
+    environment:
+      PYTHONUNBUFFERED: 1
+    ports:
+      - "5500:5500"
+    networks:
+      - esd-net  
+
   ###################################
   # Twilio: The Twilio microservice
   ###################################
