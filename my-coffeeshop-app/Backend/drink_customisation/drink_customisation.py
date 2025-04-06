@@ -20,6 +20,7 @@ class Customisation(db.Model):
     __tablename__ = 'customisation'
 
     customisation_id = db.Column(db.Integer, primary_key=True)
+    CIID = db.Column(db.Integer, nullable=False)
     customisation_type = db.Column(db.String(10), nullable=False)
     name = db.Column(db.String(32), nullable=False)
     price_diff = db.Column(db.Float, nullable=False)
@@ -27,6 +28,7 @@ class Customisation(db.Model):
     def json(self):
         return {
             "customisation_id": self.customisation_id,
+            "drinkIngredient_id": self.CIID,
             "customisation_type": self.customisation_type,
             "name": self.name,
             "price_diff": self.price_diff
