@@ -12,7 +12,8 @@ CREATE TABLE IF NOT EXISTS threshold (
 );
 
 INSERT INTO threshold (ingredient, threshold) VALUES
-("Coffee Beans", 1200.00),
-("Skim Milk", 120.50),
+("Coffee Beans", 800.00),
+("Regular Milk", 3000.00),
 ("Almond Milk", 1000.00),
-("Chocolate Sprinkles", 30.00);
+-- ("Chocolate Sprinkles", 200.00),
+("Caramel Syrup", 1050.00)

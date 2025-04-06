@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS supplier_ingredient (
 
 -- Insert sample data into the supplier_ingredient table
 INSERT INTO supplier_ingredient (ingredient, supplier_id, price_per_unit, lead_time) VALUES
-("Coffee Beans", 2, 12.50, 5),
+("Coffee Beans", 2, 12.90, 3),
 ("Regular Milk", 3, 2.75, 2),
 ("Skim Milk", 2, 2.60, 2),
 ("Soy Milk", 2, 2.75, 2),
@@ -21,5 +21,6 @@ INSERT INTO supplier_ingredient (ingredient, supplier_id, price_per_unit, lead_t
 ("Oat Milk", 3, 4.00, 2),
 ("Vanilla Syrup", 1, 5.95, 4),
 ("Caramel Syrup", 1, 6.25, 3),
-("Hazelnut Syrup", 1, 7.50, 6),
-("Chocolate Sprinkles", 1, 6.75, 3);
+("Hazelnut Syrup", 1, 7.50, 4),
+("Chocolate Sprinkles", 1, 6.75, 3),
+("Whipped Cream", 3, 4.50, 2);

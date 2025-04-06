@@ -1,6 +1,6 @@
-create schema drink_ingredients;
+DROP SCHEMA IF EXISTS drink_ingredients;
 
--- drop schema drink_ingredients;
+create schema drink_ingredients;
 
 use drink_ingredients;
 
@@ -15,7 +15,12 @@ constraint drink_ingredient_id_pk primary key (drink_ingredient_id));
 insert into drink_ingredients (drink_ingredient_id, drink_id, ingredient, quantity, unit)
 values 
 	(1, 1, "Caramel Syrup", 2, 'ounces'),
-	(2, 2, "Regular Milk", 100, 'ml');
+	(2, 2, "Regular Milk", 200, 'ml'),
+	(3, 2, "Coffee Beans", 10, 'g'),
+	(4, 2, "Chocolate Sprinkles", 4, 'g'),
+	(5, 1, "Coffee Beans", 7, 'g');
+
+
     
 
 select * from drink_ingredients;
