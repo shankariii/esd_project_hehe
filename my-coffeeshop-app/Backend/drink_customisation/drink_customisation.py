@@ -66,6 +66,7 @@ def home():
                 'application/json': [
                     {
                         "customisation_id": 1,
+                        "drinkIngredient_id": 101,
                         "customisation_type": "milk",
                         "name": "Oat Milk",
                         "price_diff": 0.5
@@ -107,6 +108,7 @@ def get_customisations(customisation_id=None):
                 'application/json': [
                     {
                         "customisation_id": 2,
+                        "drinkIngredient_id": 101,
                         "customisation_type": "size",
                         "name": "Large",
                         "price_diff": 1.0
