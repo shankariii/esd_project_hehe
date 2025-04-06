@@ -22,10 +22,9 @@
               <span style="font-size: 1.1rem; color: var(--dark); font-weight: bold;">
                {{ outletName || 'Select an outlet' }}
               </span>
-              <button @click="changeOutlet"
-            style="background: none; border: 1px solid var(--primary); color: var(--primary); padding: 0.5rem 1rem; border-radius: 5px; cursor: pointer; font-size: 10px; margin-left: 10px;">
-            Change
-          </button>
+              <button @click="changeOutlet" class="change-btn">
+                Change
+              </button>
             </p>
           </div>
         </div>
@@ -391,7 +390,6 @@ export default {
         );
 
         // UI will update automatically through computed properties
-
       } catch (error) {
         console.error('Error updating cart:', error);
         this.fetchCartDetails(); // Refresh data
@@ -434,13 +432,24 @@ export default {
 };
 </script>
 
-<!-- Your existing style section remains exactly the same -->
-<!-- <style>
-/* ... */
-</style>y -->
 
-<!-- Mobile-specific CSS -->
-<style>
+<style scoped>
+.change-btn {
+  background: var(--primary);
+  border: 1px solid var(--primary);
+  color: white;
+  padding: 0.4rem 1rem;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 12px;
+  margin-left: 10px;
+  transition: background 0.3s ease;
+}
+
+.change-btn:hover {
+  background: var(--secondary);
+}
+
 @media (max-width: 768px) {
   .cart-item {
     grid-template-columns: 80px 1fr !important;
