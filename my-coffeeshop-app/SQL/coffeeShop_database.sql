@@ -147,8 +147,6 @@ create schema customisation;
 
 use customisation;
 
-use customisation;
-
 create table if not exists `customisation`
 (customisation_id int not null,
 customisation_type varchar(10) not null,
