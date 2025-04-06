@@ -230,6 +230,9 @@ export default {
       this.showPopup('Success', `${outlet.name} has been selected`);
       localStorage.setItem("selectedOutletId", outlet.id);
       localStorage.setItem("selectedOutletName", outlet.name);
+      setTimeout(() => {
+        this.$router.push('/');
+      });
     },
     loadGoogleMapsScript() {
       if (window.google && window.google.maps) {
