@@ -1,0 +1,24 @@
+# Set default behavior for all files to let Git determine if it's text
+# and enforce LF line endings for detected text files.
+* text=auto eol=lf
+
+# Explicitly handle common text file extensions with LF endings
+*.js      text eol=lf
+*.jsx     text eol=lf
+*.css     text eol=lf
+*.html    text eol=lf
+*.py      text eol=lf
+*.java    text eol=lf
+*.yaml    text eol=lf
+*.yml     text eol=lf
+*.json    text eol=lf
+*.md      text eol=lf
+*.sh      text eol=lf
+
+# Handle Windows-specific files that NEED CRLF
+*.bat     text eol=crlf
+
+# Mark binary files to prevent Git from changing their line endings
+*.png     binary
+*.jpg     binary
+# Add other binary types if needed (.jar, .exe, .pdf, etc.)
