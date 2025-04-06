@@ -19,11 +19,9 @@ values
 
     -- Latte (Drink ID 2)
     (16, 2, 'Coffee Beans', 1, 'shot'),
-    -- (18, 2, 'Regular Milk', 200, 'ml'),
 
     -- Cappuccino (Drink ID 3)
     (16, 3, 'Coffee Beans', 1, 'shot'),
-    -- (104, 3, 'Regular Milk', 100, 'ml'),
 
     -- Americano (Drink ID 4)
 	(16, 4, 'Coffee Beans', 10, 'g'),
@@ -31,13 +29,9 @@ values
     -- Iced Matcha Latte (Drink ID 5)
     (24, 5, 'Matcha Powder', 5, 'g'),
 	(20, 5, 'Sugar Syrup', 1, 'tbsp'),
-    -- (18, 5, 'Regular Milk', 180, 'ml'),
 
     -- Iced Chocolate (Drink ID 6)
     (26, 6, 'Chocolate Syrup', 2, 'tbsp'),
-    -- (18, 6, 'Regular Milk', 200, 'ml');
-	-- (31, 2, "Chocolate Sprinkles", 4, 'g'),
-	-- (40, 6, 'Whipped Cream', 20, 'g');;
 
 	-- no drink ids
 	(104, 'Regular Milk', 200, 'ml'),
