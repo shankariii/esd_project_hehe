@@ -5,7 +5,7 @@ create schema drink_ingredients;
 use drink_ingredients;
 
 create table drink_ingredients
-(drink_ingredient_id int not null auto_increment,
+(drink_ingredient_id int not null,
 drink_id int,
 ingredient varchar(255) not null,
 quantity int not null,
@@ -34,16 +34,16 @@ values
     (26, 6, 'Chocolate Syrup', 2, 'tbsp'),
 
 	-- no drink ids
-	(104, 'Regular Milk', 200, 'ml'),
-	(105, 'Skim Milk', 200, 'ml'),
-	(106, 'Almond Milk', 200, 'ml'),
-	(107, 'Oat Milk', 200, 'ml'),
-	(108, 'Soy Milk', 200, 'ml'),
-	(109, 'Vanilla Syrup', 2, 'tbsp'),
-	(110, 'Caramel Syrup', 2, 'tbsp'),
-	(111, 'Hazelnut Syrup', 2, 'tbsp'),
-	(112, 'Whipped Cream', 20, 'g'),
-	(113, 'Chocolate Sprinkles', 4, 'g');
+	(104, NULL, 'Regular Milk', 200, 'ml'),
+	(105, NULL, 'Skim Milk', 200, 'ml'),
+	(106, NULL, 'Almond Milk', 200, 'ml'),
+	(107, NULL, 'Oat Milk', 200, 'ml'),
+	(108, NULL, 'Soy Milk', 200, 'ml'),
+	(109, NULL, 'Vanilla Syrup', 2, 'tbsp'),
+	(110, NULL, 'Caramel Syrup', 2, 'tbsp'),
+	(111, NULL, 'Hazelnut Syrup', 2, 'tbsp'),
+	(112, NULL, 'Whipped Cream', 20, 'g'),
+	(113, NULL, 'Chocolate Sprinkles', 4, 'g');
     
 
 select * from drink_ingredients;
