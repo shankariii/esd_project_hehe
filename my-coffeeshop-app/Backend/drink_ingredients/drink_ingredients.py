@@ -73,5 +73,28 @@ def get_ingredients(drink_id=None):
     ingredients = DrinkIngredient.query.all()
     return jsonify([i.json() for i in ingredients]), 200
 
+
+@app.route('/ingredients/DIID/<int:drink_ingredient_id>', methods=['GET'])
+def get_ingredient_by_id(drink_ingredient_id):
+    """
+    Get a specific drink ingredient by its ID
+    ---
+    parameters:
+      - name: drink_ingredient_id
+        in: path
+        type: integer
+        required: true
+        description: ID of the drink ingredient
+    responses:
+      200:
+        description: Drink ingredient details
+      404:
+        description: Ingredient not found
+    """
+    ingredient = DrinkIngredient.query.filter_by(drink_ingredient_id=drink_ingredient_id).first()
+    if ingredient:
+        return jsonify(ingredient.json()), 200
+    return jsonify({"message": "Ingredient not found"}), 404
+
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5006)
