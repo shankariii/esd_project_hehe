@@ -12,8 +12,25 @@ CREATE TABLE IF NOT EXISTS threshold (
 );
 
 INSERT INTO threshold (ingredient, threshold) VALUES
-("Coffee Beans", 800.00),
-("Regular Milk", 3000.00),
-("Almond Milk", 1000.00),
--- ("Chocolate Sprinkles", 200.00),
-("Caramel Syrup", 1050.00)
+-- Coffee Beans (in GRAMS)
+("Coffee Beans", 2500), 
+
+-- Milks (in ML)
+("Regular Milk", 5000),      
+("Skim Milk", 4000),         
+("Soy Milk", 3000),         
+("Almond Milk", 2000),       
+("Oat Milk", 2500),          
+
+-- Syrups (in ML)
+("Vanilla Syrup", 750),
+("Caramel Syrup", 500),    
+("Hazelnut Syrup", 500),    
+("Sugar Syrup", 1000),       
+("Chocolate Syrup", 600),    
+
+-- Toppings (in GRAMS)
+("Chocolate Sprinkles", 100),
+("Whipped Cream", 500),  
+
+("Matcha Powder", 50);       

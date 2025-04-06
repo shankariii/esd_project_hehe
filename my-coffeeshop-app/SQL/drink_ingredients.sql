@@ -25,14 +25,14 @@ values
     (3, 'Coffee Beans', 10, 'g'),
 
     -- Americano (Drink ID 4)
-	(4, 'Coffee Beans', 15, 'g'),
+	(4, 'Coffee Beans', 10, 'g'),
 
     -- Iced Matcha Latte (Drink ID 5)
     (5, 'Matcha Powder', 5, 'g'),
-	(5, 'Sugar Syrup', 1, 'tbsp'),
+	(5, 'Sugar Syrup', 15, 'ml'),
 
     -- Iced Chocolate (Drink ID 6)
-    (6, 'Chocolate Syrup', 2, 'tbsp'),
+    (6, 'Chocolate Syrup', 30, 'ml'),
 
 	
 	(104, 'Regular Milk', 200, 'ml'),
@@ -40,9 +40,9 @@ values
 	(106, 'Almond Milk', 200, 'ml'),
 	(107, 'Oat Milk', 200, 'ml'),
 	(108, 'Soy Milk', 200, 'ml'),
-	(109, 'Vanilla Syrup', 2, 'tbsp'),
-	(110, 'Caramel Syrup', 2, 'tbsp'),
-	(111, 'Hazelnut Syrup', 2, 'tbsp'),
+	(109, 'Vanilla Syrup', 30, 'ml'),
+	(110, 'Caramel Syrup', 30, 'ml'),
+	(111, 'Hazelnut Syrup', 30, 'ml'),
 	(112, 'Whipped Cream', 20, 'g'),
 	(113, 'Chocolate Sprinkles', 4, 'g');
     
