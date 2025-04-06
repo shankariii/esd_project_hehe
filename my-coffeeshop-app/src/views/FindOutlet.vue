@@ -1,10 +1,18 @@
 <template>
   <div class="outlet-finder-container">
+    <!-- Popup Box -->
+    <div v-if="isPopupVisible" class="popup-overlay">
+      <div class="popup-box">
+        <h3>{{ popupTitle }}</h3>
+        <p>{{ popupMessage }}</p>
+        <button @click="closePopup" class="popup-button">OK</button>
+      </div>
+    </div>
+
     <div class="section-heading">
       <h2>Find Your Nearest Outlet</h2>
       <p>Select from our locations or let us find the closest one to you</p>
     </div>
-
     <div class="finder-layout">
       <!-- Left side: Outlet list and controls -->
       <div class="finder-content">
@@ -16,13 +24,11 @@
             </span>
             <span v-else>Find Nearest Outlet</span>
           </button>
-
           <div class="search-container">
             <input type="text" v-model="searchQuery" placeholder="Search by location name or address"
               class="search-input" @input="filterOutlets" />
             <i class="search-icon fa-solid fa-search"></i>
           </div>
-
           <div class="sort-controls">
             <label class="sort-label">Sort by:</label>
             <select v-model="sortOption" class="sort-select" @change="sortOutlets">
@@ -32,7 +38,6 @@
             </select>
           </div>
         </div>
-
         <div class="selected-outlet" v-if="selectedOutlet">
           <div class="selected-header">
             <h3>{{ selectedOutlet.name }}</h3>
@@ -57,7 +62,6 @@
             </button>
           </div>
         </div>
-
         <div class="outlet-list">
           <h3>Available Locations <span class="count-badge">{{ filteredOutlets.length }}</span></h3>
           <div v-if="isOutletsLoading" class="loading-state">
@@ -95,11 +99,9 @@
           </div>
         </div>
       </div>
-
       <!-- Right side: Map -->
       <div class="map-wrapper">
         <div id="map" ref="mapRef" class="map-container"></div>
-
         <!-- Map legend -->
         <div class="map-legend">
           <h4>Queue Status</h4>
@@ -148,7 +150,11 @@ export default {
       filteredOutlets: [],
       searchQuery: '',
       sortOption: 'distance',
-      userMarker: null
+      userMarker: null,
+      // Popup state
+      isPopupVisible: false,
+      popupTitle: '',
+      popupMessage: '',
     };
   },
   computed: {
@@ -160,7 +166,6 @@ export default {
     this.loadGoogleMapsScript();
     this.fetchOutlets();
     this.addFontAwesome();
-
     // Check if there was a previously selected outlet
     const savedOutletId = localStorage.getItem("selectedOutletId");
     if (savedOutletId) {
@@ -169,6 +174,14 @@ export default {
     }
   },
   methods: {
+    showPopup(title, message) {
+      this.popupTitle = title;
+      this.popupMessage = message;
+      this.isPopupVisible = true;
+    },
+    closePopup() {
+      this.isPopupVisible = false;
+    },
     addFontAwesome() {
       const link = document.createElement('link');
       link.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css';
@@ -184,7 +197,6 @@ export default {
           position: outlet.position || { lat: 0, lng: 0 },
           queueCount: outlet.queueCount || 0 // Temporary default
         }));
-
         // Then fetch queue counts for each outlet
         await Promise.all(this.outlets.map(async (outlet) => {
           try {
@@ -195,9 +207,7 @@ export default {
             outlet.queueCount = 0; // Default to 0 if there's an error
           }
         }));
-
         this.filteredOutlets = [...this.outlets];
-
         // If there was a previously selected outlet, select it
         if (this.savedOutletId) {
           const savedOutlet = this.outlets.find(o => o.id === this.savedOutletId);
@@ -205,31 +215,27 @@ export default {
             this.selectOutlet(savedOutlet);
           }
         }
-
         // Check if map is already initialized
         if (this.map) {
           this.addMarkers();
         }
       } catch (error) {
         console.error('Failed to fetch outlets:', error);
-        this.showNotification('Unable to load outlets. Please try again later.', 'error');
+        this.showPopup('Error', 'Unable to load outlets. Please try again later.');
       } finally {
         this.isOutletsLoading = false;
       }
     },
     chooseOutlet(outlet) {
-      this.showNotification(`${outlet.name} has been selected`, 'success');
+      this.showPopup('Success', `${outlet.name} has been selected`);
       localStorage.setItem("selectedOutletId", outlet.id);
       localStorage.setItem("selectedOutletName", outlet.name);
-      this.$router.push('/');
     },
-
     loadGoogleMapsScript() {
       if (window.google && window.google.maps) {
         this.initMap();
         return;
       }
-
       const script = document.createElement('script');
       script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyDyzGN00mpIu7qElBpIFwiPjWyQlkIfHHM&callback=initMap`;
       script.defer = true;
@@ -252,12 +258,10 @@ export default {
         }
       });
       this.infoWindow = new google.maps.InfoWindow();
-
       // If outlets are already loaded, add markers now
       if (this.outlets.length > 0) {
         this.addMarkers();
       }
-
       // Auto find nearest outlet if geolocation permission is already granted
       navigator.permissions?.query({ name: 'geolocation' })
         .then((result) => {
@@ -269,17 +273,14 @@ export default {
     addMarkers() {
       this.markers.forEach(marker => marker.setMap(null));
       this.markers = [];
-
       // Fit bounds to all markers
       const bounds = new google.maps.LatLngBounds();
-
       this.outlets.forEach(outlet => {
         // Skip if position is invalid
         if (!outlet.position || (!outlet.position.lat && !outlet.position.lng)) {
           console.error('Invalid position for outlet:', outlet);
           return;
         }
-
         const marker = new google.maps.Marker({
           position: outlet.position,
           map: this.map,
@@ -294,17 +295,13 @@ export default {
             scale: 10
           }
         });
-
         marker.addListener('click', () => this.selectOutlet(outlet));
         this.markers.push(marker);
-
         bounds.extend(outlet.position);
       });
-
       // If we have markers, fit map to show all of them
       if (this.markers.length > 0) {
         this.map.fitBounds(bounds);
-
         // Don't zoom in too far
         const listener = google.maps.event.addListener(this.map, "idle", () => {
           if (this.map.getZoom() > 15) this.map.setZoom(15);
@@ -314,7 +311,6 @@ export default {
     },
     findNearestOutlet() {
       this.isLoading = true;
-
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
           position => {
@@ -322,12 +318,10 @@ export default {
               lat: position.coords.latitude,
               lng: position.coords.longitude
             };
-
             // Remove previous user marker if exists
             if (this.userMarker) {
               this.userMarker.setMap(null);
             }
-
             this.userMarker = new google.maps.Marker({
               position: this.userLocation,
               map: this.map,
@@ -339,15 +333,13 @@ export default {
               zIndex: 1000, // Ensure it's on top
               animation: google.maps.Animation.DROP
             });
-
             this.map.setCenter(this.userLocation);
             this.map.setZoom(13);
-
             this.calculateDistances();
           },
           error => {
             console.error("Error getting location:", error);
-            this.showNotification("Unable to get your location. Please select an outlet from the list.", "error");
+            this.showPopup('Error', "Unable to get your location. Please select an outlet manually.");
             this.isLoading = false;
           },
           {
@@ -357,16 +349,14 @@ export default {
           }
         );
       } else {
-        this.showNotification("Geolocation is not supported by your browser", "error");
+        this.showPopup('Error', "Geolocation is not supported by your browser");
         this.isLoading = false;
       }
     },
     calculateDistances() {
       if (!this.userLocation) return;
-
       const service = new google.maps.DistanceMatrixService();
       const destinations = this.outlets.map(outlet => outlet.position);
-
       service.getDistanceMatrix(
         {
           origins: [this.userLocation],
@@ -383,61 +373,50 @@ export default {
                 outlet.duration = results[index].duration.text;
               }
             });
-
             // Update filtered outlets
             this.filterOutlets();
-
             // Sort outlets by distance
             this.sortOption = 'distance';
             this.sortOutlets();
-
             // Select nearest outlet with reasonable queue
             let nearestOutlets = [...this.outlets]
               .filter(o => o.distance !== undefined)
               .sort((a, b) => a.distance - b.distance);
-
             // Try to find a nearby outlet with a short queue first
             let bestOutlet = nearestOutlets.find(o =>
               o.distance < 5000 && o.queueCount < 5);
-
             // If not found, just use the closest one
             if (!bestOutlet && nearestOutlets.length > 0) {
               bestOutlet = nearestOutlets[0];
             }
-
             if (bestOutlet) {
               this.selectOutlet(bestOutlet);
-              this.showNotification(`Found nearest outlet: ${bestOutlet.name}`, 'success');
+              this.showPopup('Success', `Found nearest outlet: ${bestOutlet.name}`);
             }
-
             this.isLoading = false;
           } else {
             console.error("Distance Matrix request failed due to", status);
             this.isLoading = false;
-            this.showNotification("Unable to calculate distances. Please select an outlet manually.", "error");
+            this.showPopup('Error', "Unable to calculate distances. Please select an outlet manually.");
           }
         }
       );
     },
     selectOutlet(outlet) {
       this.selectedOutlet = outlet;
-
       if (this.map && outlet.position) {
         this.map.setCenter(outlet.position);
         this.map.setZoom(15);
-
         // Highlight the selected marker
         const markerIndex = this.outlets.findIndex(o => o.id === outlet.id);
         if (markerIndex >= 0 && this.markers[markerIndex]) {
           // Bounce animation for the selected marker
           this.markers[markerIndex].setAnimation(google.maps.Animation.BOUNCE);
-
           // Stop the animation after 1.5 seconds
           setTimeout(() => {
             this.markers[markerIndex].setAnimation(null);
           }, 1500);
         }
-
         this.infoWindow.setContent(`
           <div class="info-window">
             <h3>${outlet.name}</h3>
@@ -447,13 +426,11 @@ export default {
             <p><strong>Estimated wait:</strong> ${this.getEstimatedWaitTime(outlet.queueCount)}</p>
           </div>
         `);
-
         const markerToUse = this.markers[this.outlets.indexOf(outlet)];
         if (markerToUse) {
           this.infoWindow.open(this.map, markerToUse);
         }
       }
-
       // Scroll the selected outlet into view in the list
       this.$nextTick(() => {
         const activeElement = document.querySelector('.outlets li.active');
@@ -514,11 +491,6 @@ export default {
           break;
       }
     },
-    showNotification(message, type = 'info') {
-      // You can implement a proper notification system
-      // For now, we'll use alert, but you should replace this
-      alert(message);
-    }
   }
 };
 </script>
@@ -1043,5 +1015,51 @@ export default {
   .sort-select {
     width: 100%;
   }
+}
+
+/* Popup styles */
+.popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+.popup-box {
+  background-color: white;
+  padding: 2rem;
+  border-radius: 8px;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  max-width: 400px;
+  width: 100%;
+}
+.popup-box h3 {
+  margin-bottom: 1rem;
+  font-size: 1.5rem;
+  color: var(--primary);
+}
+.popup-box p {
+  margin-bottom: 1.5rem;
+  font-size: 1rem;
+  color: var(--text);
+}
+.popup-button {
+  padding: 0.75rem 1.5rem;
+  background-color: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.3s;
+}
+.popup-button:hover {
+  background-color: var(--secondary);
 }
 </style>
