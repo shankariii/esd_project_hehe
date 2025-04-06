@@ -896,14 +896,14 @@ export default {
 }
 
 .select-btn {
-  background-color: var(--accent, #ff9800);
+  background-color: #f57c00;
   color: white;
   border: none;
   box-shadow: 0 4px 10px rgba(255, 152, 0, 0.2);
 }
 
 .select-btn:hover {
-  background-color: var(--accent-dark, #f57c00);
+  background-color: var(--accent-dark, #ff9800);
   transform: translateY(-2px);
   box-shadow: 0 6px 15px rgba(255, 152, 0, 0.3);
 }
