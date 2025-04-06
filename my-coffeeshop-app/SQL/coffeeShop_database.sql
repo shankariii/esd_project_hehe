@@ -141,13 +141,15 @@ COMMIT;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 
 -- drink_customisation
-create schema customisation;
+DROP SCHEMA IF EXISTS customisation;
 
--- drop schema customisation;
+create schema customisation;
 
 use customisation;
 
-create table customisation
+use customisation;
+
+create table if not exists `customisation`
 (customisation_id int not null,
 customisation_type varchar(10) not null,
 name varchar(32) not null, 
@@ -188,28 +190,29 @@ quantity int not null,
 unit varchar(15) not null,
 constraint drink_ingredient_id_pk primary key (drink_ingredient_id));
 
-insert into drink_ingredients (drink_ingredient_id, drink_id, ingredient, quantity, unit)
+insert into drink_ingredients (drink_id, ingredient, quantity, unit)
 values 
+
 	-- Espresso (Drink ID 1)
-    (16, 1, 'Coffee Beans', 10, 'g'),
+    (1, 'Coffee Beans', 10, 'g'),
 
     -- Latte (Drink ID 2)
-    (16, 2, 'Coffee Beans', 1, 'shot'),
+    (2, 'Coffee Beans', 10, 'g'),
 
     -- Cappuccino (Drink ID 3)
-    (16, 3, 'Coffee Beans', 1, 'shot'),
+    (3, 'Coffee Beans', 10, 'g'),
 
     -- Americano (Drink ID 4)
-	(16, 4, 'Coffee Beans', 10, 'g'),
+	(4, 'Coffee Beans', 15, 'g'),
 
     -- Iced Matcha Latte (Drink ID 5)
-    (24, 5, 'Matcha Powder', 5, 'g'),
-	(20, 5, 'Sugar Syrup', 1, 'tbsp'),
+    (5, 'Matcha Powder', 5, 'g'),
+	(5, 'Sugar Syrup', 1, 'tbsp'),
 
     -- Iced Chocolate (Drink ID 6)
-    (26, 6, 'Chocolate Syrup', 2, 'tbsp'),
+    (6, 'Chocolate Syrup', 2, 'tbsp'),
 
-	-- no drink ids
+	
 	(104, 'Regular Milk', 200, 'ml'),
 	(105, 'Skim Milk', 200, 'ml'),
 	(106, 'Almond Milk', 200, 'ml'),
@@ -223,6 +226,7 @@ values
     
 
 select * from drink_ingredients;
+
 -- drink_menu
 -- phpMyAdmin SQL Dump
 -- version 5.2.1
