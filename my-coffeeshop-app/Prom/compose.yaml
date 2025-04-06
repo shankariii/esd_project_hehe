@@ -1,0 +1,39 @@
+volumes:
+  prometheusdata:
+    name: esd_prometheusdata 
+  grafanadata:
+    name: esd_grafanadata 
+
+networks:
+  esd-net:
+    driver: bridge
+    name: esd-net
+
+services:
+
+  #######################################
+  # Prometheus
+  #######################################
+  prometheus:
+    image: prom/prometheus:v3.2.1
+    restart: always
+    networks:
+      - esd-net
+    ports:
+      - "9090:9090"
+    volumes:
+      - prometheusdata:/etc/prometheus
+
+
+  #######################################
+  # Grafana Open Source
+  #######################################
+  grafana:
+    image: grafana/grafana-oss:11.3.4
+    restart: always
+    networks:
+      - esd-net
+    ports:
+      - "13000:3000"
+    volumes:
+      - grafanadata:/var/lib/grafana

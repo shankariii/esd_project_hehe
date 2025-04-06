@@ -140,39 +140,69 @@ COMMIT;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 
--- drink_customisation
-create schema customisation;
 
--- drop schema customisation;
+-- drink_customisation
+DROP SCHEMA IF EXISTS customisation;
+
+create schema customisation;
 
 use customisation;
 
-create table customisation
-(customisation_id int not null,
-customisation_type varchar(10) not null,
-name varchar(32) not null, 
-price_diff decimal(4, 2) not null,
-constraint customisation_id_pk primary key (customisation_id));
-
-    
-insert into customisation (customisation_id, customisation_type, name, price_diff)
-values 
-	(1, "S", "Small", 0.00),
-	(2, "S", "Medium", 0.50),
-	(3, "S", "Large", 0.80),
-	(4, "M", "Regular", 0.00),
-	(5, "M", "Skim", 0.00),
-	(6, "M", "Almond", 0.75),
-	(7, "M", "Oat", 0.75),
-	(8, "M", "Soy", 0.75),
-	(9, "A", "Vanilla Syrup", 0.50),
-	(10, "A", "Caramel Syrup", 0.50),
-	(11, "A", "Hazelnut Syrup", 0.50),
-	(12, "A", "Whipped Cream", 0.50),
-	(13, "A", "Chocolate Sprinkles", 0.25);
+SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+START TRANSACTION;
+SET time_zone = "+00:00";
 
 
-select * from customisation;
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8mb4 */;
+
+--
+-- Database: `customisation`
+--
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `customisation`
+--
+
+DROP TABLE IF EXISTS `customisation`;
+CREATE TABLE IF NOT EXISTS `customisation` (
+  `customisation_id` int NOT NULL,
+  `customisation_type` varchar(10) NOT NULL,
+  `name` varchar(32) NOT NULL,
+  `price_diff` decimal(4,2) NOT NULL,
+  `CIID` int NOT NULL,
+  PRIMARY KEY (`customisation_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Dumping data for table `customisation`
+--
+
+INSERT INTO `customisation` (`customisation_id`, `customisation_type`, `name`, `price_diff`, `CIID`) VALUES
+(1, 'S', 'Small', 0.00, 101),
+(2, 'S', 'Medium', 0.50, 102),
+(3, 'S', 'Large', 0.80, 103),
+(4, 'M', 'Regular', 0.00, 104),
+(5, 'M', 'Skim', 0.00, 105),
+(6, 'M', 'Almond', 0.75, 106),
+(7, 'M', 'Oat', 0.75, 107),
+(8, 'M', 'Soy', 0.75, 108),
+(9, 'A', 'Vanilla Syrup', 0.50, 109),
+(10, 'A', 'Caramel Syrup', 0.50, 110),
+(11, 'A', 'Hazelnut Syrup', 0.50, 111),
+(12, 'A', 'Whipped Cream', 0.50, 112),
+(13, 'A', 'Chocolate Sprinkles', 0.25, 113);
+COMMIT;
+
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+
+
 -- drink_ingredients
 DROP SCHEMA IF EXISTS drink_ingredients;
 
@@ -188,28 +218,29 @@ quantity int not null,
 unit varchar(15) not null,
 constraint drink_ingredient_id_pk primary key (drink_ingredient_id));
 
-insert into drink_ingredients (drink_ingredient_id, drink_id, ingredient, quantity, unit)
+insert into drink_ingredients (drink_id, ingredient, quantity, unit)
 values 
+
 	-- Espresso (Drink ID 1)
-    (16, 1, 'Coffee Beans', 10, 'g'),
+    (1, 'Coffee Beans', 10, 'g'),
 
     -- Latte (Drink ID 2)
-    (16, 2, 'Coffee Beans', 1, 'shot'),
+    (2, 'Coffee Beans', 10, 'g'),
 
     -- Cappuccino (Drink ID 3)
-    (16, 3, 'Coffee Beans', 1, 'shot'),
+    (3, 'Coffee Beans', 10, 'g'),
 
     -- Americano (Drink ID 4)
-	(16, 4, 'Coffee Beans', 10, 'g'),
+	(4, 'Coffee Beans', 15, 'g'),
 
     -- Iced Matcha Latte (Drink ID 5)
-    (24, 5, 'Matcha Powder', 5, 'g'),
-	(20, 5, 'Sugar Syrup', 1, 'tbsp'),
+    (5, 'Matcha Powder', 5, 'g'),
+	(5, 'Sugar Syrup', 1, 'tbsp'),
 
     -- Iced Chocolate (Drink ID 6)
-    (26, 6, 'Chocolate Syrup', 2, 'tbsp'),
+    (6, 'Chocolate Syrup', 2, 'tbsp'),
 
-	-- no drink ids
+	
 	(104, 'Regular Milk', 200, 'ml'),
 	(105, 'Skim Milk', 200, 'ml'),
 	(106, 'Almond Milk', 200, 'ml'),
@@ -223,6 +254,7 @@ values
     
 
 select * from drink_ingredients;
+
 -- drink_menu
 -- phpMyAdmin SQL Dump
 -- version 5.2.1
