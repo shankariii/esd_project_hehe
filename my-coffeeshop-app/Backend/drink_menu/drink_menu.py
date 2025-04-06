@@ -1,14 +1,22 @@
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
+from flasgger import Swagger, swag_from
 from os import environ
 
 # Initialize Flask App
 app = Flask(__name__)
 CORS(app)
 
+# Flasgger Swagger config
+app.config['SWAGGER'] = {
+    'title': 'Drink Menu Microservice API',
+    'uiversion': 3
+}
+swagger = Swagger(app)
+
 # MySQL Configuration using environment variable
-app.config['SQLALCHEMY_DATABASE_URI'] = environ.get('dbURL')  
+app.config['SQLALCHEMY_DATABASE_URI'] = environ.get('dbURL')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {'pool_recycle': 299}
 
@@ -42,6 +50,38 @@ def home():
 
 @app.route('/drinks', methods=['GET'])
 @app.route('/drinks/<int:drink_id>', methods=['GET'])
+@swag_from({
+    'responses': {
+        200: {
+            'description': 'List of drinks or a single drink by ID',
+            'examples': {
+                'application/json': [
+                    {
+                        "drink_id": 1,
+                        "drink_name": "Latte",
+                        "description": "Creamy coffee drink",
+                        "price": 4.5,
+                        "image": "latte.png",
+                        "prep_time_min": 3
+                    }
+                ]
+            }
+        },
+        404: {
+            'description': 'Drink not found'
+        }
+    },
+    'parameters': [
+        {
+            'name': 'drink_id',
+            'in': 'path',
+            'type': 'integer',
+            'required': False,
+            'description': 'ID of the drink to fetch'
+        }
+    ],
+    'tags': ['Drink Menu']
+})
 def get_drinks(drink_id=None):
     if drink_id:
         drink = Drink.query.get(drink_id)
