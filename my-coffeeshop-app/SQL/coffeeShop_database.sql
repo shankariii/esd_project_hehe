@@ -142,11 +142,8 @@ COMMIT;
 
 
 -- drink_customisation
-DROP SCHEMA IF EXISTS customisation;
-
-create schema customisation;
-
-use customisation;
+CREATE DATABASE IF NOT EXISTS drink_customisations DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;
+USE drink_customisations;
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
