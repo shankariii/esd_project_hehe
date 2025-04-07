@@ -350,3 +350,20 @@ services:
       - "8201:8201"
     networks:
       - esd-net
+
+  ##############################################
+  # Recommend_inventory_replenishment: The Recommend_inventory_replenishment composite microservice
+  ##############################################
+  recommend_inventory_replenishment:
+    build:
+      context: ./recommend_inventory_replenishment
+      dockerfile: recommend_inventory_replenishment.Dockerfile
+    image: namyra/recommend_inventory_replenishment:1.0
+    restart: always
+    environment:
+      dbURL: mysql+mysqlconnector://is213@host.docker.internal:3306/recommend_inventory_replenishment
+      PYTHONUNBUFFERED: 1
+    ports:
+      - "8101:8101"
+    networks:
+      - esd-net  
