@@ -180,6 +180,60 @@ def get_ingredient_changes(ingredient):
     return jsonify({"code": 404, "message": f"No history found for ingredient '{ingredient}' in the past 7 days."}), 404
 
 
+# @app.route("/inventory", methods=["POST"])
+# def create_item():
+#     """
+#     Create a new inventory item
+#     ---
+#     requestBody:
+#       required: true
+#       content:
+#         application/json:
+#           schema:
+#             type: object
+#             required:
+#               - ingredient
+#               - available_quantity
+#               - unit
+#             properties:
+#               ingredient:
+#                 type: string
+#               available_quantity:
+#                 type: number
+#               unit:
+#                 type: string
+#               change_in_quantity:
+#                 type: number
+#     responses:
+#       201:
+#         description: Item created
+#       400:
+#         description: Missing fields
+#       500:
+#         description: Server error
+#     """
+#     data = request.get_json()
+#     required = ['ingredient', 'available_quantity', 'unit']
+#     if not all(key in data for key in required):
+#         return jsonify({"code": 400, "message": "Missing required fields."}), 400
+
+#     change = data.get('change_in_quantity', data['available_quantity'])
+
+#     item = Inventory(
+#         ingredient=data['ingredient'],
+#         available_quantity=data['available_quantity'],
+#         unit=data['unit'],
+#         change_in_quantity=change
+#     )
+#     try:
+#         db.session.add(item)
+#         db.session.commit()
+#     except Exception as e:
+#         db.session.rollback()
+#         return jsonify({"code": 500, "message": "An error occurred creating the item.", "error": str(e)}), 500
+
+#     return jsonify({"code": 201, "data": item.json()}), 201
+
 @app.route("/inventory", methods=["POST"])
 def create_item():
     """
@@ -193,46 +247,64 @@ def create_item():
             type: object
             required:
               - ingredient
-              - available_quantity
+              - change_in_quantity
               - unit
             properties:
               ingredient:
                 type: string
-              available_quantity:
+              change_in_quantity:
                 type: number
               unit:
                 type: string
-              change_in_quantity:
-                type: number
     responses:
       201:
         description: Item created
       400:
         description: Missing fields
+      404:
+        description: No previous entry found
       500:
         description: Server error
     """
     data = request.get_json()
-    required = ['ingredient', 'available_quantity', 'unit']
+    required = ['ingredient', 'change_in_quantity', 'unit']
     if not all(key in data for key in required):
         return jsonify({"code": 400, "message": "Missing required fields."}), 400
 
-    change = data.get('change_in_quantity', data['available_quantity'])
-
-    item = Inventory(
-        ingredient=data['ingredient'],
-        available_quantity=data['available_quantity'],
-        unit=data['unit'],
-        change_in_quantity=change
-    )
+    ingredient = data['ingredient']
+    change_in_quantity = data['change_in_quantity']
+    unit = data['unit']
+    
     try:
+        # Find the last log entry for this ingredient
+        last_entry = db.session.query(Inventory).filter_by(ingredient=ingredient).order_by(desc(Inventory.date_time)).first()
+        
+        if not last_entry:
+            return jsonify({"code": 404, "message": f"No previous entry found for ingredient: {ingredient}"}), 404
+        
+        # Calculate the new available quantity based on the previous entry
+        available_quantity = last_entry.available_quantity - change_in_quantity
+        
+        # Create new inventory item with calculated available_quantity
+        item = Inventory(
+            ingredient=ingredient,
+            available_quantity=available_quantity,
+            unit=unit,
+            change_in_quantity=change_in_quantity
+        )
+
         db.session.add(item)
         db.session.commit()
+
+        # After successfully adding the item, record for Prometheus
+        #record_inventory_change(item.ingredient, item.available_quantity)
+
     except Exception as e:
         db.session.rollback()
         return jsonify({"code": 500, "message": "An error occurred creating the item.", "error": str(e)}), 500
 
     return jsonify({"code": 201, "data": item.json()}), 201
+
 
 @app.route("/inventory/<int:inventory_id>", methods=["DELETE"])
 def delete_item(inventory_id):
@@ -255,16 +327,16 @@ def delete_item(inventory_id):
     """
     item = db.session.scalar(db.select(Inventory).filter_by(inventory_id=inventory_id))
     if not item:
-        return jsonify({"code": 404, "message": "Item not found."}), 404
+        return jsonify({"code": 404, "message": "Item record not found."}), 404
 
     try:
         db.session.delete(item)
         db.session.commit()
     except Exception as e:
         db.session.rollback()
-        return jsonify({"code": 500, "message": "Failed to delete item.", "error": str(e)}), 500
+        return jsonify({"code": 500, "message": "Failed to delete item record.", "error": str(e)}), 500
 
-    return jsonify({"code": 200, "message": "Item deleted successfully."})
+    return jsonify({"code": 200, "message": "Item record deleted successfully."})
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
