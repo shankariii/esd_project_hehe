@@ -17,17 +17,19 @@
                     <button class="pay-now-btn" @click="handlePayment">PAY NOW</button>
                 </div>
 
-                <!-- <div v-if="isProcessing" class="loading-container">
-                    <img src="../assets/lazy_loading.png" alt="Processing Payment..." />
-                    <p>Processing your payment, please wait...</p>
-                </div> -->
-
                 <div v-if="isProcessing" class="loading-container">
+                    <div class="loading-box">
+                        <img src="../assets/lazy_loading.png" alt="Processing Payment..." class="spinning-icon" />
+                        <p>Processing your payment, please wait...</p>
+                    </div>
+                </div>
+
+                <!-- <div v-if="isProcessing" class="loading-container">
                     <div class="loading-box">
                         <img src="../assets/lazy_loading.png" alt="Processing Payment..." />
                         <p>Processing your payment, please wait...</p>
                     </div>
-                </div>
+                </div> -->
 
                 <p v-if="paymentStatus">{{ paymentStatus }}</p>
             </div>
@@ -854,6 +856,23 @@ export default {
 .loading-box img {
     width: 150px;
     height: auto;
+}
+
+/* Define the spinning animation */
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Apply the animation to the image */
+.spinning-icon {
+    animation: spin 2s linear infinite; /* 2s = duration, linear = timing function, infinite = repeat forever */
+    width: 150px; /* Adjust size as needed */
+    height: auto; /* Maintain aspect ratio */
 }
 
 @media (max-width: 768px) {
