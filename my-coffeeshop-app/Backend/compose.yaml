@@ -347,6 +347,6 @@ services:
       dbURL: mysql+mysqlconnector://is213@host.docker.internal:3306/supplier_ingredient
       PYTHONUNBUFFERED: 1
     ports:
-      - "8001:8001"
+      - "8201:8201"
     networks:
       - esd-net
