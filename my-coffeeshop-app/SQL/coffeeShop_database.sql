@@ -159,13 +159,13 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Database: `customisation`
+-- Database: `drink customisation`
 --
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `customisation`
+-- Table structure for table `drink_customisation`
 --
 
 DROP TABLE IF EXISTS `drink_customisations`;
