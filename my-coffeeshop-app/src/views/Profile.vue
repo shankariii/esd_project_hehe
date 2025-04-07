@@ -82,7 +82,16 @@
                         <h2 class="content-title">Ongoing Orders</h2>
                     </div>
 
-                    <div v-if="ongoingOrders.length === 0" class="empty-state">
+                    <div v-if="isLoadingOrders" class="loading-state">
+                        Loading your orders...
+                    </div>
+
+                    <div v-else-if="ordersError" class="error-state">
+                        Error loading orders: {{ ordersError }}
+                        <button class="btn btn-secondary" @click="fetchOrders">Try Again</button>
+                    </div>
+
+                    <div v-else-if="ongoingOrders.length === 0" class="empty-state">
                         <p>You don't have any ongoing orders at the moment.</p>
                     </div>
 
@@ -97,6 +106,15 @@
                             <div class="order-items">
                                 <p v-for="(item, index) in order.items" :key="index">
                                     {{ item.quantity }}x {{ item.name }} - ${{ item.price }} each
+                                    <span v-if="item.customizations && item.customizations.length > 0" class="customizations">
+                                        <br>
+                                        <span class="customization-title">Customizations:</span>
+                                        <span v-for="(cust, cIndex) in item.customizations" :key="cIndex" class="customization-item">
+                                            {{ cust.name }} ({{ cust.type }})
+                                            <span v-if="cust.price_diff > 0">+${{ cust.price_diff }}</span>
+                                            <span v-else-if="cust.price_diff < 0">-${{ Math.abs(cust.price_diff) }}</span>
+                                        </span>
+                                    </span>
                                 </p>
                             </div>
                             <div class="order-footer">
@@ -113,7 +131,16 @@
                         <h2 class="content-title">Past Orders</h2>
                     </div>
 
-                    <div v-if="pastOrders.length === 0" class="empty-state">
+                    <div v-if="isLoadingOrders" class="loading-state">
+                        Loading your orders...
+                    </div>
+
+                    <div v-else-if="ordersError" class="error-state">
+                        Error loading orders: {{ ordersError }}
+                        <button class="btn btn-secondary" @click="fetchOrders">Try Again</button>
+                    </div>
+
+                    <div v-else-if="pastOrders.length === 0" class="empty-state">
                         <p>You don't have any past orders yet.</p>
                     </div>
 
@@ -124,16 +151,26 @@
                                 <span class="order-date">{{ formatDate(order.date) }}</span>
                             </div>
                             <div class="order-outlet">{{ order.outletName }}</div>
-                            <div class="order-status status-completed">{{ order.status }}</div>
+                            <div class="order-status" :class="order.status.toLowerCase() === 'completed' ? 'status-completed' : 'status-cancelled'">
+                                {{ order.status }}
+                            </div>
                             <div class="order-items">
                                 <p v-for="(item, index) in order.items" :key="index">
                                     {{ item.quantity }}x {{ item.name }} - ${{ item.price }} each
+                                    <span v-if="item.customizations && item.customizations.length > 0" class="customizations">
+                                        <br>
+                                        <span class="customization-title">Customizations:</span>
+                                        <span v-for="(cust, cIndex) in item.customizations" :key="cIndex" class="customization-item">
+                                            {{ cust.name }} ({{ cust.type }})
+                                            <span v-if="cust.price_diff > 0">+${{ cust.price_diff }}</span>
+                                            <span v-else-if="cust.price_diff < 0">-${{ Math.abs(cust.price_diff) }}</span>
+                                        </span>
+                                    </span>
                                 </p>
                             </div>
                             <div class="order-footer">
                                 <div class="order-total">Total: ${{ order.total.toFixed(2) }}</div>
-                                <button class="btn btn-secondary" @click="viewOrderDetails(order.id)">View
-                                    Details</button>
+                                <button class="btn btn-secondary" @click="viewOrderDetails(order.id)">View Details</button>
                             </div>
                         </div>
                     </div>
@@ -179,9 +216,10 @@
 
 <script>
 import { useAuthStore } from '../authStore';
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { getFirestore, doc, updateDoc } from 'firebase/firestore';
 import { useRouter } from 'vue-router';
+import axios from 'axios'; // Make sure axios is installed
 
 export default {
     name: 'UserProfile',
@@ -196,34 +234,23 @@ export default {
             phoneNumber: ''
         });
 
-        // For demo purposes - replace with real Firestore data
-        const ongoingOrders = ref([
-            {
-                id: '1234',
-                date: '2025-04-02T15:30:00Z',
-                status: 'Processing',
-                outletName: 'Downtown Cafe',
-                items: [
-                    { name: 'Product Name', price: 24.99, quantity: 2 },
-                    { name: 'Another Product', price: 15.99, quantity: 1 }
-                ],
-                total: 65.97
-            }
-        ]);
+        // Replace demo data with real data containers
+        const orders = ref([]);
+        const isLoadingOrders = ref(false);
+        const ordersError = ref(null);
 
-        const pastOrders = ref([
-            {
-                id: '1185',
-                date: '2025-03-25T09:45:00Z',
-                status: 'Completed',
-                outletName: 'Riverside Restaurant',
-                items: [
-                    { name: 'Product Name', price: 24.99, quantity: 3 },
-                    { name: 'Another Product', price: 15.99, quantity: 2 }
-                ],
-                total: 106.95
-            }
-        ]);
+        // Computed properties to filter orders by status
+        const ongoingOrders = computed(() => {
+            return orders.value.filter(order => 
+                order.status && ['PENDING', 'PROCESSING', 'READY'].includes(order.status.toUpperCase())
+            );
+        });
+
+        const pastOrders = computed(() => {
+            return orders.value.filter(order => 
+                order.status && ['COMPLETED', 'CANCELLED'].includes(order.status.toUpperCase())
+            );
+        });
 
         const tabs = [
             { id: 'profile', label: 'Profile' },
@@ -231,6 +258,43 @@ export default {
             { id: 'past', label: 'Past Orders' },
             { id: 'edit', label: 'Edit Profile' }
         ];
+
+        // Function to fetch orders from API
+        const fetchOrders = async () => {
+            if (!authStore.user?.uid) return;
+            
+            isLoadingOrders.value = true;
+            ordersError.value = null;
+            
+            try {
+                // Using the user ID from auth store to fetch orders
+                const response = await axios.get(`http://localhost:5201/get_orders_by_user/${authStore.user.uid}`);
+                
+                if (response.data && response.data.code === 200 && response.data.data) {
+                    // Process the orders data
+                    orders.value = response.data.data.orders.map(order => ({
+                        id: order.order_id,
+                        date: order.date_created,
+                        status: order.status,
+                        outletName: order.outlet_name?.name || 'Unknown Location',
+                        items: order.items.map(item => ({
+                            name: item.drink_name,
+                            price: item.drink_price,
+                            quantity: item.quantity,
+                            customizations: item.customizations
+                        })),
+                        total: order.total_price
+                    }));
+                } else {
+                    ordersError.value = 'Failed to fetch orders data';
+                }
+            } catch (error) {
+                console.error('Error fetching orders:', error);
+                ordersError.value = error.message || 'Failed to fetch orders';
+            } finally {
+                isLoadingOrders.value = false;
+            }
+        };
 
         const resetFormData = () => {
             formData.value = {
@@ -241,10 +305,10 @@ export default {
             };
         };
 
-        onMounted(() => {
-            authStore.init().then(() => {
-                resetFormData();
-            });
+        onMounted(async () => {
+            await authStore.init();
+            resetFormData();
+            fetchOrders(); // Fetch orders when component mounts
         });
 
         const getUserInitials = () => {
@@ -289,6 +353,21 @@ export default {
             }
         };
 
+        const viewOrderDetails = async (orderId) => {
+            try {
+                const response = await axios.get(`http://localhost:5201/get_order_details/${authStore.user.uid}/${orderId}`);
+                if (response.data && response.data.code === 200) {
+                    // Navigate to order details or show in modal
+                    console.log(`Viewing details for order: ${orderId}`);
+                    // Optionally navigate to a detailed view
+                    // router.push(`/order/${orderId}`);
+                }
+            } catch (error) {
+                console.error(`Error fetching order details for ${orderId}:`, error);
+                alert('Failed to load order details');
+            }
+        };
+
         return {
             authStore,
             activeTab,
@@ -296,12 +375,21 @@ export default {
             formData,
             ongoingOrders,
             pastOrders,
+            isLoadingOrders,
+            ordersError,
             getUserInitials,
             formatDate,
             resetFormData,
             updateProfile,
             logout,
-            setActiveTab: (tabId) => { activeTab.value = tabId; },
+            fetchOrders,
+            setActiveTab: (tabId) => { 
+                activeTab.value = tabId; 
+                // Refresh orders data when switching to order tabs
+                if (tabId === 'ongoing' || tabId === 'past') {
+                    fetchOrders();
+                }
+            },
             cancelEdit: () => {
                 resetFormData();
                 activeTab.value = 'profile';
@@ -310,9 +398,7 @@ export default {
                 console.log(`Tracking order: ${orderId}`);
                 router.push(`/trackOrders/${orderId}`);
             },
-            viewOrderDetails: (orderId) => {
-                console.log(`Viewing details for order: ${orderId}`);
-            }
+            viewOrderDetails
         };
     }
 };
@@ -518,6 +604,11 @@ export default {
     color: var(--accent);
 }
 
+.status-cancelled {
+    background-color: #feeaea;
+    color: #e53935;
+}
+
 .order-items {
     margin: 1rem 0;
     color: var(--text-light);
@@ -599,6 +690,33 @@ export default {
     text-align: center;
     padding: 3rem 0;
     color: var(--text-light);
+}
+
+.loading-state, .error-state {
+    text-align: center;
+    padding: 3rem 0;
+    color: var(--text-light);
+}
+
+.error-state {
+    color: #d32f2f;
+}
+
+.customizations {
+    display: block;
+    margin-left: 1rem;
+    font-size: 0.9rem;
+    color: var(--text-light);
+}
+
+.customization-title {
+    font-weight: 500;
+    margin-right: 0.5rem;
+}
+
+.customization-item {
+    display: inline-block;
+    margin-right: 0.8rem;
 }
 
 @media (max-width: 768px) {

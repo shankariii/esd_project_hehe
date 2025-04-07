@@ -137,3 +137,5 @@ INSERT INTO inventory (ingredient, available_quantity, unit, date_time, change_i
 ('Chocolate Sprinkles', 160.00, 'g', '2025-04-05 12:20:00', -16.00), 
 ('Chocolate Sprinkles', 144.00, 'g', '2025-04-06 10:00:00', -8.00),  
 ('Chocolate Sprinkles', 136.00, 'g', '2025-04-06 12:30:00', -4.00);
+
+select * from inventory where date_time < 2025-04-07;
