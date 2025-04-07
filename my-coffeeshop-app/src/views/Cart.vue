@@ -146,8 +146,7 @@
               </div>
 
               <!-- Proceed to Payment button -->
-              <button class="normal-checkout-bar" id="submit" @click="proceedToPayment"
-                style="background-color: var(--accent); color: var(--dark); border: none; width: 100%; padding: 1rem; border-radius: 5px; font-weight: bold; margin-top: 1rem; cursor: pointer; transition: background-color 0.3s;">
+              <button class="normal-checkout-bar" id="submit" @click="proceedToPayment">
                 Proceed to Payment
               </button>
             </div>
@@ -447,6 +446,25 @@ export default {
 }
 
 .change-btn:hover {
+  background: var(--secondary);
+}
+
+.normal-checkout-bar {
+  /* background-color: var(--accent);
+  color: var(--dark); */
+  background-color: var(--primary);
+  color: white;
+  border: none;
+  width: 100%;
+  padding: 1rem;
+  border-radius: 5px;
+  font-weight: bold;
+  margin-top: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.normal-checkout-bar:hover {
   background: var(--secondary);
 }
 

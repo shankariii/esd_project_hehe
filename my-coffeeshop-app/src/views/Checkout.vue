@@ -724,7 +724,7 @@ export default {
 }
 
 .pay-now-btn:hover {
-    background-color: var(--dark);
+    background-color: var(--secondary);
 }
 
 .checkout-summary {
