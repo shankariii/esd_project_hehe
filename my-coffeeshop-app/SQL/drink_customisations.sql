@@ -19,8 +19,8 @@ SET time_zone = "+00:00";
 
 --
 -- Database: `customisation`
-CREATE DATABASE IF NOT EXISTS customisation DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;
-USE customisation;
+CREATE DATABASE IF NOT EXISTS drink_customisations DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;
+USE drink_customisations;
 
 -- --------------------------------------------------------
 
@@ -28,8 +28,8 @@ USE customisation;
 -- Table structure for table `customisation`
 --
 
-DROP TABLE IF EXISTS `customisation`;
-CREATE TABLE IF NOT EXISTS `customisation` (
+DROP TABLE IF EXISTS `drink_customisations`;
+CREATE TABLE IF NOT EXISTS `drink_customisations` (
   `customisation_id` int NOT NULL,
   `customisation_type` varchar(10) NOT NULL,
   `name` varchar(32) NOT NULL,
@@ -42,7 +42,7 @@ CREATE TABLE IF NOT EXISTS `customisation` (
 -- Dumping data for table `customisation`
 --
 
-INSERT INTO `customisation` (`customisation_id`, `customisation_type`, `name`, `price_diff`, `CIID`) VALUES
+INSERT INTO `drink_customisations` (`customisation_id`, `customisation_type`, `name`, `price_diff`, `CIID`) VALUES
 (1, 'S', 'Small', 0.00, 101),
 (2, 'S', 'Medium', 0.50, 102),
 (3, 'S', 'Large', 0.80, 103),

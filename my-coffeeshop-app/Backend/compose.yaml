@@ -51,7 +51,7 @@ services:
     restart: always
     environment:
       #dbURL: mysql+pymysql://root:@host.docker.internal:3306/customisation
-      dbURL: mysql+mysqlconnector://is213@host.docker.internal:3306/customisation
+      dbURL: mysql+mysqlconnector://is213@host.docker.internal:3306/drink_customisations
       PYTHONUNBUFFERED: 1
     ports:
       - "5007:5007"

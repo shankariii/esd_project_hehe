@@ -25,7 +25,7 @@ db = SQLAlchemy(app)
 
 # Define Customisation Model
 class Customisation(db.Model):
-    __tablename__ = 'customisation'
+    __tablename__ = 'drink_customisations'
 
     customisation_id = db.Column(db.Integer, primary_key=True)
     CIID = db.Column(db.Integer, nullable=False)
