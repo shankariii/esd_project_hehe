@@ -406,6 +406,126 @@ def get_order_details(user_id, order_id):
             "message": f"Internal server error: {str(e)}"
         }), 500
     
+@app.route('/get_outlet_wait_time/<outlet_id>', methods=['GET'])
+def get_outlet_wait_time(outlet_id):
+    print(f"\n=== CALCULATING WAIT TIME FOR OUTLET {outlet_id} ===")
+    
+    try:
+        # Step 1: Get all orders for this outlet
+        orders_url = f"{ORDER_BASE_URL}/GetOrderByOutletID?outlet_id={outlet_id}"
+        print(f"[1] Fetching orders from: {orders_url}")
+        orders_response = requests.get(orders_url)
+        
+        if orders_response.status_code != 200:
+            print(f"[ERROR] Failed to fetch outlet orders. Status: {orders_response.status_code}")
+            return jsonify({
+                "code": orders_response.status_code,
+                "message": "Failed to fetch orders for outlet"
+            }), orders_response.status_code
+        
+        orders_data = orders_response.json()
+        print(f"[DEBUG] Orders data: {json.dumps(orders_data, indent=2)[:500]}...")
+        
+        if "response" not in orders_data:
+            print("[ERROR] 'response' field missing in orders data")
+            return jsonify({
+                "code": 500,
+                "message": "Unexpected response format from orders service"
+            }), 500
+        
+        if not orders_data["response"]:
+            print("[INFO] No orders found for this outlet")
+            return jsonify({
+                "code": 200,
+                "data": {
+                    "outlet_id": outlet_id,
+                    "total_wait_time_minutes": 0,
+                    "order_count": 0,
+                    "message": "No orders found for this outlet"
+                }
+            }), 200
+        
+        total_wait_time = 0
+        order_count = 0
+        
+        # Step 2: Process each order to calculate wait time
+        for order_str in orders_data["response"]:
+            order = parse_nested_json(order_str)
+            if not order:
+                print(f"[WARN] Failed to parse order string: {order_str[:100]}...")
+                continue
+                
+            order_details = order.get("OrderDetails", {})
+            order_id = order_details.get("order_id")
+            
+            if not order_id:
+                print("[WARN] Order missing order_id")
+                continue
+                
+            print(f"[2] Processing order {order_id}")
+            
+            # Step 3: Get order items
+            order_items_url = f"{ORDER_BASE_URL}/GetOrderItemsByOrderID?order_id={order_id}"
+            items_response = requests.get(order_items_url)
+            
+            if items_response.status_code != 200:
+                print(f"[WARN] Failed to fetch items for order {order_id}")
+                continue
+                
+            items_data = items_response.json()
+            
+            if "response" not in items_data or not items_data["response"]:
+                print(f"[WARN] No items found for order {order_id}")
+                continue
+                
+            # Step 4: Process each item to get preparation time
+            for item_str in items_data["response"]:
+                item = parse_nested_json(item_str)
+                if not item:
+                    print(f"[WARN] Failed to parse item string: {item_str[:100]}...")
+                    continue
+                    
+                drink_id = item.get("OrderItems", {}).get("drinks_id") or item.get("drinks_id")
+                quantity = item.get("OrderItems", {}).get("quantity") or item.get("quantity", 1)
+                
+                if not drink_id:
+                    print("[WARN] Item missing drink_id")
+                    continue
+                    
+                # Step 5: Get drink details including preparation time
+                try:
+                    drink_response = requests.get(f"{DRINKS_SERVICE_URL}/{drink_id}")
+                    if drink_response.status_code == 200:
+                        drink_data = drink_response.json()
+                        prep_time = drink_data.get("prep_time_min", 0)
+                        total_wait_time += prep_time * quantity
+                        print(f"[INFO] Added {prep_time} min (x{quantity}) for drink {drink_id}")
+                except Exception as e:
+                    print(f"[ERROR] Error fetching drink {drink_id}: {str(e)}")
+                    continue
+                    
+            order_count += 1
+        
+        print(f"[SUCCESS] Calculated wait time: {total_wait_time} minutes for {order_count} orders")
+        
+        return jsonify({
+            "code": 200,
+            "data": {
+                "outlet_id": outlet_id,
+                "total_wait_time_minutes": total_wait_time,
+                "order_count": order_count,
+                "average_wait_time_per_order": total_wait_time / order_count if order_count > 0 else 0
+            }
+        }), 200
+    
+    except Exception as e:
+        print(f"\n!!! UNHANDLED EXCEPTION !!!\n{str(e)}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({
+            "code": 500,
+            "message": f"Internal server error: {str(e)}"
+        }), 500
 
 if __name__ == "__main__":
     print("Starting Order Composite Service...")
