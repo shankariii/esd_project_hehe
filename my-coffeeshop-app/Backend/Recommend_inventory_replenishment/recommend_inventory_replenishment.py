@@ -74,8 +74,8 @@ def processInventoryReplenishment(ingredients_info_order):
                     #send to inventory (ingredient, change_in_quantity, unit)
                     ing_info_result = invoke_http(inventory_URL, method='POST', json=ing_info)
                     print('ing_info_result', ing_info_result)
-                    print(f"/n successfully posted to inventory!")
-
+                    
+                    #  Get change in quantities for the ingredient for the past 7 days
                     ing_history = invoke_http(f"{inventory_URL}/ingredient/{ing}/change_in_quantity", method='GET')
                     if ing_history['code'] not in range(200, 300) or not ing_history.get('data'):
                         print(f"Error: Could not retrieve 7-day history for {ing}")
