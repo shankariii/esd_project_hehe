@@ -50,8 +50,11 @@ INSERT INTO `drink_menu` (`drink_id`, `drink_name`, `description`, `price`, `ima
 (2, 'Latte', 'Smooth and creamy, this espresso-based drink is blended with steamed milk and topped with a light layer of foam for a balanced, velvety taste.', 4.50, 'latte.webp', 4.00, 'Yes'),
 (3, 'Cappuccino', 'A classic favorite with equal parts espresso, steamed milk, and frothy foam, delivering a rich, robust flavor with a light, airy texture.', 4.00, 'cappuccino.png', 6.00, 'Yes'),
 (4, 'Americano', 'A simple yet satisfying mix of espresso and hot water, creating a smooth, mellow coffee with a slightly lighter body than a traditional espresso.', 5.50, 'americano.png', 1.00, 'Yes'),
-(5, 'Iced Matcha Latte', 'A refreshing blend of premium matcha green tea, creamy milk, and a touch of sweetness, served chilled over ice. Perfect for matcha lovers seeking a cool, invigorating treat.', 6.00, 'iced_matcha_latte.jpg', 4.00, 'Yes'),
-(6, 'Iced Chocolate', 'Rich, velvety chocolate mixed with chilled milk and ice, delivering a decadent, indulgent experience. A satisfying choice for chocolate enthusiasts looking to cool down.', 2.50, 'iced_chocolate.jpg', 2.00, 'Yes');
+(5, 'Iced Matcha Latte', 'A refreshing blend of premium matcha green tea, creamy milk, and a touch of sweetness, served chilled over ice. Perfect for matcha lovers seeking a cool, invigorating treat.', 6.00, 'Iced_match_latte.png', 4.00, 'Yes'),
+(6, 'Iced Chocolate', 'Rich, velvety chocolate mixed with chilled milk and ice, delivering a decadent, indulgent experience. A satisfying choice for chocolate enthusiasts looking to cool down.', 2.50, 'iced_chocolate.png', 4.00, 'Yes'),
+(7, 'Spiced Chai Latte', 'A warming blend of black tea, cinnamon, cardamom, and spices with steamed milk for a cozy, aromatic flavor.', 4.00, 'spiced_chai_latte.png', 4.50, 'Yes'),
+(8, 'Cold Brew', 'Smooth, slow-steeped coffee brewed cold for a bold yet refreshing taste, perfect for a caffeine kick.', 5.50, 'cold_brew.png', 4.20, 'Yes'),
+(9, 'Iced Vanilla Latte', 'Chilled espresso blended with milk and sweet vanilla syrup, served over ice for a smooth, creamy delight.', 5.00, 'Iced_vanilla_latte.png', 4.50, 'Yes');
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
