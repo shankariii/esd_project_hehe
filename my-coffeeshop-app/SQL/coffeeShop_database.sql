@@ -231,26 +231,26 @@ values
     (3, 'Coffee Beans', 10, 'g'),
 
     -- Americano (Drink ID 4)
-	(4, 'Coffee Beans', 15, 'g'),
+	  (4, 'Coffee Beans', 10, 'g'),
 
     -- Iced Matcha Latte (Drink ID 5)
     (5, 'Matcha Powder', 5, 'g'),
-	(5, 'Sugar Syrup', 1, 'tbsp'),
+	  (5, 'Sugar Syrup', 15, 'ml'),
 
     -- Iced Chocolate (Drink ID 6)
-    (6, 'Chocolate Syrup', 2, 'tbsp'),
+    (6, 'Chocolate Syrup', 30, 'ml'),
 
 	
-	(104, 'Regular Milk', 200, 'ml'),
-	(105, 'Skim Milk', 200, 'ml'),
-	(106, 'Almond Milk', 200, 'ml'),
-	(107, 'Oat Milk', 200, 'ml'),
-	(108, 'Soy Milk', 200, 'ml'),
-	(109, 'Vanilla Syrup', 2, 'tbsp'),
-	(110, 'Caramel Syrup', 2, 'tbsp'),
-	(111, 'Hazelnut Syrup', 2, 'tbsp'),
-	(112, 'Whipped Cream', 20, 'g'),
-	(113, 'Chocolate Sprinkles', 4, 'g');
+    (104, 'Regular Milk', 200, 'ml'),
+    (105, 'Skim Milk', 200, 'ml'),
+    (106, 'Almond Milk', 200, 'ml'),
+    (107, 'Oat Milk', 200, 'ml'),
+    (108, 'Soy Milk', 200, 'ml'),
+    (109, 'Vanilla Syrup', 30, 'ml'),
+    (110, 'Caramel Syrup', 30, 'ml'),
+    (111, 'Hazelnut Syrup', 30, 'ml'),
+    (112, 'Whipped Cream', 20, 'g'),
+    (113, 'Chocolate Sprinkles', 4, 'g');
     
 
 select * from drink_ingredients;
@@ -331,28 +331,131 @@ CREATE TABLE inventory (
 );
 
 INSERT INTO inventory (ingredient, available_quantity, unit, date_time, change_in_quantity) VALUES
+-- Coffee Beans 
+('Coffee Beans', 3500.00, 'g', '2025-03-30 07:15:00', -40.00),
+('Coffee Beans', 3460.00, 'g', '2025-03-30 12:30:00', -30.00),
+('Coffee Beans', 3400.00, 'g', '2025-03-31 08:00:00', -60.00),
+('Coffee Beans', 3340.00, 'g', '2025-03-31 14:20:00', -40.00),
+('Coffee Beans', 3270.00, 'g', '2025-04-01 09:45:00', -70.00),
+('Coffee Beans', 3200.00, 'g', '2025-04-02 07:30:00', -50.00),
+('Coffee Beans', 3150.00, 'g', '2025-04-02 16:00:00', -30.00),
+('Coffee Beans', 3080.00, 'g', '2025-04-03 08:15:00', -70.00),
+('Coffee Beans', 3000.00, 'g', '2025-04-04 10:30:00', -80.00),
+('Coffee Beans', 2920.00, 'g', '2025-04-05 11:00:00', -60.00),
+('Coffee Beans', 2860.00, 'g', '2025-04-05 18:30:00', -40.00),
+('Coffee Beans', 2800.00, 'g', '2025-04-06 07:45:00', -60.00),
+('Coffee Beans', 2740.00, 'g', '2025-04-06 12:45:00', -60.00),
 
-    # Coffee Beans
-    ('Coffee Beans', 1500.0, 'g', '2025-03-27 10:00:00', -60.0),
-    ('Coffee Beans', 1440.0, 'g', '2025-03-28 12:00:00', -50.0),
-    ('Coffee Beans', 1390.0, 'g', '2025-03-29 09:00:00', -40.0),
-    ('Coffee Beans', 1350.0, 'g', '2025-03-29 17:00:00', -30.0),
-    ('Coffee Beans', 1320.0, 'g', '2025-03-30 11:00:00', -55.0),
-    ('Coffee Beans', 1265.0, 'g', '2025-03-31 15:00:00', -45.0),
-    ('Coffee Beans', 1220.0, 'g', '2025-04-01 08:00:00', -35.0),
-    ('Coffee Beans', 1185.0, 'g', '2025-04-02 13:00:00', -65.0),
-    ('Coffee Beans', 1120.0, 'g', '2025-04-03 09:00:00', -40.0),
+-- Regular Milk 
+('Regular Milk', 10000.00, 'ml', '2025-03-30 07:30:00', -200.00),
+('Regular Milk', 9800.00, 'ml', '2025-03-30 13:45:00', -150.00),
+('Regular Milk', 9600.00, 'ml', '2025-03-31 08:45:00', -250.00),
+('Regular Milk', 9350.00, 'ml', '2025-04-01 09:00:00', -300.00),
+('Regular Milk', 9050.00, 'ml', '2025-04-02 10:15:00', -200.00),
+('Regular Milk', 8850.00, 'ml', '2025-04-03 11:30:00', -180.00),
+('Regular Milk', 8600.00, 'ml', '2025-04-04 14:00:00', -250.00),
+('Regular Milk', 8350.00, 'ml', '2025-04-05 09:30:00', -200.00),
+('Regular Milk', 8150.00, 'ml', '2025-04-06 08:00:00', -150.00),
+('Regular Milk', 8000.00, 'ml', '2025-04-06 12:00:00', -150.00),
 
-    # Almond Milk
-    ('Almond Milk', 1250.0, 'ml', '2025-03-27 08:00:00', -25.0),
-    ('Almond Milk', 1225.0, 'ml', '2025-03-28 09:00:00', -30.0),
-    ('Almond Milk', 1195.0, 'ml', '2025-03-29 11:00:00', -20.0),
-    ('Almond Milk', 1175.0, 'ml', '2025-03-30 07:00:00', -15.0),
-    ('Almond Milk', 1160.0, 'ml', '2025-03-30 18:00:00', -10.0),
-    ('Almond Milk', 1150.0, 'ml', '2025-03-31 10:00:00', -25.0),
-    ('Almond Milk', 1125.0, 'ml', '2025-04-01 14:00:00', -10.0),
-    ('Almond Milk', 1115.0, 'ml', '2025-04-02 08:00:00', -10.0),
-    ('Almond Milk', 1105.0, 'ml', '2025-04-03 10:00:00', -20.0); 
+-- Skim Milk
+('Skim Milk', 4000.00, 'ml', '2025-03-30 08:15:00', -200.00), 
+('Skim Milk', 3800.00, 'ml', '2025-03-31 11:30:00', -200.00),  
+('Skim Milk', 3600.00, 'ml', '2025-04-02 14:00:00', -200.00),  
+('Skim Milk', 3400.00, 'ml', '2025-04-04 09:45:00', -400.00),  
+('Skim Milk', 3000.00, 'ml', '2025-04-06 10:30:00', -200.00),   
+
+-- Almond Milk
+('Almond Milk', 3000.00, 'ml', '2025-03-30 10:00:00', -200.00), 
+('Almond Milk', 2800.00, 'ml', '2025-04-01 13:20:00', -200.00),  
+('Almond Milk', 2600.00, 'ml', '2025-04-03 16:45:00', -200.00),  
+('Almond Milk', 2400.00, 'ml', '2025-04-05 12:15:00', -400.00),  
+('Almond Milk', 2000.00, 'ml', '2025-04-06 12:45:00', -400.00),  
+
+-- Oat Milk
+('Oat Milk', 5000.00, 'ml', '2025-03-30 09:30:00', -200.00), 
+('Oat Milk', 4800.00, 'ml', '2025-03-31 15:00:00', -200.00),    
+('Oat Milk', 4600.00, 'ml', '2025-04-02 10:30:00', -200.00),    
+('Oat Milk', 4400.00, 'ml', '2025-04-04 17:30:00', -400.00),    
+('Oat Milk', 4000.00, 'ml', '2025-04-06 11:45:00', -200.00),   
+
+-- Soy Milk
+('Soy Milk', 3500.00, 'ml', '2025-03-30 11:00:00', -200.00),
+('Soy Milk', 3300.00, 'ml', '2025-04-01 14:10:00', -200.00),    
+('Soy Milk', 3100.00, 'ml', '2025-04-03 12:40:00', -200.00),    
+('Soy Milk', 2900.00, 'ml', '2025-04-05 15:20:00', -400.00),
+
+-- Matcha Powder
+('Matcha Powder', 200.00, 'g', '2025-03-30 11:00:00', -5.00),
+('Matcha Powder', 195.00, 'g', '2025-03-31 15:00:00', -5.00),  
+('Matcha Powder', 190.00, 'g', '2025-04-01 16:30:00', -5.00),   
+('Matcha Powder', 185.00, 'g', '2025-04-03 12:00:00', -5.00),
+('Matcha Powder', 180.00, 'g', '2025-04-04 13:45:00', -5.00),
+('Matcha Powder', 175.00, 'g', '2025-04-05 16:45:00', -5.00),
+('Matcha Powder', 170.00, 'g', '2025-04-05 10:20:00', -5.00),
+
+-- Sugar Syrup (15ml per matcha drink - paired with matcha powder data)
+('Sugar Syrup', 800.00, 'ml', '2025-03-30 11:00:00', -15.00),
+('Sugar Syrup', 785.00, 'ml', '2025-03-31 15:00:00', -15.00),  
+('Sugar Syrup', 770.00, 'ml', '2025-04-01 16:30:00', -15.00),    
+('Sugar Syrup', 755.00, 'ml', '2025-04-03 12:00:00', -15.00),    
+('Sugar Syrup', 740.00, 'ml', '2025-04-04 13:45:00', -15.00),    
+('Sugar Syrup', 725.00, 'ml', '2025-04-05 16:45:00', -15.00),  
+('Sugar Syrup', 710.00, 'ml', '2025-04-06 10:20:00', -15.00), 
+
+-- Chocolate Syrup 
+('Chocolate Syrup', 1000.00, 'ml', '2025-03-30 09:00:00', -60.00),  
+('Chocolate Syrup', 940.00, 'ml', '2025-03-30 14:30:00', -45.00), 
+('Chocolate Syrup', 895.00, 'ml', '2025-03-31 10:30:00', -60.00),
+('Chocolate Syrup', 835.00, 'ml', '2025-04-01 13:15:00', -60.00),
+('Chocolate Syrup', 775.00, 'ml', '2025-04-02 11:20:00', -45.00), 
+('Chocolate Syrup', 730.00, 'ml', '2025-04-03 08:45:00', -60.00),
+('Chocolate Syrup', 670.00, 'ml', '2025-04-04 16:00:00', -45.00), 
+('Chocolate Syrup', 625.00, 'ml', '2025-04-05 11:20:00', -60.00),
+('Chocolate Syrup', 565.00, 'ml', '2025-04-06 10:15:00', -45.00),
+('Chocolate Syrup', 520.00, 'ml', '2025-04-06 13:15:00', -45.00),
+
+
+-- Whipped Cream
+('Whipped Cream', 500.00, 'g', '2025-03-30 08:00:00', -20.00),  
+('Whipped Cream', 480.00, 'g', '2025-03-30 12:00:00', -40.00), 
+('Whipped Cream', 440.00, 'g', '2025-03-31 14:00:00', -40.00),  
+('Whipped Cream', 400.00, 'g', '2025-04-01 14:30:00', -40.00), 
+('Whipped Cream', 360.00, 'g', '2025-04-02 09:45:00', -40.00), 
+('Whipped Cream', 320.00, 'g', '2025-04-03 10:00:00', -40.00), 
+('Whipped Cream', 280.00, 'g', '2025-04-04 17:00:00', -60.00), 
+('Whipped Cream', 220.00, 'g', '2025-04-05 13:15:00', -80.00),   
+('Whipped Cream', 140.00, 'g', '2025-04-06 09:45:00', -40.00),   
+('Whipped Cream', 100.00, 'g', '2025-04-06 13:30:00', -20.00),
+
+-- Vanilla Syrup
+('Vanilla Syrup', 750.00, 'ml', '2025-03-30 08:30:00', -45.00),
+('Vanilla Syrup', 705.00, 'ml', '2025-03-31 11:45:00', -30.00),
+('Vanilla Syrup', 675.00, 'ml', '2025-04-01 15:20:00', -45.00),
+('Vanilla Syrup', 630.00, 'ml', '2025-04-03 09:30:00', -30.00),
+('Vanilla Syrup', 600.00, 'ml', '2025-04-04 12:15:00', -45.00),
+('Vanilla Syrup', 555.00, 'ml', '2025-04-05 14:50:00', -60.00),
+('Vanilla Syrup', 495.00, 'ml', '2025-04-06 11:50:00', -60.00),
+
+
+-- Caramel Syrup
+('Caramel Syrup', 600.00, 'ml', '2025-03-30 10:15:00', -30.00),
+('Caramel Syrup', 570.00, 'ml', '2025-03-31 13:30:00', -45.00),
+('Caramel Syrup', 525.00, 'ml', '2025-04-02 08:20:00', -30.00),
+('Caramel Syrup', 495.00, 'ml', '2025-04-03 14:10:00', -45.00),
+('Caramel Syrup', 450.00, 'ml', '2025-04-05 10:40:00', -60.00),
+('Caramel Syrup', 390.00, 'ml', '2025-04-06 10:45:00', -60.00),
+
+-- Chocolate Sprinkles
+('Chocolate Sprinkles', 200.00, 'g', '2025-03-30 11:30:00', -4.00),  
+('Chocolate Sprinkles', 196.00, 'g', '2025-03-31 09:15:00', -8.00),   
+('Chocolate Sprinkles', 188.00, 'g', '2025-03-31 16:45:00', -4.00),  
+('Chocolate Sprinkles', 184.00, 'g', '2025-04-02 10:50:00', -8.00),  
+('Chocolate Sprinkles', 176.00, 'g', '2025-04-03 14:20:00', -4.00),  
+('Chocolate Sprinkles', 172.00, 'g', '2025-04-04 15:30:00', -12.00),  
+('Chocolate Sprinkles', 160.00, 'g', '2025-04-05 12:20:00', -16.00), 
+('Chocolate Sprinkles', 144.00, 'g', '2025-04-06 10:00:00', -8.00),  
+('Chocolate Sprinkles', 136.00, 'g', '2025-04-06 12:30:00', -4.00);
 
 -- outlet
 -- phpMyAdmin SQL Dump
@@ -528,16 +631,28 @@ CREATE TABLE IF NOT EXISTS supplier_ingredient (
 
 -- Insert sample data into the supplier_ingredient table
 INSERT INTO supplier_ingredient (ingredient, supplier_id, price_per_unit, lead_time) VALUES
-("Coffee Beans", 2, 12.50, 5),
-("Regular Milk", 3, 2.75, 2),
-("Skim Milk", 2, 2.60, 2),
-("Soy Milk", 2, 2.75, 2),
-("Almond Milk", 3, 3.50, 2),
-("Oat Milk", 3, 4.00, 2),
-("Vanilla Syrup", 1, 5.95, 4),
-("Caramel Syrup", 1, 6.25, 3),
-("Hazelnut Syrup", 1, 7.50, 6),
-("Chocolate Sprinkles", 1, 6.75, 3);
+-- Coffee (price per g)
+("Coffee Beans", 2, 0.012, 3),
+
+-- Dairy & Alternatives (price per ML)
+("Regular Milk", 3, 0.0025, 2),          
+("Skim Milk", 2, 0.0023, 2),             
+("Soy Milk", 2, 0.0026, 2),              
+("Almond Milk", 3, 0.0032, 2),            
+("Oat Milk", 3, 0.0035, 2),               
+
+-- Syrups (price per ML)
+("Vanilla Syrup", 1, 0.0066, 4),        
+("Caramel Syrup", 1, 0.0070, 3),          
+("Hazelnut Syrup", 1, 0.0080, 4),         
+("Sugar Syrup", 1, 0.0047, 2),           
+("Chocolate Syrup", 1, 0.0067, 3),   
+
+-- Toppings & Extras (price per g)
+("Chocolate Sprinkles", 1, 0.028, 3),     
+("Whipped Cream", 3, 0.0038, 2),         
+("Matcha Powder", 2, 0.12, 4);   
+
 -- supplier 
 CREATE DATABASE IF NOT EXISTS `supplier` DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;
 USE `supplier`;
@@ -561,6 +676,7 @@ INSERT INTO supplier (name, contact_person, phone, email, address) VALUES
 ('Sweet Additions Co.', 'Jane Lim', '65087328', 'jane@sweetadditions.com', '45 Orchard Street, Orchard City'),
 ('Cafe Supply Network', 'Robert Chua', '65432943', 'robert@cafesupply.com', '78 Shenton Road, East Town'),
 ('Brew & Beverage Wholesale', 'John Tan', '67543254', 'john@brewbev.com', '123 Bishan Street, West Town');
+
 -- threshold 
 CREATE DATABASE IF NOT EXISTS `threshold` DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;
 USE `threshold`;
@@ -576,7 +692,25 @@ CREATE TABLE IF NOT EXISTS threshold (
 );
 
 INSERT INTO threshold (ingredient, threshold) VALUES
-("Coffee Beans", 1200.00),
-("Skim Milk", 120.50),
-("Almond Milk", 1000.00),
-("Chocolate Sprinkles", 30.00);
+-- Coffee Beans (in GRAMS)
+("Coffee Beans", 2500), 
+
+-- Milks (in ML)
+("Regular Milk", 5000),      
+("Skim Milk", 4000),         
+("Soy Milk", 3000),         
+("Almond Milk", 2000),       
+("Oat Milk", 2500),          
+
+-- Syrups (in ML)
+("Vanilla Syrup", 750),
+("Caramel Syrup", 500),    
+("Hazelnut Syrup", 500),    
+("Sugar Syrup", 1000),       
+("Chocolate Syrup", 600),    
+
+-- Toppings (in GRAMS)
+("Chocolate Sprinkles", 100),
+("Whipped Cream", 500),  
+
+("Matcha Powder", 50); 
