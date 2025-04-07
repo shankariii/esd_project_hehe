@@ -5,8 +5,10 @@ import os, sys
 
 import requests
 from invokes import invoke_http
+from flasgger import Swagger
 
 app = Flask(__name__)
+swagger = Swagger(app)
 CORS(app)
 
 drink_ingredients_URL = "http://drink_ingredients:5006/ingredients" 
@@ -18,8 +20,49 @@ threshold_URL = "http://threshold:8100/threshold"
 # threshold_URL="http://localhost:8000/api/threshold"
 
 @app.route("/recommend_inventory_replenishment", methods=['POST'])
-def place_order(): #receives order_items JSON array
-#checks that the request’s format is JSON and data is valid JSON
+def place_order():
+    """
+    Recommend Inventory Replenishment
+    ---
+    tags:
+      - Inventory
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              type: object
+              properties:
+                ingredient:
+                  type: string
+                  example: milk
+                change_in_quantity:
+                  type: number
+                  example: -5
+                unit:
+                  type: string
+                  example: litre
+    responses:
+      200:
+        description: Threshold processing completed
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                code:
+                  type: integer
+                message:
+                  type: string
+                data:
+                  type: object
+      400:
+        description: Invalid JSON input
+      500:
+        description: Internal error
+    """
     if request.is_json:
         try:
             ingredients_info_order = request.get_json()
