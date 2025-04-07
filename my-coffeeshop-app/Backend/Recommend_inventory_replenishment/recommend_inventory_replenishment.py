@@ -12,7 +12,7 @@ CORS(app)
 drink_ingredients_URL = "http://drink_ingredients:5006/ingredients" 
 #inventory_URL="http://localhost:8000/api/inventory"
 inventory_URL = "http://inventory:5000/inventory"
-order_log_items_URL = "https://personal-9fpjlj95.outsystemscloud.com/WorkerUI/rest/GetDrinkID/GetDrinkIDFromOrderLog"
+order_log_items_URL = "https://personal-9fpjlj95.outsystemscloud.com/WorkerUI/rest/UpdateInventoryAPI/UpdateInventory"
 supplier_ingredient_URL = "http://supplier_ingredient:8201/supplier_ingredient"
 threshold_URL = "http://threshold:8100/threshold"
 # threshold_URL="http://localhost:8000/api/threshold"
