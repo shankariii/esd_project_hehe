@@ -1,13 +1,16 @@
 <template>
     <div class="profile-container">
         <!-- Loading state -->
-        <div v-if="authStore.isLoading" class="loading-state">
-            Loading profile...
+        <div v-if="authStore.isLoading" class="loading" style="text-align: center; padding: 3rem 0;">
+            <i class="fas fa-spinner fa-spin" style="font-size: 3rem; color: var(--primary); margin-bottom: 1rem;"></i>
+            <h3 style="margin-bottom: 1rem; color: var(--dark);">Loading your profile...</h3>
         </div>
 
         <!-- Error state -->
         <div v-else-if="authStore.error" class="error-state">
-            Error: {{ authStore.error }}
+            <i class="fas fa-exclamation-circle" style="font-size: 3rem; color: #dc3545; margin-bottom: 1rem;"></i>
+            <h3 style="margin-bottom: 1rem; color: var(--dark);">Error</h3>
+            <p>{{ authStore.error }}</p>
         </div>
 
         <!-- Main content when data is loaded -->
@@ -82,44 +85,54 @@
                         <h2 class="content-title">Ongoing Orders</h2>
                     </div>
 
-                    <div v-if="isLoadingOrders" class="loading-state">
-                        Loading your orders...
+                    <!-- Loading state for ongoing orders -->
+                    <div v-if="ongoingOrdersLoading" class="loading" style="text-align: center; padding: 3rem 0;">
+                        <i class="fas fa-spinner fa-spin"
+                            style="font-size: 3rem; color: var(--primary); margin-bottom: 1rem;"></i>
+                        <h3 style="margin-bottom: 1rem; color: var(--dark);">Loading your orders...</h3>
                     </div>
 
-                    <div v-else-if="ordersError" class="error-state">
-                        Error loading orders: {{ ordersError }}
-                        <button class="btn btn-secondary" @click="fetchOrders">Try Again</button>
+                    <!-- Error state for ongoing orders -->
+                    <div v-else-if="ongoingOrdersError" class="error-state"
+                        style="text-align: center; padding: 3rem 0;">
+                        <i class="fas fa-exclamation-circle"
+                            style="font-size: 3rem; color: #dc3545; margin-bottom: 1rem;"></i>
+                        <h3 style="margin-bottom: 1rem; color: var(--dark);">Error</h3>
+                        <p>{{ ongoingOrdersError }}</p>
                     </div>
 
-                    <div v-else-if="ongoingOrders.length === 0" class="empty-state">
-                        <p>You don't have any ongoing orders at the moment.</p>
+                    <!-- Empty state for ongoing orders -->
+                    <div v-else-if="ongoingOrders.length === 0" class="empty-cart"
+                        style="text-align: center; padding: 3rem 0;">
+                        <i class="fas fa-shopping-bag"
+                            style="font-size: 3rem; color: var(--secondary); margin-bottom: 1rem;"></i>
+                        <h3 style="margin-bottom: 1rem; color: var(--dark);">No ongoing orders</h3>
+                        <p style="color: var(--text-light); margin-bottom: 2rem;">You don't have any ongoing orders at
+                            the moment.</p>
+                        <button @click="proceedToMenu"
+                            style="background-color: var(--primary); color: white; padding: 0.8rem 1.5rem; border-radius: 5px; text-decoration: none; display: inline-block; border: none; cursor: pointer;">
+                            Browse Menu
+                        </button>
                     </div>
 
+                    <!-- Ongoing orders list -->
                     <div v-else class="order-list">
-                        <div v-for="order in ongoingOrders" :key="order.id" class="order-card">
+                        <div v-for="order in ongoingOrders" :key="order.order_id" class="order-card">
                             <div class="order-header">
-                                <span class="order-id">Order #{{ order.id }}</span>
-                                <span class="order-date">{{ formatDate(order.date) }}</span>
+                                <span class="order-id">Order #{{ order.order_id }}</span>
+                                <span class="order-date">{{ formatDate(order.date_created) }}</span>
                             </div>
-                            <div class="order-outlet">{{ order.outletName }}</div>
+                            <div class="order-outlet">{{ order.outlet_name.name }}</div>
                             <div class="order-status status-processing">{{ order.status }}</div>
                             <div class="order-items">
                                 <p v-for="(item, index) in order.items" :key="index">
-                                    {{ item.quantity }}x {{ item.name }} - ${{ item.price }} each
-                                    <span v-if="item.customizations && item.customizations.length > 0" class="customizations">
-                                        <br>
-                                        <span class="customization-title">Customizations:</span>
-                                        <span v-for="(cust, cIndex) in item.customizations" :key="cIndex" class="customization-item">
-                                            {{ cust.name }} ({{ cust.type }})
-                                            <span v-if="cust.price_diff > 0">+${{ cust.price_diff }}</span>
-                                            <span v-else-if="cust.price_diff < 0">-${{ Math.abs(cust.price_diff) }}</span>
-                                        </span>
-                                    </span>
+                                    {{ item.quantity }}x {{ item.drink_name }} - ${{ item.drink_price }} each
                                 </p>
                             </div>
                             <div class="order-footer">
-                                <div class="order-total">Total: ${{ order.total.toFixed(2) }}</div>
-                                <button class="btn btn-secondary" @click="trackOrder(order.id)">Track Order</button>
+                                <div class="order-total">Total: ${{ order.total_price.toFixed(2) }}</div>
+                                <button class="btn btn-secondary" @click="trackOrder(order.order_id)">Track
+                                    Order</button>
                             </div>
                         </div>
                     </div>
@@ -131,46 +144,53 @@
                         <h2 class="content-title">Past Orders</h2>
                     </div>
 
-                    <div v-if="isLoadingOrders" class="loading-state">
-                        Loading your orders...
+                    <!-- Loading state for past orders -->
+                    <div v-if="pastOrdersLoading" class="loading" style="text-align: center; padding: 3rem 0;">
+                        <i class="fas fa-spinner fa-spin"
+                            style="font-size: 3rem; color: var(--primary); margin-bottom: 1rem;"></i>
+                        <h3 style="margin-bottom: 1rem; color: var(--dark);">Loading your order history...</h3>
                     </div>
 
-                    <div v-else-if="ordersError" class="error-state">
-                        Error loading orders: {{ ordersError }}
-                        <button class="btn btn-secondary" @click="fetchOrders">Try Again</button>
+                    <!-- Error state for past orders -->
+                    <div v-else-if="pastOrdersError" class="error-state" style="text-align: center; padding: 3rem 0;">
+                        <i class="fas fa-exclamation-circle"
+                            style="font-size: 3rem; color: #dc3545; margin-bottom: 1rem;"></i>
+                        <h3 style="margin-bottom: 1rem; color: var(--dark);">Error</h3>
+                        <p>{{ pastOrdersError }}</p>
                     </div>
 
-                    <div v-else-if="pastOrders.length === 0" class="empty-state">
-                        <p>You don't have any past orders yet.</p>
+                    <!-- Empty state for past orders -->
+                    <div v-else-if="pastOrders.length === 0" class="empty-cart"
+                        style="text-align: center; padding: 3rem 0;">
+                        <i class="fas fa-history"
+                            style="font-size: 3rem; color: var(--secondary); margin-bottom: 1rem;"></i>
+                        <h3 style="margin-bottom: 1rem; color: var(--dark);">No order history</h3>
+                        <p style="color: var(--text-light); margin-bottom: 2rem;">You don't have any past orders yet.
+                        </p>
+                        <button @click="proceedToMenu"
+                            style="background-color: var(--primary); color: white; padding: 0.8rem 1.5rem; border-radius: 5px; text-decoration: none; display: inline-block; border: none; cursor: pointer;">
+                            Browse Menu
+                        </button>
                     </div>
 
+                    <!-- Past orders list -->
                     <div v-else class="order-list">
-                        <div v-for="order in pastOrders" :key="order.id" class="order-card">
+                        <div v-for="order in pastOrders" :key="order.order_id" class="order-card">
                             <div class="order-header">
-                                <span class="order-id">Order #{{ order.id }}</span>
-                                <span class="order-date">{{ formatDate(order.date) }}</span>
+                                <span class="order-id">Order #{{ order.order_id }}</span>
+                                <span class="order-date">{{ formatDate(order.date_created) }}</span>
                             </div>
-                            <div class="order-outlet">{{ order.outletName }}</div>
-                            <div class="order-status" :class="order.status.toLowerCase() === 'completed' ? 'status-completed' : 'status-cancelled'">
-                                {{ order.status }}
-                            </div>
+                            <div class="order-outlet">{{ order.outlet_name.name }}</div>
+                            <div class="order-status status-completed">{{ order.status }}</div>
                             <div class="order-items">
                                 <p v-for="(item, index) in order.items" :key="index">
-                                    {{ item.quantity }}x {{ item.name }} - ${{ item.price }} each
-                                    <span v-if="item.customizations && item.customizations.length > 0" class="customizations">
-                                        <br>
-                                        <span class="customization-title">Customizations:</span>
-                                        <span v-for="(cust, cIndex) in item.customizations" :key="cIndex" class="customization-item">
-                                            {{ cust.name }} ({{ cust.type }})
-                                            <span v-if="cust.price_diff > 0">+${{ cust.price_diff }}</span>
-                                            <span v-else-if="cust.price_diff < 0">-${{ Math.abs(cust.price_diff) }}</span>
-                                        </span>
-                                    </span>
+                                    {{ item.quantity }}x {{ item.drink_name }} - ${{ item.drink_price }} each
                                 </p>
                             </div>
                             <div class="order-footer">
-                                <div class="order-total">Total: ${{ order.total.toFixed(2) }}</div>
-                                <button class="btn btn-secondary" @click="viewOrderDetails(order.id)">View Details</button>
+                                <div class="order-total">Total: ${{ order.total_price.toFixed(2) }}</div>
+                                <!-- <button class="btn btn-secondary" @click="viewOrderDetails(order.order_id)">View
+                                    Details</button> -->
                             </div>
                         </div>
                     </div>
@@ -216,10 +236,9 @@
 
 <script>
 import { useAuthStore } from '../authStore';
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import { getFirestore, doc, updateDoc } from 'firebase/firestore';
 import { useRouter } from 'vue-router';
-import axios from 'axios'; // Make sure axios is installed
 
 export default {
     name: 'UserProfile',
@@ -234,23 +253,15 @@ export default {
             phoneNumber: ''
         });
 
-        // Replace demo data with real data containers
-        const orders = ref([]);
-        const isLoadingOrders = ref(false);
-        const ordersError = ref(null);
+        // Ongoing orders state
+        const ongoingOrders = ref([]);
+        const ongoingOrdersLoading = ref(false);
+        const ongoingOrdersError = ref(null);
 
-        // Computed properties to filter orders by status
-        const ongoingOrders = computed(() => {
-            return orders.value.filter(order => 
-                order.status && ['PENDING', 'PROCESSING', 'READY'].includes(order.status.toUpperCase())
-            );
-        });
-
-        const pastOrders = computed(() => {
-            return orders.value.filter(order => 
-                order.status && ['COMPLETED', 'CANCELLED'].includes(order.status.toUpperCase())
-            );
-        });
+        // Past orders state
+        const pastOrders = ref([]);
+        const pastOrdersLoading = ref(false);
+        const pastOrdersError = ref(null);
 
         const tabs = [
             { id: 'profile', label: 'Profile' },
@@ -259,43 +270,71 @@ export default {
             { id: 'edit', label: 'Edit Profile' }
         ];
 
-        // Function to fetch orders from API
-        const fetchOrders = async () => {
+        const fetchOngoingOrders = async () => {
             if (!authStore.user?.uid) return;
-            
-            isLoadingOrders.value = true;
-            ordersError.value = null;
-            
+
+            ongoingOrdersLoading.value = true;
+            ongoingOrdersError.value = null;
+
             try {
-                // Using the user ID from auth store to fetch orders
-                const response = await axios.get(`http://localhost:5201/get_orders_by_user/${authStore.user.uid}`);
-                
-                if (response.data && response.data.code === 200 && response.data.data) {
-                    // Process the orders data
-                    orders.value = response.data.data.orders.map(order => ({
-                        id: order.order_id,
-                        date: order.date_created,
-                        status: order.status,
-                        outletName: order.outlet_name?.name || 'Unknown Location',
-                        items: order.items.map(item => ({
-                            name: item.drink_name,
-                            price: item.drink_price,
-                            quantity: item.quantity,
-                            customizations: item.customizations
-                        })),
-                        total: order.total_price
-                    }));
-                } else {
-                    ordersError.value = 'Failed to fetch orders data';
+                const response = await fetch(`http://127.0.0.1:5201/get_orders_by_user/${authStore.user.uid}`);
+                const data = await response.json();
+
+                if (data.code === 200) {
+                    // Simulate a short loading delay for better UX
+                    setTimeout(() => {
+                        ongoingOrders.value = data.data.orders;
+                        ongoingOrdersLoading.value = false;
+                    }, 800);
+                }
+                else if (data.message == "Failed to fetch orders for user") {
+                    setTimeout(() => {
+                        ongoingOrders.value = [];
+                        ongoingOrdersLoading.value = false;
+                    }, 800);
+                }
+                else {
+                    throw new Error('Failed to fetch ongoing orders');
                 }
             } catch (error) {
-                console.error('Error fetching orders:', error);
-                ordersError.value = error.message || 'Failed to fetch orders';
-            } finally {
-                isLoadingOrders.value = false;
+                console.error('Error fetching ongoing orders:', error);
+                ongoingOrdersError.value = error.message;
+                ongoingOrdersLoading.value = false;
             }
         };
 
+        const fetchPastOrders = async () => {
+            if (!authStore.user?.uid) return;
+
+            pastOrdersLoading.value = true;
+            pastOrdersError.value = null;
+
+            try {
+                const response = await fetch(`http://localhost:5500/get_order_logs_by_user/${authStore.user.uid}`);
+                const data = await response.json();
+
+                if (data.code === 200) {
+                    setTimeout(() => {
+                        // Change this line
+                        pastOrders.value = data.data.order_logs || [];
+                        pastOrdersLoading.value = false;
+                    }, 800);
+                }
+                else if (data.message == "Failed to fetch orders for user") {
+                    setTimeout(() => {
+                        pastOrders.value = [];
+                        pastOrdersLoading.value = false;
+                    }, 800);
+                }
+                else {
+                    throw new Error('Failed to fetch past orders');
+                }
+            } catch (error) {
+                console.error('Error fetching past orders:', error);
+                pastOrdersError.value = error.message;
+                pastOrdersLoading.value = false;
+            }
+        };
         const resetFormData = () => {
             formData.value = {
                 firstName: authStore.userProfile?.firstName || '',
@@ -305,12 +344,22 @@ export default {
             };
         };
 
-        onMounted(async () => {
-            await authStore.init();
-            resetFormData();
-            fetchOrders(); // Fetch orders when component mounts
+        onMounted(() => {
+            authStore.init().then(() => {
+                resetFormData();
+            });
         });
 
+        // Watch for tab changes to fetch data when needed
+        watch(activeTab, (newTab) => {
+            if (newTab === 'ongoing') {
+                fetchOngoingOrders();
+            } else if (newTab === 'past') {
+                fetchPastOrders();
+            }
+        });
+
+        // Existing methods remain the same...
         const getUserInitials = () => {
             if (!authStore.userProfile) return '';
             return `${authStore.userProfile.firstName?.charAt(0) || ''}${authStore.userProfile.lastName?.charAt(0) || ''}`;
@@ -322,7 +371,9 @@ export default {
             return new Intl.DateTimeFormat('en-US', {
                 year: 'numeric',
                 month: 'long',
-                day: 'numeric'
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
             }).format(date);
         };
 
@@ -347,25 +398,15 @@ export default {
         const logout = async () => {
             try {
                 await authStore.logout();
-                router.push('/'); // Redirect to homepage after successful logout
+                router.push('/');
             } catch (error) {
                 console.error('Logout error:', error);
             }
         };
 
-        const viewOrderDetails = async (orderId) => {
-            try {
-                const response = await axios.get(`http://localhost:5201/get_order_details/${authStore.user.uid}/${orderId}`);
-                if (response.data && response.data.code === 200) {
-                    // Navigate to order details or show in modal
-                    console.log(`Viewing details for order: ${orderId}`);
-                    // Optionally navigate to a detailed view
-                    // router.push(`/order/${orderId}`);
-                }
-            } catch (error) {
-                console.error(`Error fetching order details for ${orderId}:`, error);
-                alert('Failed to load order details');
-            }
+        const proceedToMenu = () => {
+            console.log("Proceeding to Menu!");
+            router.push('/menu');
         };
 
         return {
@@ -374,22 +415,18 @@ export default {
             tabs,
             formData,
             ongoingOrders,
+            ongoingOrdersLoading,
+            ongoingOrdersError,
             pastOrders,
-            isLoadingOrders,
-            ordersError,
+            pastOrdersLoading,
+            pastOrdersError,
             getUserInitials,
             formatDate,
             resetFormData,
             updateProfile,
             logout,
-            fetchOrders,
-            setActiveTab: (tabId) => { 
-                activeTab.value = tabId; 
-                // Refresh orders data when switching to order tabs
-                if (tabId === 'ongoing' || tabId === 'past') {
-                    fetchOrders();
-                }
-            },
+            proceedToMenu,
+            setActiveTab: (tabId) => { activeTab.value = tabId; },
             cancelEdit: () => {
                 resetFormData();
                 activeTab.value = 'profile';
@@ -398,7 +435,9 @@ export default {
                 console.log(`Tracking order: ${orderId}`);
                 router.push(`/trackOrders/${orderId}`);
             },
-            viewOrderDetails
+            // viewOrderDetails: (orderId) => {
+            //     console.log(`Viewing details for order: ${orderId}`);
+            // }
         };
     }
 };
@@ -600,13 +639,8 @@ export default {
 }
 
 .status-processing {
-    background-color: #fef7e0;
-    color: var(--accent);
-}
-
-.status-cancelled {
-    background-color: #feeaea;
-    color: #e53935;
+    background-color: #e3f2fd;
+    color: #1a73e8;
 }
 
 .order-items {
@@ -686,37 +720,10 @@ export default {
     margin-top: 2rem;
 }
 
-.empty-state {
-    text-align: center;
-    padding: 3rem 0;
-    color: var(--text-light);
-}
-
-.loading-state, .error-state {
-    text-align: center;
-    padding: 3rem 0;
-    color: var(--text-light);
-}
-
 .error-state {
-    color: #d32f2f;
-}
-
-.customizations {
-    display: block;
-    margin-left: 1rem;
-    font-size: 0.9rem;
-    color: var(--text-light);
-}
-
-.customization-title {
-    font-weight: 500;
-    margin-right: 0.5rem;
-}
-
-.customization-item {
-    display: inline-block;
-    margin-right: 0.8rem;
+    text-align: center;
+    padding: 3rem 0;
+    color: #dc3545;
 }
 
 @media (max-width: 768px) {

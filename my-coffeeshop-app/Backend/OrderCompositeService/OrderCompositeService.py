@@ -8,9 +8,9 @@ CORS(app)
 
 # Base URLs for microservices
 ORDER_BASE_URL = "https://personal-9fpjlj95.outsystemscloud.com/WorkerUI/rest/GetOrderAPI"
-OUTLETS_SERVICE_URL = "http://localhost:5001/outlets"
-DRINKS_SERVICE_URL = "http://localhost:5005/drinks"
-CUSTOMIZATIONS_SERVICE_URL = "http://localhost:5007/customisations"
+OUTLETS_SERVICE_URL = "http://host.docker.internal:5001/outlets"
+DRINKS_SERVICE_URL = "http://host.docker.internal:5005/drinks"
+CUSTOMIZATIONS_SERVICE_URL = "http://host.docker.internal:5007/customisations"
 
 def parse_nested_json(json_str):
     """Helper function to parse malformed JSON strings"""
@@ -148,6 +148,9 @@ def get_orders_by_user(user_id):
                         customizations = []
                         customizations_url = f"{ORDER_BASE_URL}/GetOrderItemCustomisationByOIID?order_item_id={order_item_id}"
                         customizations_response = requests.get(customizations_url)
+                        
+                        print("==================")
+                        print(customizations_response)
                         
                         if customizations_response.status_code == 200:
                             customizations_data = customizations_response.json()
