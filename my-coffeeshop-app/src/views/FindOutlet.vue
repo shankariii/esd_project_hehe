@@ -49,8 +49,7 @@
             <p><i class="detail-icon fa-solid fa-location-dot"></i> {{ selectedOutlet.address }}</p>
             <p v-if="selectedOutlet.distance"><i class="detail-icon fa-solid fa-route"></i> {{
               formatDistance(selectedOutlet.distance) }}</p>
-            <p><i class="detail-icon fa-solid fa-clock"></i> Est. wait: {{
-              getEstimatedWaitTime(selectedOutlet.queueCount) }}</p>
+            <p><i class="detail-icon fa-solid fa-clock"></i> Est. wait: {{ getEstimatedWaitTime(selectedOutlet.totalWaitTime) }}</p>
           </div>
           <div class="action-buttons">
             <a :href="`https://www.google.com/maps/dir/?api=1&destination=${selectedOutlet.position.lat},${selectedOutlet.position.lng}`"
@@ -90,7 +89,7 @@
                     </p>
                     <p class="wait-time">
                       <i class="detail-icon fa-solid fa-clock"></i>
-                      {{ getEstimatedWaitTime(outlet.queueCount) }}
+                      {{ getEstimatedWaitTime(outlet.totalWaitTime) }}
                     </p>
                   </div>
                 </div>
@@ -189,24 +188,28 @@ export default {
       document.head.appendChild(link);
     },
     async fetchOutlets() {
+  try {
+    const response = await axios.get('http://localhost:5001/outlets');
+    // First get all outlets
+    this.outlets = response.data.map(outlet => ({
+      ...outlet,
+      position: outlet.position || { lat: 0, lng: 0 },
+      queueCount: outlet.queueCount || 0, // Temporary default
+      totalWaitTime: 0 // Initialize total wait time
+    }));
+    // Then fetch queue counts for each outlet
+    await Promise.all(this.outlets.map(async (outlet) => {
       try {
-        const response = await axios.get('http://localhost:5001/outlets');
-        // First get all outlets
-        this.outlets = response.data.map(outlet => ({
-          ...outlet,
-          position: outlet.position || { lat: 0, lng: 0 },
-          queueCount: outlet.queueCount || 0 // Temporary default
-        }));
-        // Then fetch queue counts for each outlet
-        await Promise.all(this.outlets.map(async (outlet) => {
-          try {
-            const countResponse = await axios.get(`http://127.0.0.1:5500/orders/count?outlet_id=${outlet.id}`);
-            outlet.queueCount = countResponse.data.total_orders || 0;
-          } catch (error) {
-            console.error(`Failed to fetch queue count for outlet ${outlet.id}:`, error);
-            outlet.queueCount = 0; // Default to 0 if there's an error
-          }
-        }));
+        const countResponse = await axios.get(`http://127.0.0.1:5201/get_outlet_wait_time/${outlet.id}`);
+        console.log(countResponse.data.data)
+        outlet.queueCount = countResponse.data.data.order_count || 0;
+        outlet.totalWaitTime = countResponse.data.data.total_wait_time_minutes || 0; // Store total wait time
+      } catch (error) {
+        console.error(`Failed to fetch queue count for outlet ${outlet.id}:`, error);
+        outlet.queueCount = 0; // Default to 0 if there's an error
+        outlet.totalWaitTime = 0;
+      }
+    }));  
         this.filteredOutlets = [...this.outlets];
         // If there was a previously selected outlet, select it
         if (this.savedOutletId) {
@@ -421,14 +424,14 @@ export default {
           }, 1500);
         }
         this.infoWindow.setContent(`
-          <div class="info-window">
-            <h3>${outlet.name}</h3>
-            <p>${outlet.address}</p>
-            ${outlet.distance ? `<p><strong>Distance:</strong> ${this.formatDistance(outlet.distance)}</p>` : ''}
-            <p><strong>Queue:</strong> <span style="color: ${this.getMarkerColor(outlet.queueCount)}; font-weight: bold;">${outlet.queueCount} people waiting</span></p>
-            <p><strong>Estimated wait:</strong> ${this.getEstimatedWaitTime(outlet.queueCount)}</p>
-          </div>
-        `);
+        <div class="info-window">
+          <h3>${outlet.name}</h3>
+          <p>${outlet.address}</p>
+          ${outlet.distance ? `<p><strong>Distance:</strong> ${this.formatDistance(outlet.distance)}</p>` : ''}
+          <p><strong>Queue:</strong> <span style="color: ${this.getMarkerColor(outlet.queueCount)}; font-weight: bold;">${outlet.queueCount} people waiting</span></p>
+          <p><strong>Estimated wait:</strong> ${this.getEstimatedWaitTime(outlet.totalWaitTime)}</p>
+        </div>
+      `);
         const markerToUse = this.markers[this.outlets.indexOf(outlet)];
         if (markerToUse) {
           this.infoWindow.open(this.map, markerToUse);
@@ -458,10 +461,9 @@ export default {
       if (count < 10) return '#FFC107';
       return '#F44336';
     },
-    getEstimatedWaitTime(count) {
-      if (count === 0) return 'No wait';
-      const minutes = count * 3;
-      return minutes < 60 ? `${minutes} min` : `${Math.floor(minutes / 60)}h ${minutes % 60}m`;
+    getEstimatedWaitTime(totalWaitTime) {
+      if (totalWaitTime === 0) return 'No wait';
+      return totalWaitTime < 60 ? `${Math.round(totalWaitTime)} min` : `${Math.floor(totalWaitTime / 60)}h ${Math.round(totalWaitTime % 60)}m`;
     },
     filterOutlets() {
       if (!this.searchQuery.trim()) {

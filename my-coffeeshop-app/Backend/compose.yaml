@@ -277,7 +277,7 @@ services:
     environment:
       PYTHONUNBUFFERED: 1
     ports:
-      - "5550:5550"
+      - "5500:5500"
     networks:
       - esd-net  
 
