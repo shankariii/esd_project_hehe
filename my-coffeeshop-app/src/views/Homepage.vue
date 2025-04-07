@@ -27,7 +27,7 @@
           coffee isn't just served, but celebrated.
         </p>
         <p>
-          Our founder, Emma Collins, spent years traveling across coffee-growing regions, learning from local farmers
+          Our founder, Hazel Janks, spent years traveling across coffee-growing regions, learning from local farmers
           and perfecting the art of roasting. This journey of discovery and passion is infused in every cup we serve.
         </p>
         <p>
@@ -36,7 +36,7 @@
         </p>
       </div>
       <div class="about-img-container">
-        <img src="../assets/ourStory.png" alt="Brew Haven Story" class="about-img">
+        <img src="../assets/us!.png" alt="Brew Haven Story" class="about-img">
       </div>
     </div>
   </section>
