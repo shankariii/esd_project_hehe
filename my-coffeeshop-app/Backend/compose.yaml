@@ -261,7 +261,7 @@ services:
     environment:
       PYTHONUNBUFFERED: 1
     ports:
-      - "5500:5500"
+      - "5201:5201"
     networks:
       - esd-net 
 
