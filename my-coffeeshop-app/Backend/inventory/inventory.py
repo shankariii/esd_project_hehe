@@ -11,8 +11,6 @@ app = Flask(__name__)
 CORS(app)
 Swagger(app)  # Enable Swagger UI
 
-# metrics = PrometheusMetrics(app)
-
 # Database configuration
 app.config['SQLALCHEMY_DATABASE_URI'] = environ.get('dbURL')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -298,5 +296,4 @@ def metrics():
     return generate_latest(), 200, {'Content-Type': CONTENT_TYPE_LATEST}
 
 if __name__ == "__main__":
-    # app.run(host="0.0.0.0", port=5000, debug=True)
     app.run(host="0.0.0.0", port=5000, debug=False)
