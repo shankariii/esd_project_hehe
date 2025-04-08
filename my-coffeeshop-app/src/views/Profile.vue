@@ -92,14 +92,14 @@
                         <h3 style="margin-bottom: 1rem; color: var(--dark);">Loading your orders...</h3>
                     </div>
 
-                    <!-- Error state for ongoing orders -->
-                    <div v-else-if="ongoingOrdersError" class="error-state"
+                    <!-- Error state for ongoing orders (only for actual errors, not empty orders) -->
+                    <!-- <div v-else-if="ongoingOrdersError" class="error-state"
                         style="text-align: center; padding: 3rem 0;">
                         <i class="fas fa-exclamation-circle"
                             style="font-size: 3rem; color: #dc3545; margin-bottom: 1rem;"></i>
                         <h3 style="margin-bottom: 1rem; color: var(--dark);">Error</h3>
                         <p>{{ ongoingOrdersError }}</p>
-                    </div>
+                    </div> -->
 
                     <!-- Empty state for ongoing orders -->
                     <div v-else-if="ongoingOrders.length === 0" class="empty-cart"
@@ -151,13 +151,13 @@
                         <h3 style="margin-bottom: 1rem; color: var(--dark);">Loading your order history...</h3>
                     </div>
 
-                    <!-- Error state for past orders -->
-                    <div v-else-if="pastOrdersError" class="error-state" style="text-align: center; padding: 3rem 0;">
+                    <!-- Error state for past orders (only for actual errors, not empty orders) -->
+                    <!-- <div v-else-if="pastOrdersError" class="error-state" style="text-align: center; padding: 3rem 0;">
                         <i class="fas fa-exclamation-circle"
                             style="font-size: 3rem; color: #dc3545; margin-bottom: 1rem;"></i>
                         <h3 style="margin-bottom: 1rem; color: var(--dark);">Error</h3>
                         <p>{{ pastOrdersError }}</p>
-                    </div>
+                    </div> -->
 
                     <!-- Empty state for past orders -->
                     <div v-else-if="pastOrders.length === 0" class="empty-cart"
@@ -189,8 +189,6 @@
                             </div>
                             <div class="order-footer">
                                 <div class="order-total">Total: ${{ order.total_price.toFixed(2) }}</div>
-                                <!-- <button class="btn btn-secondary" @click="viewOrderDetails(order.order_id)">View
-                                    Details</button> -->
                             </div>
                         </div>
                     </div>
@@ -283,11 +281,13 @@ export default {
                 if (data.code === 200) {
                     // Simulate a short loading delay for better UX
                     setTimeout(() => {
-                        ongoingOrders.value = data.data.orders;
+                        // Handle empty orders array without showing an error
+                        ongoingOrders.value = data.data.orders || [];
                         ongoingOrdersLoading.value = false;
                     }, 800);
-                }
-                else if (data.message == "Failed to fetch orders for user") {
+                } 
+                else if (data.message === "Failed to fetch orders for user") {
+                    // Set an empty array for no orders instead of treating as an error
                     setTimeout(() => {
                         ongoingOrders.value = [];
                         ongoingOrdersLoading.value = false;
@@ -315,12 +315,13 @@ export default {
 
                 if (data.code === 200) {
                     setTimeout(() => {
-                        // Change this line
+                        // Handle empty order_logs array without showing an error
                         pastOrders.value = data.data.order_logs || [];
                         pastOrdersLoading.value = false;
                     }, 800);
                 }
-                else if (data.message == "Failed to fetch orders for user") {
+                else if (data.message === "Failed to fetch orders for user") {
+                    // Set an empty array for no orders instead of treating as an error
                     setTimeout(() => {
                         pastOrders.value = [];
                         pastOrdersLoading.value = false;
@@ -434,10 +435,7 @@ export default {
             trackOrder: (orderId) => {
                 console.log(`Tracking order: ${orderId}`);
                 router.push(`/trackOrders/${orderId}`);
-            },
-            // viewOrderDetails: (orderId) => {
-            //     console.log(`Viewing details for order: ${orderId}`);
-            // }
+            }
         };
     }
 };
