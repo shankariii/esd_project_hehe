@@ -78,16 +78,16 @@
 
                   <div v-if="item.customizations && item.customizations.length > 0">
                     <p style="font-size: 0.8rem; color: var(--text-light); margin-bottom: 0.5rem;">
-                      Customizations:
+                        Customizations:
                     </p>
-                    <ul style="list-style-type: none; padding-left: 0; margin-top: 0.25rem;">
-                      <li v-for="customization in item.customizations" :key="customization.id"
-                        style="font-size: 0.8rem; color: var(--text-light); margin-bottom: 0.25rem;">
-                        {{ customization.name }}
-                        <span v-if="customization.price_diff > 0"> (+${{ customization.price_diff.toFixed(2) }})</span>
-                      </li>
+                    <ul style="list-style-type: disc; padding-left: 1rem; margin-top: 0.5rem;">
+                        <li v-for="customization in item.customizations" :key="customization.id"
+                            style="font-size: 0.8rem; color: var(--text-light); margin-bottom: 0.25rem;">
+                            {{ customization.name }}
+                            <span v-if="customization.price_diff > 0" style="color: var(--primary); font-weight: bold;"> (+${{ customization.price_diff.toFixed(2) }})</span>
+                        </li>
                     </ul>
-                  </div>
+                </div>
 
                   <div
                     style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">

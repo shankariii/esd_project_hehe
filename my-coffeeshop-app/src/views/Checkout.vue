@@ -120,6 +120,7 @@ export default {
     },
     data() {
         return {
+            popupMessage: null, // For displaying popup messages
             outletName: localStorage.getItem('selectedOutletName'),
             stripe: null,
             elements: null,
@@ -182,61 +183,49 @@ export default {
     },
 
     methods: {
+        showPopup(message) {
+            this.popupMessage = message;
+        },
+        closePopup() {
+            this.popupMessage = null;
+        },
+
         async fetchCartDetails() {
-            // Only fetch if we have a user ID and outlet ID
-            if (!this.userId || !this.outletId) {
+        if (!this.userId || !this.outletId) {
+            this.cartItems = [];
+            this.loading = false;
+            return;
+        }
+        try {
+            this.loading = true;
+            const cartClient = axios.create({
+                baseURL: this.apiConfig.cartService.baseURL,
+                timeout: this.apiConfig.cartService.timeout,
+            });
+            const drinkClient = axios.create({
+                baseURL: this.apiConfig.drinkService.baseURL,
+                timeout: this.apiConfig.drinkService.timeout,
+            });
+            const customClient = axios.create({
+                baseURL: this.apiConfig.customService.baseURL,
+                timeout: this.apiConfig.customService.timeout,
+            });
+            const cartResponse = await cartClient.get(`/get_cart_details/${this.userId}/${this.outletId}`);
+            this.cart = cartResponse.data.data;
+            if (!cartResponse.data?.data?.items) {
+                console.warn('No items found in cart');
                 this.cartItems = [];
-                this.loading = false;
                 return;
             }
-            try {
-                this.loading = true;
-                console.log('Starting cart data fetch...');
-
-                // Create axios instances with different configurations
-                const cartClient = axios.create({
-                    baseURL: this.apiConfig.cartService.baseURL,
-                    timeout: this.apiConfig.cartService.timeout,
-                    // headers: this.userId ? { 
-                    //     Authorization: await this.authStore.user.getIdToken() 
-                    // } : {}
-                });
-
-                const drinkClient = axios.create({
-                    baseURL: this.apiConfig.drinkService.baseURL,
-                    timeout: this.apiConfig.drinkService.timeout
-                });
-
-                const customClient = axios.create({
-                    baseURL: this.apiConfig.customService.baseURL,
-                    timeout: this.apiConfig.customService.timeout
-                });
-
-                // 1. Fetch cart data
-                console.log(`Fetching cart from ${this.apiConfig.cartService.baseURL}`);
-                const cartResponse = await cartClient.get(`/get_cart_details/${this.userId}/${this.outletId}`);
-                this.cart = cartResponse.data.data
-                // console.log
-                console.log('Cart response:', cartResponse.data);
-                console.log("Cart", this.cart)
-
-                if (!cartResponse.data?.data?.items) {
-                    console.warn('No items found in cart');
-                    this.cartItems = [];
-                    return;
-                }
-
-                // 2. Process each cart item
-                this.cartItems = await this.processCartItems(cartResponse.data.data.items, drinkClient, customClient);
-                console.log(this.cartItems);
-
-            } catch (error) {
-                console.error('Error in fetchCartDetails:', this.formatAxiosError(error));
-                alert('Failed to load cart. Please try again later.');
-            } finally {
-                this.loading = false;
-            }
-        },
+            this.cartItems = await this.processCartItems(cartResponse.data.data.items, drinkClient, customClient);
+            console.log(this.cartItems);
+        } catch (error) {
+            console.error('Error in fetchCartDetails:', this.formatAxiosError(error));
+            this.showPopup('Failed to load cart. Please try again later.');
+        } finally {
+            this.loading = false;
+        }
+    },
 
         async processCartItems(items, drinkClient, customClient) {
             const processedItems = [];
@@ -343,78 +332,53 @@ export default {
         },
 
         async handlePayment() {
-            if (!this.stripe || !this.elements) {
-                console.error("Stripe not initialized");
-                this.paymentError = "Payment system not ready. Please refresh and try again.";
-                return;
-            }
-
-            this.isProcessing = true;
-            this.paymentError = null;
-
-            try {
-                // Confirm the payment
-                const result = await this.stripe.confirmPayment({
-                    elements: this.elements,
-                    redirect: 'if_required',
-                });
-
-                if (result.error) {
-                    // Show error to your customer
-                    console.error("Payment error:", result.error);
-                    this.paymentError = result.error.message;
-                    this.isProcessing = false;
-                } else {
-                    // The payment has been processed!
-                    console.log("Payment successful:", result.paymentIntent);
-
-                    // Save payment ID
-                    this.paymentId = result.paymentIntent.id;
-                    this.status = result.paymentIntent.status;
-                    console.log("Payment ID:", this.paymentId);
-                    console.log("Status:", this.status);
-
-                    // After successful payment in handlePayment method
-                    const paymentData = {
-                        cart: this.cart,
-                        paymentId: this.paymentId,
-                        paymentStatus: this.status
-                    };
-
-                    try {
-                        const response = await axios.post('http://localhost:5300/process_payment', paymentData);
-                        console.log('Payment processing result:', response.data);
-                        const successCode = response.data.code
-                        console.log('Payment processing result Code:', successCode);
-
-                        // Show confirmation
-                        if (successCode == 201) {
-                            this.showConfirmation = true;
-                            // console.log("cart")
-                        }
-                        else {
-                            this.errorMessage = response.data.message || "An error occurred processing your order";
-                            this.showFailure = true;
-                            console.log("An error has occured, payment did go through")
-                        }
-                    } catch (error) {
-                        // console.error('Error processing payment:', error);
-                        console.error('Error processing payment:', error);
-                        this.errorMessage = "Failed to connect to the order processing system";
+        if (!this.stripe || !this.elements) {
+            console.error("Stripe not initialized");
+            this.showPopup("Payment system not ready. Please refresh and try again.");
+            return;
+        }
+        this.isProcessing = true;
+        try {
+            const result = await this.stripe.confirmPayment({
+                elements: this.elements,
+                redirect: 'if_required',
+            });
+            if (result.error) {
+                console.error("Payment error:", result.error);
+                // Display the error message in the popup
+                this.showPopup(result.error.message || "An error occurred during payment.");
+            } else {
+                this.paymentId = result.paymentIntent.id;
+                this.status = result.paymentIntent.status;
+                const paymentData = {
+                    cart: this.cart,
+                    paymentId: this.paymentId,
+                    paymentStatus: this.status
+                };
+                try {
+                    const response = await axios.post('http://localhost:5300/process_payment', paymentData);
+                    const successCode = response.data.code;
+                    if (successCode == 201) {
+                        this.showConfirmation = true;
+                    } else {
+                        this.errorMessage = response.data.message || "An error occurred processing your order";
                         this.showFailure = true;
+                        this.showPopup("An error has occurred, payment did not go through.");
                     }
-
-
-
+                } catch (error) {
+                    console.error('Error processing payment:', error);
+                    this.errorMessage = "Failed to connect to the order processing system";
+                    this.showFailure = true;
+                    this.showPopup("Failed to process payment. Please try again later.");
                 }
-            } catch (error) {
-                console.error("Error handling payment:", error);
-                this.paymentError = "An unexpected error occurred. Please try again.";
-                this.isProcessing = false;
-            } finally {
-                this.isProcessing = false;
             }
-        },
+        } catch (error) {
+            console.error("Error handling payment:", error);
+            this.showPopup("An unexpected error occurred. Please try again.");
+        } finally {
+            this.isProcessing = false;
+        }
+    },
         // Set up a function to listen for webhook events
         setupWebhookListener() {
             // This is a simplified example to demonstrate the concept
@@ -478,11 +442,10 @@ export default {
         async processPayment() {
             this.isProcessing = true;
             this.paymentStatus = '';
-
-            // Simulate payment processing delay
             setTimeout(() => {
                 this.isProcessing = false;
                 this.paymentStatus = 'Payment successful!';
+                this.showPopup('Payment successful!');
             }, 3000);
         },
 
@@ -873,6 +836,49 @@ export default {
     animation: spin 2s linear infinite; /* 2s = duration, linear = timing function, infinite = repeat forever */
     width: 150px; /* Adjust size as needed */
     height: auto; /* Maintain aspect ratio */
+}
+
+.popup-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.popup-box {
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    max-width: 400px;
+    width: 90%;
+}
+
+.popup-box p {
+    font-size: 1rem;
+    margin-bottom: 1rem;
+}
+
+.popup-close-btn {
+    background-color: var(--primary);
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.popup-close-btn:hover {
+    background-color: var(--secondary);
 }
 
 @media (max-width: 768px) {
