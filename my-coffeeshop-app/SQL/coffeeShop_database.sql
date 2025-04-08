@@ -228,7 +228,23 @@ values
     (3, 'Coffee Beans', 10, 'g'),
 
     -- Americano (Drink ID 4)
-	  (4, 'Coffee Beans', 10, 'g'),
+    (4, 'Coffee Beans', 10, 'g'),
+
+    -- Spiced Chai Latte (Drink ID 7)
+    (7, 'Coffee Beans', 10, 'g'),
+
+    -- Cold Brew (Drink ID 8)
+    (8, 'Coffee Beans', 10, 'g'),
+
+    -- Iced Vanilla Latte (Drink ID 9)
+    (9, 'Coffee Beans', 10, 'g'),
+
+    -- Iced Matcha Latte (Drink ID 5)
+    (5, 'Matcha Powder', 5, 'g'),
+	  (5, 'Sugar Syrup', 15, 'ml'),
+
+    -- Iced Chocolate (Drink ID 6)
+    (6, 'Chocolate Syrup', 30, 'ml'),
 
     -- Iced Matcha Latte (Drink ID 5)
     (5, 'Matcha Powder', 5, 'g'),
