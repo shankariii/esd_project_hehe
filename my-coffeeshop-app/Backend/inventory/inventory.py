@@ -5,10 +5,13 @@ from os import environ
 from datetime import datetime, timedelta
 from flasgger import Swagger
 from sqlalchemy import desc
+from prometheus_client import Gauge, generate_latest, CONTENT_TYPE_LATEST
 
 app = Flask(__name__)
 CORS(app)
 Swagger(app)  # Enable Swagger UI
+
+# metrics = PrometheusMetrics(app)
 
 # Database configuration
 app.config['SQLALCHEMY_DATABASE_URI'] = environ.get('dbURL')
@@ -16,6 +19,9 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {'pool_recycle': 299}
 
 db = SQLAlchemy(app)
+
+#Define Prometheus metrics
+inventory_gauge = Gauge('inventory_quantity_over_time', 'Track the quantity of ingredients over time', ['ingredient'])
 
 class Inventory(db.Model):
     __tablename__ = 'inventory'
@@ -136,11 +142,12 @@ def get_ingredient_available_quantity(ingredient):
       404:
         description: No inventory records found for that ingredient.
     """
-    latest_record = db.session.scalar(
-        db.select(Inventory)
-        .filter_by(ingredient=ingredient)
-        .order_by(desc(Inventory.date_time))
-    )
+    # latest_record = db.session.scalar(
+    #     db.select(Inventory)
+    #     .filter_by(ingredient=ingredient)
+    #     .order_by(desc(Inventory.date_time))
+    # )
+    latest_record = db.session.query(Inventory).filter_by(ingredient=ingredient).order_by(desc(Inventory.date_time)).first()
 
     if latest_record:
         return jsonify({
@@ -178,61 +185,6 @@ def get_ingredient_changes(ingredient):
         history_list = [item.json_change_only() for item in history]
         return jsonify({"code": 200, "data": history_list})
     return jsonify({"code": 404, "message": f"No history found for ingredient '{ingredient}' in the past 7 days."}), 404
-
-
-# @app.route("/inventory", methods=["POST"])
-# def create_item():
-#     """
-#     Create a new inventory item
-#     ---
-#     requestBody:
-#       required: true
-#       content:
-#         application/json:
-#           schema:
-#             type: object
-#             required:
-#               - ingredient
-#               - available_quantity
-#               - unit
-#             properties:
-#               ingredient:
-#                 type: string
-#               available_quantity:
-#                 type: number
-#               unit:
-#                 type: string
-#               change_in_quantity:
-#                 type: number
-#     responses:
-#       201:
-#         description: Item created
-#       400:
-#         description: Missing fields
-#       500:
-#         description: Server error
-#     """
-#     data = request.get_json()
-#     required = ['ingredient', 'available_quantity', 'unit']
-#     if not all(key in data for key in required):
-#         return jsonify({"code": 400, "message": "Missing required fields."}), 400
-
-#     change = data.get('change_in_quantity', data['available_quantity'])
-
-#     item = Inventory(
-#         ingredient=data['ingredient'],
-#         available_quantity=data['available_quantity'],
-#         unit=data['unit'],
-#         change_in_quantity=change
-#     )
-#     try:
-#         db.session.add(item)
-#         db.session.commit()
-#     except Exception as e:
-#         db.session.rollback()
-#         return jsonify({"code": 500, "message": "An error occurred creating the item.", "error": str(e)}), 500
-
-#     return jsonify({"code": 201, "data": item.json()}), 201
 
 @app.route("/inventory", methods=["POST"])
 def create_item():
@@ -297,14 +249,13 @@ def create_item():
         db.session.commit()
 
         # After successfully adding the item, record for Prometheus
-        #record_inventory_change(item.ingredient, item.available_quantity)
+        record_inventory_change(item.ingredient, item.available_quantity)
 
     except Exception as e:
         db.session.rollback()
         return jsonify({"code": 500, "message": "An error occurred creating the item.", "error": str(e)}), 500
 
     return jsonify({"code": 201, "data": item.json()}), 201
-
 
 @app.route("/inventory/<int:inventory_id>", methods=["DELETE"])
 def delete_item(inventory_id):
@@ -319,11 +270,11 @@ def delete_item(inventory_id):
           type: integer
     responses:
       200:
-        description: Item deleted
+        description: Item record deleted
       404:
-        description: Item not found
+        description: Item record not found
       500:
-        description: Failed to delete item
+        description: Failed to delete item record
     """
     item = db.session.scalar(db.select(Inventory).filter_by(inventory_id=inventory_id))
     if not item:
@@ -338,5 +289,14 @@ def delete_item(inventory_id):
 
     return jsonify({"code": 200, "message": "Item record deleted successfully."})
 
+def record_inventory_change(ingredient, quantity): #for prometheus, whenever the quantity of an ingredient changes.
+    inventory_gauge.labels(ingredient=ingredient).set(quantity)
+
+@app.route("/metrics")
+def metrics():
+    """Expose Prometheus metrics, including inventory quantities."""
+    return generate_latest(), 200, {'Content-Type': CONTENT_TYPE_LATEST}
+
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    # app.run(host="0.0.0.0", port=5000, debug=True)
+    app.run(host="0.0.0.0", port=5000, debug=False)

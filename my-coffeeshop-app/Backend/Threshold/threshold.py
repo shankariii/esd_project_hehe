@@ -3,15 +3,21 @@ from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 from os import environ
+from prometheus_client import Gauge, generate_latest, CONTENT_TYPE_LATEST
 
 app = Flask(__name__)
 CORS(app)
+
+# metrics = PrometheusMetrics(app)
 
 app.config['SQLALCHEMY_DATABASE_URI'] = environ.get('dbURL')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {'pool_recycle': 299}
 
 db = SQLAlchemy(app)
+
+# Prometheus Gauge to track threshold values per ingredient
+threshold_gauge = Gauge('threshold_value', 'Threshold value of ingredients', ['ingredient'])
 
 # Create Threshold table
 class Threshold(db.Model):
@@ -197,5 +203,20 @@ def delete_threshold(threshold_id):
         "message": "Threshold deleted successfully."
     })
 
+def refresh_threshold_metrics():
+    """Fetch all thresholds and update the Prometheus gauge."""
+    threshold_list = db.session.scalars(db.select(Threshold)).all()
+    threshold_gauge.clear()  # Clear previous values to avoid duplicates
+    for threshold in threshold_list:
+        threshold_gauge.labels(ingredient=threshold.ingredient).set(float(threshold.threshold))
+
+@app.route("/metrics")
+def metrics():
+    """Expose Prometheus metrics, including custom thresholds."""
+    # Refresh threshold metrics before returning
+    refresh_threshold_metrics()
+    return generate_latest(), 200, {'Content-Type': CONTENT_TYPE_LATEST}
+
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8100, debug=True)
+    # app.run(host='0.0.0.0', port=8100, debug=True)
+    app.run(host='0.0.0.0', port=8100, debug=False)

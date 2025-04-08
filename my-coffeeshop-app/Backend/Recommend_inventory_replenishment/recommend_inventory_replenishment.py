@@ -6,6 +6,7 @@ import os, sys
 import requests
 from invokes import invoke_http
 from flasgger import Swagger
+import json
 
 app = Flask(__name__)
 swagger = Swagger(app)
@@ -33,17 +34,8 @@ def place_order():
           schema:
             type: array
             items:
-              type: object
-              properties:
-                ingredient:
-                  type: string
-                  example: milk
-                change_in_quantity:
-                  type: number
-                  example: -5
-                unit:
-                  type: string
-                  example: litre
+              type: string
+              example: "{\"ingredient\":\"Coffee Beans\",\"change_in_quantity\":10,\"unit\":\"g\"}"
     responses:
       200:
         description: Threshold processing completed
@@ -96,14 +88,41 @@ NUM_DAYS_PERIOD = 7
 SAFETY_FACTOR = 1.5
 
 def processInventoryReplenishment(ingredients_info_order):
+    extracted_ingredients = []
+    if isinstance(ingredients_info_order, list):
+        for json_string in ingredients_info_order:
+            try:
+                data = json.loads(json_string) # Parse the JSON string
+                ingredient = data.get('ingredient')
+                change_in_quantity = data.get('change_in_quantity')
+                unit = data.get('unit')
+
+                if ingredient and change_in_quantity is not None and unit:
+                    extracted_ingredients.append({
+                        "ingredient": ingredient,
+                        "change_in_quantity": change_in_quantity,
+                        "unit": unit
+                    })
+                else:
+                    print(f"Warning: Missing key in order item data: {json_string}")
+            except json.JSONDecodeError as e:
+                print(f"Error decoding JSON string: {json_string} - {e}")
+    else:
+        print("Error: Expected a list of JSON strings.")
+        return {"code": 400, "message": "Invalid input format. Expected a list of JSON strings."}
+    
+    if not extracted_ingredients:
+        return {"code": 400, "message": "No valid ingredient items to process."}
+    
+    print("\nExtracted ingredient data:", extracted_ingredients)
 
     all_threshold_responses = []
     thresholds = []
     try:
         # Case: Expected list of ingredients
-        if isinstance(ingredients_info_order, list):
+        if isinstance(extracted_ingredients, list):
 
-            for ing_info in ingredients_info_order:
+            for ing_info in extracted_ingredients:
                 ing = ing_info.get('ingredient')
                 change_in_quantity = ing_info.get('change_in_quantity')
                 unit = ing_info.get('unit')
