@@ -1,6 +1,4 @@
-# esd_project_hehe
-
-## Brew Haven
+# Brew Haven
 
  Brew Haven is an online coffee application that allows customers to order their favourite drinks on the go. With multiple outlets across Singapore, customers can easily select the nearest location from their current location, streamlining the ordering process and saving valuable time.
 
@@ -12,17 +10,28 @@ To Run Frontend:
 
 To run the backend:
 - Run Docker
-- Import coffeeShop_database.sql
-- cd .\my-coffeeshop-app\Backend\
-- docker compose up --build
+- Import coffeeShop_database.sql into http://localhost/phpmyadmin/
+    * On phpMyAdmin, click User accounts
+    * Click Add user account and specify the following:
+        * User name: (Use text field:) is213
+        * Host name: (Any host) %
+        * Password: Change to No Password
+        * Select 'Data'
+        * Click 'Go'
+        * A new user is added
+    * 
+- ```cd .\my-coffeeshop-app\Backend\```
+- ```docker compose up --build```
+- To stop and remove containers
+    ```docker compose down```
 
-
+### Ngrok
 Create an account on ngrok.com
 Install ngrok via Homebrew with the following command:
-brew install ngrok
+```brew install ngrok```
 
 Configure and run by replacing <token> with the AuthToken found on your account:
-ngrok config add-authtoken <token>
+```ngrok config add-authtoken <token>```
 
 Start an endpoint: 
 
