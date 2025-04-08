@@ -1,6 +1,10 @@
 # esd_project_hehe
 
+## Brew Haven
 
+ Brew Haven is an online coffee application that allows customers to order their favourite drinks on the go. With multiple outlets across Singapore, customers can easily select the nearest location from their current location, streamlining the ordering process and saving valuable time.
+
+## Getting Started
 To Run Frontend:
 - cd .\my-coffeeshop-app\
 - npm install
@@ -22,7 +26,7 @@ ngrok config add-authtoken <token>
 
 Start an endpoint: 
 
-ngrok http 5005 (DrinkMenuAPI)
-ngrok http 5006 (DrinkIngredientAPI)
-ngrok http 5007 (DrinkCustomisationAPI)
-ngrok http 6000 (SendSMSToCompletedOrder)
+* ngrok http 5005 (DrinkMenuAPI)
+* ngrok http 5006 (DrinkIngredientAPI)
+* ngrok http 5007 (DrinkCustomisationAPI)
+* ngrok http 6000 (SendSMSToCompletedOrder)
