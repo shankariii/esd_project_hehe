@@ -4,15 +4,15 @@
 
 ## Getting Started
 To Run Frontend:
-- cd .\my-coffeeshop-app\
-- npm install
-- npm run dev
+- ```cd .\my-coffeeshop-app\```
+- ```npm install```
+- ```npm run dev```
 
 To run the backend:
 - Run Docker
 - Import coffeeShop_database.sql into http://localhost/phpmyadmin/
-    * On phpMyAdmin, click User accounts
-    * Click Add user account and specify the following:
+    * On phpMyAdmin, click 'User accounts'
+    * Click 'Add user account' and specify the following:
         * User name: (Use text field:) is213
         * Host name: (Any host) %
         * Password: Change to No Password
@@ -22,11 +22,11 @@ To run the backend:
     * 
 - ```cd .\my-coffeeshop-app\Backend\```
 - ```docker compose up --build```
-- To stop and remove containers
+- To stop and remove containers:
     ```docker compose down```
 
 ### Ngrok
-Create an account on ngrok.com
+Create an account on ngrok.com <br>
 Install ngrok via Homebrew with the following command:
 ```brew install ngrok```
 
@@ -35,7 +35,7 @@ Configure and run by replacing <token> with the AuthToken found on your account:
 
 Start an endpoint: 
 
-* ngrok http 5005 (DrinkMenuAPI)
-* ngrok http 5006 (DrinkIngredientAPI)
-* ngrok http 5007 (DrinkCustomisationAPI)
-* ngrok http 6000 (SendSMSToCompletedOrder)
+* ```ngrok http 5005 (DrinkMenuAPI)```
+* ```ngrok http 5006 (DrinkIngredientAPI)```
+* ```ngrok http 5007 (DrinkCustomisationAPI)```
+* ```ngrok http 6000 (SendSMSToCompletedOrder)```
