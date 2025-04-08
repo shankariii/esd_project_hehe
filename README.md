@@ -44,3 +44,4 @@ Replace the Base URL for each of the consumed REST API with the newly created en
 For example: For the endpoint you get (e.g ```ngrok http 5005``` gets you the endpoint ```https://1234-123-123-12-12.ngrok-free.app```), change the Base URL for DrinkMenuAPI
 
 ![screenshot](my-coffeeshop-app/src/assets/drink_menu_outsystems.jpg)
+![screenshot](my-coffeeshop-app/src/assets/ngrok.jpg)
