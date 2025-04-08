@@ -19,7 +19,6 @@ To run the backend:
         * Select 'Data'
         * Click 'Go'
         * A new user is added
-    * 
 - ```cd .\my-coffeeshop-app\Backend\```
 - ```docker compose up --build```
 - To stop and remove containers:
