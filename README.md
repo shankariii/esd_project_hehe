@@ -38,3 +38,9 @@ Start an endpoint:
 * ```ngrok http 5006 (DrinkIngredientAPI)```
 * ```ngrok http 5007 (DrinkCustomisationAPI)```
 * ```ngrok http 6000 (SendSMSToCompletedOrder)```
+
+Note: each account can create only one endpoint.
+Replace the Base URL for each of the consumed REST API with the newly created endpoint.
+For example: For the endpoint you get (e.g ```ngrok http 5005``` gets you the endpoint ```https://1234-123-123-12-12.ngrok-free.app```), change the Base URL for DrinkMenuAPI
+
+![screenshot](my-coffeeshop-app/src/assets/drink_menu_outsystems.jpg)
