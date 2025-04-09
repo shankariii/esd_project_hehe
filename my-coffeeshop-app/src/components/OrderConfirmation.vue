@@ -117,6 +117,7 @@ export default {
     goToMenu() {
       // Navigate to order history page
       this.$router.push('/');
+      window.location.reload();
       // this.close();
     }
   }
