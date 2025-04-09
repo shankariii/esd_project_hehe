@@ -10,7 +10,7 @@ To Run Frontend:
 
 To run the backend:
 - Run Docker
-- Import coffeeShop_database.sql into http://localhost/phpmyadmin/
+- Import ```my-coffeeshop-app\SQL\coffeeShop_database.sql``` into http://localhost/phpmyadmin/
     * On phpMyAdmin, click 'User accounts'
     * Click 'Add user account' and specify the following:
         * User name: (Use text field:) is213
