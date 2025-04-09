@@ -29,8 +29,12 @@ Create an account on ngrok.com <br>
 Install ngrok via Homebrew with the following command:
 ```brew install ngrok```
 
+Open a terminal/command prompt in the folder where ngrok is located.
+
 Configure and run by replacing <token> with the AuthToken found on your account:
 ```ngrok config add-authtoken <token>```
+or
+```.\ngrok config add-authtoken <token>```
 
 Start an endpoint: 
 
@@ -38,6 +42,8 @@ Start an endpoint:
 * ```ngrok http 5006 (DrinkIngredientAPI)```
 * ```ngrok http 5007 (DrinkCustomisationAPI)```
 * ```ngrok http 6000 (SendSMSToCompletedOrder)```
+
+* * If the codes above does not work, add a ```.\``` before all the ```ngrok http 5005 (DrinkMenuAPI)```
 
 Note: each account can create only one endpoint.
 Replace the Base URL for each of the consumed REST API with the newly created endpoint.
