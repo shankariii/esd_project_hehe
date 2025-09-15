@@ -1,6 +1,6 @@
 # Brew Haven
 
- Brew Haven is an online coffee application that allows customers to order their favourite drinks on the go. With multiple outlets across Singapore, customers can easily select the nearest location from their current location, streamlining the ordering process and saving valuable time.
+ Brew Haven is an online coffee application that allows customers to order their favourite drinks on the go. With multiple outlets across Singapore, customers can easily select the nearest location from their current location, streamlining the ordering process and saving valuable time. Here is a Video Demo of the whole application in actions: https://youtu.be/HqUj2MUIMto
 
 ## Getting Started
 To Run Frontend:
